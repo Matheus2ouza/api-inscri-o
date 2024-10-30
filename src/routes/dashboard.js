@@ -6,6 +6,7 @@ const { pool } = require('../db/dbConnection');
 router.get('/', async (req, res) => {
     try {
         // Consulta dados das diferentes tabelas
+        const localidades = await pool.query('SELECT id, nome, saldo_devedor FROM public.localidades');
         const eventos = await pool.query('SELECT id, descricao, data_limite FROM public.eventos');
         const hospedagem = await pool.query(`
             SELECT h.id, h.nome, ig.nome_responsavel, l.nome AS localidade
@@ -13,13 +14,26 @@ router.get('/', async (req, res) => {
             JOIN public.inscricao_geral ig ON h.id_inscricao = ig.id
             JOIN public.localidades l ON ig.localidade_id = l.id
         `);
-        const inscricoes0_6 = await pool.query('SELECT id, qtd_masculino, qtd_feminino FROM public.inscricao_0_6');
-        const inscricoes7_10 = await pool.query('SELECT id, qtd_masculino, qtd_feminino FROM public.inscricao_7_10');
-        const inscricoes10_acima = await pool.query('SELECT id, qtd_masculino, qtd_feminino FROM public.inscricao_10_acima');
+        const inscricoes0_6 = await pool.query(`SELECT lc.nome, sum(insc.qtd_masculino) as qtd_masculino, sum(insc.qtd_feminino) as qtd_feminino  FROM public.inscricao_0_6 as insc
+                                                inner join inscricao_geral as ig on insc.inscricao_geral_id = ig.id
+                                                inner join localidades as lc on ig.localidade_id = lc.id
+                                                GROUP BY lc.nome`);
+        const inscricoes7_10 = await pool.query(
+            `SELECT lc.nome, sum(insc.qtd_masculino) as qtd_masculino, sum(insc.qtd_feminino) as qtd_feminino  FROM public.inscricao_7_10 as insc
+                                                inner join inscricao_geral as ig on insc.inscricao_geral_id = ig.id
+                                                inner join localidades as lc on ig.localidade_id = lc.id
+                                                GROUP BY lc.nome`
+        );
+        const inscricoes10_acima = await pool.query(
+            `SELECT lc.nome, sum(insc.qtd_masculino) as qtd_masculino, sum(insc.qtd_feminino) as qtd_feminino  FROM public.inscricao_10_acima as insc
+                                                inner join inscricao_geral as ig on insc.inscricao_geral_id = ig.id
+                                                inner join localidades as lc on ig.localidade_id = lc.id
+                                                GROUP BY lc.nome`
+        );
         const inscricaoGeral = await pool.query(`
-            SELECT ig.id, ig.nome_responsavel, ig.qtd_geral, l.nome AS localidade
-            FROM public.inscricao_geral ig
-            LEFT JOIN public.localidades l ON ig.localidade_id = l.id
+                                                SELECT ig.id, ig.nome_responsavel, ig.qtd_geral, l.nome AS localidade
+                                                FROM public.inscricao_geral ig
+                                                LEFT JOIN public.localidades l ON ig.localidade_id = l.id
         `);
         const movimentacaoFinanceira = await pool.query('SELECT id, descricao, valor FROM public.movimentacao_financeira');
         const pagamento = await pool.query(`
@@ -31,7 +45,11 @@ router.get('/', async (req, res) => {
 
         // Monta o objeto de resposta para cada tabela
         const response = {
-            eventos: {
+            localidades: {
+                success: true,
+                data: localidades.rows,
+                message: 'Dados das localidades obtidos com sucesso.'
+            },eventos: {
                 success: true,
                 data: eventos.rows,
                 message: 'Dados dos eventos obtidos com sucesso.'
