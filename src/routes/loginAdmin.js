@@ -26,25 +26,24 @@ router.post(
             return res.status(401).json({ message: "dados invalidos" });
         };
         
-       const usernameValidation =  await pool.query(`SELECT * FROM userAdmin WHERE username = $1`, 
-        [username]);
-
+        const usernameValidation = await pool.query(`SELECT * FROM userAdmin WHERE username = $1`, [username]);
         const user = usernameValidation.rows[0];
 
-        if(user){
-            console.warn(`Tentativa de login rejeitada, usuario ${username} invalida`);
-            return res.status(401).json({ message: `username invalido`});
-        };
+        // Verifica se o usuário não foi encontrado
+        if (!user) {
+            console.warn(`Tentativa de login rejeitada, usuário ${username} não encontrado`);
+            return res.status(401).json({ message: `username invalido` });
+        }
 
         const match = await bcrypt.compare(password, user.password);
 
-        if(!match){
-            console.warn(`Tentativa de login rejeitada, senha: ${password}`)
-            return res.status(401).json({message: `password invalido`})
+        if (!match) {
+            console.warn(`Tentativa de login rejeitada, senha: ${password}`);
+            return res.status(401).json({ message: `password invalido` });
         }
 
-        console.log(`Dados aceitos`)
-        return res.status(201).json({ message: 'Dados validos'})
+        console.log(`Dados aceitos`);
+        return res.status(201).json({ message: 'Dados válidos' });
     }
 );
 
