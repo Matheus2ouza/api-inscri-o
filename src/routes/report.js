@@ -2,29 +2,27 @@ const express = require('express');
 const router = express.Router();
 const { pool } = require('../db/dbConnection');
 
-// Rota para obter todas as localidades
-router.get('/localidades', async (req, res) => {
+// obter as localidades
+router.get('/', async (req, res) => {
     try {
-        const localidades = await pool.query(`
-            SELECT id, nome FROM public.localidades
-        `);
-        
-        const response = {
-            success: true,
-            data: localidades.rows,
-            message: 'Dados das localidades obtidos com sucesso.'
-        };
+        const locations = await pool.query('SELECT * FROM localidades');
+        const result = locations.rows;
 
-        console.info('Dados das localidades retornados com sucesso.');
-        return res.status(200).json(response);
+        if (result.length === 0) { 
+            console.warn('Consulta de localidade feita, mas não teve nenhum resultado.');
+            return res.status(404).json({ message: 'Nenhuma localidade encontrada.' });
+        } else {
+            console.info('Consulta de localidade feita com sucesso.');
+            return res.status(200).json(result); 
+        }
     } catch (err) {
-        console.error(`Erro ao obter dados das localidades: ${err}`);
-        return res.status(500).json({ error: 'Erro ao obter dados das localidades.' });
+        console.error(`Erro ao buscar localidade: ${err}`);
+        return res.status(500).json({ error: 'Erro ao buscar localidade.' });
     }
 });
 
-// Rota para obter o relatório com base no ID da localidade
-router.get('/relatorio/:id', async (req, res) => {
+// Rota para obter o relatório
+router.get('/:id', async (req, res) => {
     const localidadeId = req.params.id;
 
     try {
