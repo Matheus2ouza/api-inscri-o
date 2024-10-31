@@ -11,6 +11,7 @@ const paymentRoutes = require('./src/routes/payment.js');
 const hospedagemRoutes = require('./src/routes/hospedagem.js');
 const dashboardRoutes = require('./src/routes/dashboard.js');
 const loginAdminRoutes = require('./src/routes/loginAdmin.js');
+const report = require('./src/routes/report.js');
 
 app.use(express.json());
 
@@ -39,6 +40,7 @@ app.use('/pagamento', paymentRoutes);
 app.use('/hospedagem', hospedagemRoutes);
 app.use('/dashboard', dashboardRoutes);
 app.use('/loginAdmin', loginAdminRoutes);
+app.use('/report', report);
 
 const port = process.env.PORT
 console.log(port)
