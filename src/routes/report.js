@@ -22,11 +22,12 @@ router.get('/', async (req, res) => {
 });
 
 // Rota para obter o relatório
-router.get('/:localidadeId', async (req, res) => {
+router.get('/:localidadeId?', async (req, res) => {
     const { localidadeId } = req.params;
 
     try {
-        const result = await pool.query(`
+        // Consulta base
+        let query = `
             SELECT 
                 lc.id AS localidade_id,
                 lc.nome AS localidade_nome,
@@ -64,11 +65,19 @@ router.get('/:localidadeId', async (req, res) => {
                 inscricao_servico AS ise ON ise.inscricao_geral_id = ig.id
             LEFT JOIN 
                 inscricao_tx_participacao AS itx ON itx.inscricao_geral_id = ig.id
-            WHERE
-                lc.id = $1
-            GROUP BY 
-                lc.id, lc.nome
-        `, [localidadeId]);
+        `;
+
+        const params = [];
+        
+        if (localidadeId) {
+            
+            query += ` WHERE lc.id = $1`;
+            params.push(localidadeId);
+        }
+
+        query += ` GROUP BY lc.id, lc.nome`;
+
+        const result = await pool.query(query, params);
 
         if (result.rows.length === 0) {
             console.warn('Consulta de inscrições feita, mas não teve nenhum resultado.');
