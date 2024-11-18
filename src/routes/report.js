@@ -11,28 +11,28 @@ router.get('/:localidadeId?', async (req, res) => {
         // Consulta base
         let query = `
             SELECT 
-                lc.id AS localidade_id,
-                lc.nome AS localidade_nome,
-                COALESCE(SUM(ic.qtd_masculino), 0) AS total_masculino_0_6,
-                COALESCE(SUM(ic.qtd_feminino), 0) AS total_feminino_0_6,
-                COALESCE(SUM((ic.qtd_masculino + ic.qtd_feminino) * 0.00), 0) AS valor_total_0_6,
-                COALESCE(SUM(ia.qtd_masculino), 0) AS total_masculino_7_10,
-                COALESCE(SUM(ia.qtd_feminino), 0) AS total_feminino_7_10,
-                COALESCE(SUM((ia.qtd_masculino + ia.qtd_feminino) * 120.00), 0) AS valor_total_7_10,
-                COALESCE(SUM(ino.qtd_masculino), 0) AS total_masculino_normal,
-                COALESCE(SUM(ino.qtd_feminino), 0) AS total_feminino_normal,
-                COALESCE(SUM((ino.qtd_masculino + ino.qtd_feminino) * 200.00), 0) AS valor_total_normal,
-                COALESCE(SUM(ise.qtd_masculino), 0) AS total_masculino_servico,
-                COALESCE(SUM(ise.qtd_feminino), 0) AS total_feminino_servico,
-                COALESCE(SUM((ise.qtd_masculino + ise.qtd_feminino) * 100.00), 0) AS valor_total_servico,
-                COALESCE(SUM(itx.qtd_masculino), 0) AS total_masculino_participacao,
-                COALESCE(SUM(itx.qtd_feminino), 0) AS total_feminino_participacao,
-                COALESCE(SUM((itx.qtd_masculino + itx.qtd_feminino) * 100.00), 0) AS valor_total_participacao,
-                COALESCE(SUM((ic.qtd_masculino + ic.qtd_feminino) * 0.00 
-                    + (ia.qtd_masculino + ia.qtd_feminino) * 120.00 
-                    + (ino.qtd_masculino + ino.qtd_feminino) * 200.00 
-                    + (ise.qtd_masculino + ise.qtd_feminino) * 100.00 
-                    + (itx.qtd_masculino + itx.qtd_feminino) * 100.00), 0) AS valor_total_geral
+                    lc.id AS "Localidade ID",
+                    lc.nome AS "Localidade Nome",
+                    COALESCE(SUM(ic.qtd_masculino), 0) AS "Total Masculino 0-6",
+                    COALESCE(SUM(ic.qtd_feminino), 0) AS "Total Feminino 0-6",
+                    COALESCE(SUM((ic.qtd_masculino + ic.qtd_feminino) * 0.00), 0) AS "Valor Total 0-6",
+                    COALESCE(SUM(ia.qtd_masculino), 0) AS "Total Masculino 7-10",
+                    COALESCE(SUM(ia.qtd_feminino), 0) AS "Total Feminino 7-10",
+                    COALESCE(SUM((ia.qtd_masculino + ia.qtd_feminino) * 120.00), 0) AS "Valor Total 7-10",
+                    COALESCE(SUM(ino.qtd_masculino), 0) AS "Total Masculino Normal",
+                    COALESCE(SUM(ino.qtd_feminino), 0) AS "Total Feminino Normal",
+                    COALESCE(SUM((ino.qtd_masculino + ino.qtd_feminino) * 200.00), 0) AS "Valor Total Normal",
+                    COALESCE(SUM(ise.qtd_masculino), 0) AS "Total Masculino Serviço",
+                    COALESCE(SUM(ise.qtd_feminino), 0) AS "Total Feminino Serviço",
+                    COALESCE(SUM((ise.qtd_masculino + ise.qtd_feminino) * 100.00), 0) AS "Valor Total Serviço",
+                    COALESCE(SUM(itx.qtd_masculino), 0) AS "Total Masculino Participação",
+                    COALESCE(SUM(itx.qtd_feminino), 0) AS "Total Feminino Participação",
+                    COALESCE(SUM((itx.qtd_masculino + itx.qtd_feminino) * 100.00), 0) AS "Valor Total Participação",
+                    COALESCE(SUM((ic.qtd_masculino + ic.qtd_feminino) * 0.00 
+                        + (ia.qtd_masculino + ia.qtd_feminino) * 120.00 
+                        + (ino.qtd_masculino + ino.qtd_feminino) * 200.00 
+                        + (ise.qtd_masculino + ise.qtd_feminino) * 100.00 
+                        + (itx.qtd_masculino + itx.qtd_feminino) * 100.00), 0) AS "Valor Total Geral"
             FROM 
                 localidades AS lc
             INNER JOIN 
