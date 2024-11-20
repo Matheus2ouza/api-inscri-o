@@ -35,15 +35,7 @@ router.get('/', async (req, res) => {
                                                 FROM public.inscricao_geral ig
                                                 LEFT JOIN public.localidades l ON ig.localidade_id = l.id
         `);
-        const movimentacaoFinanceira = await pool.query(`SELECT 
-                                                            mf.id,
-                                                            CONCAT('Pagamento referente à localidade: ', loc.nome) AS descricao,
-                                                            mf.valor
-                                                        FROM 
-                                                            public.movimentacao_financeira mf
-                                                        LEFT JOIN 
-                                                            public.localidades loc ON CAST(SUBSTRING(mf.descricao FROM 'ID: (\d+)') AS INT) = loc.id;
-                                                        `);
+        const movimentacaoFinanceira = await pool.query('SELECT id, descricao, valor FROM public.movimentacao_financeira');
         const pagamento = await pool.query(`
             SELECT p.id, p.valor_pago, l.nome AS localidade
             FROM public.pagamento p
