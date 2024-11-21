@@ -12,6 +12,7 @@ const hospedagemRoutes = require('./src/routes/hospedagem.js');
 const dashboardRoutes = require('./src/routes/dashboard.js');
 const loginAdminRoutes = require('./src/routes/loginAdmin.js');
 const report = require('./src/routes/report.js');
+const listHosting = require('./src/routes/listHosting.js')
 
 app.use(express.json());
 
@@ -41,6 +42,8 @@ app.use('/hospedagem', hospedagemRoutes);
 app.use('/dashboard', dashboardRoutes);
 app.use('/loginAdmin', loginAdminRoutes);
 app.use('/report', report);
+app.use('/listHosting', listHosting)
+
 
 const port = process.env.PORT
 console.log(port)
