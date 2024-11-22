@@ -76,34 +76,27 @@ const generatePDF = (data, res) => {
         drawHeader(doc, y);
         y += rowHeight;
 
-        // Adiciona as pessoas (com limite de 20 por página)
-        const maxPeoplePerPage = 20;
-        let pageCount = Math.ceil(pessoas.length / maxPeoplePerPage);
-        let pageIndex = 0;
-
-        while (pageIndex < pageCount) {
-            // Adiciona nova página se for necessário
-            if (pageIndex > 0) doc.addPage();
-
-            // Adiciona as pessoas à tabela
-            let peopleOnCurrentPage = pessoas.slice(pageIndex * maxPeoplePerPage, (pageIndex + 1) * maxPeoplePerPage);
-
-            peopleOnCurrentPage.forEach((pessoa, index) => {
-                doc.fontSize(10).font('Helvetica');
-                doc.text(pessoa.id, 40 + 5, y + 5, { width: columnWidths.id, align: 'center' });
-                doc.text(pessoa.nome, 40 + columnWidths.id + 5, y + 5, { width: columnWidths.nome });
-                doc.text(pessoa.localidade, 40 + columnWidths.id + columnWidths.nome + 5, y + 5, {
-                    width: columnWidths.localidade,
-                });
-
-                // Linha horizontal entre as pessoas
-                doc.moveTo(40, y + rowHeight).lineTo(40 + columnWidths.id + columnWidths.nome + columnWidths.localidade, y + rowHeight).stroke();
-                y += rowHeight;
+        // Adiciona as pessoas à tabela sem limite de 20 por página
+        pessoas.forEach((pessoa) => {
+            doc.fontSize(10).font('Helvetica');
+            doc.text(pessoa.id, 40 + 5, y + 5, { width: columnWidths.id, align: 'center' });
+            doc.text(pessoa.nome, 40 + columnWidths.id + 5, y + 5, { width: columnWidths.nome });
+            doc.text(pessoa.localidade, 40 + columnWidths.id + columnWidths.nome + 5, y + 5, {
+                width: columnWidths.localidade,
             });
 
-            // Incrementa o índice da página
-            pageIndex++;
-        }
+            // Linha horizontal entre as pessoas
+            doc.moveTo(40, y + rowHeight).lineTo(40 + columnWidths.id + columnWidths.nome + columnWidths.localidade, y + rowHeight).stroke();
+            y += rowHeight;
+
+            // Se a página estiver cheia, adicionar uma nova página
+            if (y > doc.page.height - doc.page.margins.bottom - rowHeight) {
+                doc.addPage();
+                y = doc.y; // Reseta a posição Y para o topo da nova página
+                drawHeader(doc, y);  // Redesenha o cabeçalho na nova página
+                y += rowHeight;
+            }
+        });
 
         doc.moveDown(); // Espaço entre localidades
     });
@@ -116,6 +109,7 @@ const generatePDF = (data, res) => {
     doc.pipe(res);
     doc.end();
 };
+
 
 
 // Rota para gerar o PDF
