@@ -6,7 +6,6 @@ const PDFDocument = require('pdfkit');
 // Função para buscar os dados do banco com filtro
 const fetchFilteredData = async (filter) => {
     try {
-        // Monta a query com ou sem filtro
         let query = `
             SELECT 
                 h.id, 
@@ -20,14 +19,14 @@ const fetchFilteredData = async (filter) => {
                 localidades l ON i.localidade_id = l.id
         `;
 
-        // Adiciona o filtro se estiver definido
+        // Adiciona filtro de localidade, se houver
         if (filter) {
             query += ` WHERE l.nome = $1`;
             const { rows } = await pool.query(query, [filter]);
             return rows;
         }
 
-        // Caso contrário, retorna todos os dados
+        // Retorna todos os registros se não houver filtro
         const { rows } = await pool.query(query);
         return rows;
     } catch (err) {
@@ -36,7 +35,7 @@ const fetchFilteredData = async (filter) => {
     }
 };
 
-// Função para gerar o PDF com os dados
+// Função para gerar o PDF
 const generatePDF = (data, res) => {
     const doc = new PDFDocument();
 
@@ -70,5 +69,21 @@ const generatePDF = (data, res) => {
     doc.end();
 };
 
+// Rota para gerar o PDF
+router.get('/generate-pdf', async (req, res) => {
+    try {
+        // Captura o filtro da query string
+        const filter = req.query.localidade || null;
+
+        // Busca os dados no banco com ou sem filtro
+        const data = await fetchFilteredData(filter);
+
+        // Gera o PDF com os dados retornados
+        generatePDF(data, res);
+    } catch (err) {
+        console.error('Erro ao gerar PDF: ', err);
+        res.status(500).json({ message: 'Erro ao gerar PDF' });
+    }
+});
 
 module.exports = router;

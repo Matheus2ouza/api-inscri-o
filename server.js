@@ -12,7 +12,8 @@ const hospedagemRoutes = require('./src/routes/hospedagem.js');
 const dashboardRoutes = require('./src/routes/dashboard.js');
 const loginAdminRoutes = require('./src/routes/loginAdmin.js');
 const report = require('./src/routes/report.js');
-const listHosting = require('./src/routes/listHosting.js')
+const listHosting = require('./src/routes/listHosting.js');
+const generatePdf = require('./src/routes/listPdf.js');
 
 app.use(express.json());
 
@@ -43,6 +44,7 @@ app.use('/dashboard', dashboardRoutes);
 app.use('/loginAdmin', loginAdminRoutes);
 app.use('/report', report);
 app.use('/listHosting', listHosting)
+app.use('/generatePdf', generatePdf)
 
 
 const port = process.env.PORT
