@@ -33,7 +33,7 @@ app.use((req, res, next) => {
 
 app.get('/', (req, res) => {
     console.info('Rota de boas-vindas acessada');
-    res.send('Bem-vindo à minha API, teste LOCAL!!!')
+    res.send('Bem-vindo à minha API! ❤️')
 });
 
 app.use('/localidades', locationsRoutes);
