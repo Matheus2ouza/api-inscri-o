@@ -127,8 +127,9 @@ const generatePDF = (data, res, localidade = null) => {
 
     // Define os cabeçalhos HTTP para o download com o nome do PDF ajustado
     const pdfFilename = localidade ? `lista de hospedagem - ${localidade}.pdf` : 'lista de hospedagem geral.pdf';
+    const safeFilename = encodeURIComponent(safeFilename)
     res.setHeader('Content-Type', 'application/pdf');
-    res.setHeader('Content-Disposition', `attachment; filename="${pdfFilename}"`);
+    res.setHeader('Content-Disposition', `attachment; filename="${safeFilename}"`);
 
     // Envia o PDF para o cliente
     doc.pipe(res);
