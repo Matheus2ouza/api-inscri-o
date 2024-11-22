@@ -60,7 +60,7 @@ function groupByLocation(pessoas) {
     }));
 }
 
-const generatePDF = (data, res) => {
+const generatePDF = (data, res, localidade = null) => {
     const doc = new PDFDocument({ margin: 40 });
 
     // Definindo as dimensões e o espaçamento
@@ -81,7 +81,7 @@ const generatePDF = (data, res) => {
         doc.moveTo(40, y + rowHeight).lineTo(40 + columnWidths.numero + columnWidths.nome + columnWidths.localidade, y + rowHeight).stroke();
     };
 
-    // Adiciona as localidade no PDF, cada uma em uma página nova se necessário
+    // Adiciona as localidades no PDF, cada uma em uma página nova se necessário
     data.forEach(({ localidade, pessoas }, localidadeIndex) => {
         // Adiciona o título da localidade
         if (localidadeIndex > 0) {
@@ -125,15 +125,15 @@ const generatePDF = (data, res) => {
         doc.moveDown(); // Espaço entre localidades
     });
 
-    // Define os cabeçalhos HTTP para o download
+    // Define os cabeçalhos HTTP para o download com o nome do PDF ajustado
+    const pdfFilename = localidade ? `lista de hospedagem - ${localidade}.pdf` : 'lista de hospedagem geral.pdf';
     res.setHeader('Content-Type', 'application/pdf');
-    res.setHeader('Content-Disposition', 'attachment; filename=relatorio.pdf');
+    res.setHeader('Content-Disposition', `attachment; filename="${pdfFilename}"`);
 
     // Envia o PDF para o cliente
     doc.pipe(res);
     doc.end();
 };
-
 
 // Rota para gerar o PDF
 router.get('/generate-pdf', async (req, res) => {
@@ -144,8 +144,8 @@ router.get('/generate-pdf', async (req, res) => {
         // Busca os dados no banco com ou sem filtro
         const data = await fetchFilteredData(filter);
 
-        // Gera o PDF com os dados retornados
-        generatePDF(data, res);
+        // Gera o PDF com os dados retornados e passa a localidade (caso haja)
+        generatePDF(data, res, filter); // Passando o filtro de localidade, que pode ser null
     } catch (err) {
         console.error('Erro ao gerar PDF: ', err);
         res.status(500).json({ message: 'Erro ao gerar PDF' });
