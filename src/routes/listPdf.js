@@ -35,39 +35,60 @@ const fetchFilteredData = async (filter) => {
     }
 };
 
-// Função para gerar o PDF
 const generatePDF = (data, res) => {
-    const doc = new PDFDocument();
+    const doc = new PDFDocument({ margin: 40 });
 
-    // Configura título e cabeçalho
+    // Dimensões das colunas
+    const columnWidths = { id: 50, nome: 300, localidade: 200 };
+
+    // Configura título
     doc.fontSize(14).text('Tabela de Dados', { align: 'center' });
     doc.moveDown();
     doc.fontSize(10).text(`Relatório Gerado em: ${new Date().toLocaleString()}`);
     doc.moveDown();
 
-    // Adiciona as colunas
-    let y = 100;
-    doc.fontSize(10).text('ID', 50, y);
-    doc.text('Nome', 150, y);
-    doc.text('Localidade', 300, y);
-    y += 20;
+    // Define as posições iniciais
+    let y = doc.y;
+    const xStart = 40; // Margem lateral esquerda
+    const tableWidth = columnWidths.id + columnWidths.nome + columnWidths.localidade; // Largura total da tabela
 
-    // Adiciona as linhas
-    data.forEach((row) => {
-        doc.text(row.id, 50, y);
-        doc.text(row.nome, 150, y);
-        doc.text(row.localidade, 300, y);
-        y += 20;
+    // Desenha o cabeçalho
+    doc.fontSize(10).font('Helvetica-Bold');
+    doc.text('ID', xStart + 5, y + 5, { width: columnWidths.id, align: 'center' });
+    doc.text('Nome', xStart + columnWidths.id + 5, y + 5, { width: columnWidths.nome });
+    doc.text('Localidade', xStart + columnWidths.id + columnWidths.nome + 5, y + 5, {
+        width: columnWidths.localidade,
     });
 
-    // Define o cabeçalho para o download
+    // Linha horizontal abaixo do cabeçalho
+    y += 20;
+    doc.moveTo(xStart, y).lineTo(xStart + tableWidth, y).stroke();
+
+    // Preenche os dados
+    doc.font('Helvetica');
+    data.forEach((row) => {
+        doc.text(row.id, xStart + 5, y + 5, { width: columnWidths.id, align: 'center' });
+        doc.text(row.nome, xStart + columnWidths.id + 5, y + 5, { width: columnWidths.nome });
+        doc.text(row.localidade, xStart + columnWidths.id + columnWidths.nome + 5, y + 5, {
+            width: columnWidths.localidade,
+        });
+
+        // Incrementa a posição vertical
+        y += 20;
+
+        // Linha horizontal entre as linhas
+        doc.moveTo(xStart, y).lineTo(xStart + tableWidth, y).stroke();
+    });
+
+    // Define os cabeçalhos HTTP para o download
     res.setHeader('Content-Type', 'application/pdf');
     res.setHeader('Content-Disposition', 'attachment; filename=relatorio.pdf');
 
-    // Gera e finaliza o PDF
+    // Envia o PDF para o cliente
     doc.pipe(res);
     doc.end();
 };
+
 
 // Rota para gerar o PDF
 router.get('/generate-pdf', async (req, res) => {
