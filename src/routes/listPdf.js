@@ -1,11 +1,12 @@
-const express = require('express');
-const router = express.Router();
-const { pool } = require('../db/dbConnection');
-const PDFDocument = require('pdfkit');
+const express = require('express'); // Framework para criar e gerenciar servidores web
+const router = express.Router(); // Permite criar rotas modularizadas
+const { pool } = require('../db/dbConnection'); // Conexão com o banco de dados usando Pool
+const PDFDocument = require('pdfkit'); // Biblioteca para geração de PDFs
 
+// Função para buscar dados do banco, aplicando filtro por localidade (se fornecida)
 const fetchFilteredData = async (localidade) => {
     try {
-        // Se a localidade for fornecida, aplica o filtro na consulta
+        // Consulta SQL, com ou sem filtro de localidade
         const query = localidade 
             ? `
                 SELECT 
@@ -19,7 +20,7 @@ const fetchFilteredData = async (localidade) => {
                 JOIN 
                     localidades l ON i.localidade_id = l.id
                 WHERE 
-                    l.nome = $1;
+                    l.nome = $1; -- Filtra pela localidade fornecida
             `
             : `
                 SELECT 
@@ -31,74 +32,76 @@ const fetchFilteredData = async (localidade) => {
                 JOIN 
                     inscricao_geral i ON h.id_inscricao = i.id
                 JOIN 
-                    localidades l ON i.localidade_id = l.id;
+                    localidades l ON i.localidade_id = l.id; -- Retorna todas as localidades
             `;
         
-        const values = localidade ? [localidade] : []; // Se tiver localidade, passa o valor, senão não passa nada
+        const values = localidade ? [localidade] : []; // Define os valores para a consulta, se necessário
 
+        // Executa a consulta no banco de dados
         const { rows } = await pool.query(query, values);
 
-        return groupByLocation(rows); // Organiza as pessoas por localidade
+        // Organiza os resultados por localidade
+        return groupByLocation(rows);
     } catch (err) {
         console.error('Erro ao buscar dados filtrados: ', err);
         throw new Error('Erro ao buscar dados para o PDF');
     }
 };
 
-// Função para organizar as pessoas por localidade
+// Função para agrupar pessoas por localidade
 function groupByLocation(pessoas) {
     const groupedByLocation = pessoas.reduce((acc, pessoa) => {
-        if (!acc[pessoa.localidade]) acc[pessoa.localidade] = [];
-        acc[pessoa.localidade].push(pessoa);
+        if (!acc[pessoa.localidade]) acc[pessoa.localidade] = []; // Inicializa o array se não existir
+        acc[pessoa.localidade].push(pessoa); // Adiciona a pessoa ao grupo correspondente
         return acc;
     }, {});
 
-    // Retorna um array de objetos com localidade e pessoas associadas
+    // Converte o agrupamento em um array estruturado
     return Object.entries(groupedByLocation).map(([localidade, pessoas]) => ({
         localidade,
         pessoas,
     }));
 }
 
+// Função para gerar o PDF com os dados fornecidos
 const generatePDF = (data, res, localidade = null) => {
-    const doc = new PDFDocument({ margin: 40 });
+    const doc = new PDFDocument({ margin: 40 }); // Cria o documento PDF com margens padrão
 
-    // Definindo as dimensões e o espaçamento
+    // Configuração das larguras das colunas da tabela
     const columnWidths = { numero: 50, nome: 300, localidade: 200 };
-    const rowHeight = 20; // Altura de cada linha
-    const headerHeight = 40; // Altura do cabeçalho
+    const rowHeight = 20; // Altura de cada linha da tabela
+    const headerHeight = 40; // Altura do cabeçalho da tabela
 
-    // Função para desenhar o cabeçalho
+    // Função para desenhar o cabeçalho da tabela
     const drawHeader = (doc, y) => {
-        doc.fontSize(10).font('Helvetica-Bold');  // Cabeçalho com fonte negrito
+        doc.fontSize(10).font('Helvetica-Bold'); // Fonte em negrito para o cabeçalho
         doc.text('N°', 40 + 5, y + 5, { width: columnWidths.numero, align: 'center' });
         doc.text('Nome', 40 + columnWidths.numero + 5, y + 5, { width: columnWidths.nome });
         doc.text('Localidade', 40 + columnWidths.numero + columnWidths.nome + 5, y + 5, {
             width: columnWidths.localidade,
         });
         
-        // Linha horizontal abaixo do cabeçalho
+        // Desenha uma linha horizontal abaixo do cabeçalho
         doc.moveTo(40, y + rowHeight).lineTo(40 + columnWidths.numero + columnWidths.nome + columnWidths.localidade, y + rowHeight).stroke();
     };
 
-    // Adiciona as localidades no PDF, cada uma em uma página nova se necessário
+    // Adiciona os dados ao PDF, com uma página para cada localidade
     data.forEach(({ localidade, pessoas }, localidadeIndex) => {
-        // Adiciona o título da localidade
         if (localidadeIndex > 0) {
-            doc.addPage();  // Adiciona uma nova página para a próxima localidade
+            doc.addPage(); // Nova página para cada localidade, exceto a primeira
         }
 
-        // Título da página com a localidade
+        // Adiciona o título da página
         doc.fontSize(14).font('Helvetica-Bold').text(`Lista de Hospedagem - ${localidade}`, { align: 'center' });
         doc.moveDown();
 
-        // Desenha o cabeçalho
+        // Desenha o cabeçalho da tabela
         let y = doc.y;
         drawHeader(doc, y);
         y += rowHeight;
 
-        // Adiciona as pessoas à tabela, reiniciando a contagem de N°
-        let number = 1;  // Reinicia a contagem para cada localidade
+        // Adiciona as pessoas à tabela
+        let number = 1; // Contador para numerar as pessoas
         pessoas.forEach((pessoa) => {
             doc.fontSize(10).font('Helvetica');
             doc.text(number, 40 + 5, y + 5, { width: columnWidths.numero, align: 'center' });
@@ -111,51 +114,40 @@ const generatePDF = (data, res, localidade = null) => {
             doc.moveTo(40, y + rowHeight).lineTo(40 + columnWidths.numero + columnWidths.nome + columnWidths.localidade, y + rowHeight).stroke();
             y += rowHeight;
 
-            // Se a página estiver cheia, adicionar uma nova página
+            // Verifica se precisa de uma nova página
             if (y > doc.page.height - doc.page.margins.bottom - rowHeight) {
                 doc.addPage();
-                y = doc.y; // Reseta a posição Y para o topo da nova página
-                drawHeader(doc, y);  // Redesenha o cabeçalho na nova página
+                y = doc.y; // Redefine a posição Y
+                drawHeader(doc, y); // Redesenha o cabeçalho
                 y += rowHeight;
             }
 
-            number++; // Incrementa o número para a próxima pessoa
+            number++;
         });
 
-        doc.moveDown(); // Espaço entre localidades
+        doc.moveDown(); // Espaçamento entre localidades
     });
 
-    // Defina o nome do arquivo baseado na localidade ou na ausência de filtro
-    let pdfFilename;
-    if (localidade) {
-        pdfFilename = `lista de hospedagem - ${localidade}.pdf`;
-    } else {
-        pdfFilename = 'lista de hospedagem geral.pdf';
-    }
+    // Define o nome do arquivo PDF
+    const pdfFilename = localidade
+        ? `lista de hospedagem - ${localidade}.pdf`
+        : 'lista de hospedagem geral.pdf';
 
-    // Codifica o nome do arquivo para garantir que não contenha caracteres especiais
-    const safeFilename = encodeURIComponent(pdfFilename);
-
-    // Define os cabeçalhos HTTP para o download com o nome do PDF ajustado
+    // Define os cabeçalhos para o download do PDF
     res.setHeader('Content-Type', 'application/pdf');
-    res.setHeader('Content-Disposition', `attachment; filename="${safeFilename}"`);
+    res.setHeader('Content-Disposition', `attachment; filename="${encodeURIComponent(pdfFilename)}"`);
 
     // Envia o PDF para o cliente
     doc.pipe(res);
     doc.end();
 };
 
-// Rota para gerar o PDF
+// Rota para gerar o PDF baseado em um filtro de localidade
 router.get('/generate-pdf', async (req, res) => {
     try {
-        // Captura o filtro da query string
-        const filter = req.query.localidade || null; // Se não houver filtro, será null
-
-        // Busca os dados no banco com ou sem filtro
-        const data = await fetchFilteredData(filter);
-
-        // Gera o PDF com os dados retornados e passa a localidade (caso haja)
-        generatePDF(data, res, filter); // Passando o filtro de localidade, que pode ser null
+        const filter = req.query.localidade || null; // Captura o filtro da query string
+        const data = await fetchFilteredData(filter); // Busca os dados no banco
+        generatePDF(data, res, filter); // Gera o PDF
     } catch (err) {
         console.error('Erro ao gerar PDF: ', err);
         res.status(500).json({ message: 'Erro ao gerar PDF' });
