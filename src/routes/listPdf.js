@@ -47,7 +47,6 @@ const generatePDF = (data, res) => {
     // Definindo as dimensões e o espaçamento
     const columnWidths = { id: 50, nome: 300, localidade: 200 };
     const rowHeight = 20; // Altura de cada linha
-    const pageHeight = 720; // Altura utilizável (A4 com margem)
     const headerHeight = 40; // Altura do cabeçalho
 
     // Função para desenhar o cabeçalho
@@ -64,8 +63,11 @@ const generatePDF = (data, res) => {
     };
 
     // Adiciona as localidade no PDF, cada uma em uma página nova se necessário
-    data.forEach(({ localidade, pessoas }) => {
+    data.forEach(({ localidade, pessoas }, localidadeIndex) => {
         // Adiciona o título da localidade
+        if (localidadeIndex > 0) {
+            doc.addPage();  // Adiciona uma nova página para a próxima localidade
+        }
         doc.fontSize(12).font('Helvetica-Bold').text(localidade, { align: 'center' });
         doc.moveDown();
 
@@ -114,6 +116,7 @@ const generatePDF = (data, res) => {
     doc.pipe(res);
     doc.end();
 };
+
 
 // Rota para gerar o PDF
 router.get('/generate-pdf', async (req, res) => {
