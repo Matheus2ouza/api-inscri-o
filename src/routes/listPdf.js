@@ -3,9 +3,10 @@ const router = express.Router();
 const { pool } = require('../db/dbConnection');
 const PDFDocument = require('pdfkit');
 
-const fetchFilteredData = async () => {
+// Função para buscar os dados do banco com filtro
+const fetchFilteredData = async (filter) => {
     try {
-        const query = `
+        let query = `
             SELECT 
                 h.id, 
                 h.nome, 
@@ -15,32 +16,26 @@ const fetchFilteredData = async () => {
             JOIN 
                 inscricao_geral i ON h.id_inscricao = i.id
             JOIN 
-                localidades l ON i.localidade_id = l.id;
+                localidades l ON i.localidade_id = l.id
         `;
-        
+
+        // Adiciona filtro de localidade, se houver
+        if (filter) {
+            query += ` WHERE l.nome = $1`;
+            const { rows } = await pool.query(query, [filter]);
+            return rows;
+        }
+
+        // Retorna todos os registros se não houver filtro
         const { rows } = await pool.query(query);
-        return groupByLocation(rows); // Organiza as pessoas por localidade
+        return rows;
     } catch (err) {
         console.error('Erro ao buscar dados filtrados: ', err);
         throw new Error('Erro ao buscar dados para o PDF');
     }
 };
 
-// Função para organizar as pessoas por localidade
-function groupByLocation(pessoas) {
-    const groupedByLocation = pessoas.reduce((acc, pessoa) => {
-        if (!acc[pessoa.localidade]) acc[pessoa.localidade] = [];
-        acc[pessoa.localidade].push(pessoa);
-        return acc;
-    }, {});
-
-    // Retorna um array de objetos com localidade e pessoas associadas
-    return Object.entries(groupedByLocation).map(([localidade, pessoas]) => ({
-        localidade,
-        pessoas,
-    }));
-}
-
+// Função para gerar o PDF
 const generatePDF = (data, res) => {
     const doc = new PDFDocument({ margin: 40 });
 
@@ -62,7 +57,7 @@ const generatePDF = (data, res) => {
         doc.moveTo(40, y + rowHeight).lineTo(40 + columnWidths.numero + columnWidths.nome + columnWidths.localidade, y + rowHeight).stroke();
     };
 
-    // Adiciona as localidade no PDF, cada uma em uma página nova se necessário
+    // Se houver dados para a localidade, processa as pessoas
     data.forEach(({ localidade, pessoas }, localidadeIndex) => {
         // Adiciona o título da localidade
         if (localidadeIndex > 0) {
@@ -124,8 +119,11 @@ router.get('/generate-pdf', async (req, res) => {
         // Busca os dados no banco com ou sem filtro
         const data = await fetchFilteredData(filter);
 
+        // Reorganiza os dados por localidade
+        const groupedData = groupByLocation(data);
+
         // Gera o PDF com os dados retornados
-        generatePDF(data, res);
+        generatePDF(groupedData, res);
     } catch (err) {
         console.error('Erro ao gerar PDF: ', err);
         res.status(500).json({ message: 'Erro ao gerar PDF' });
