@@ -47,7 +47,7 @@ const generatePDF = (data, res) => {
     const pageHeight = 720; // Altura utilizável (A4 com margem)
     const headerHeight = 40; // Altura do cabeçalho
 
-    // Desenha o cabeçalho da tabela
+    // Função para desenhar o cabeçalho da tabela
     const drawHeader = (doc, y) => {
         doc.fontSize(10).font('Helvetica-Bold');  // Cabeçalho com fonte negrito
         doc.text('ID', 40 + 5, y + 5, { width: columnWidths.id, align: 'center' });
@@ -69,12 +69,12 @@ const generatePDF = (data, res) => {
     // Inicializa a posição vertical
     let y = doc.y;
 
-    // Desenha o cabeçalho inicial
+    // Desenha o cabeçalho na primeira página
     drawHeader(doc, y);
     y += rowHeight;
 
-    // Define a fonte para o corpo da tabela
-    doc.font('Helvetica');  // Fonte para os dados (fonte normal)
+    // Define a fonte para o corpo da tabela (Helvetica normal)
+    doc.font('Helvetica');  // Garantir que a fonte seja Helvetica normal para os dados
 
     // Adiciona os dados
     data.forEach((row, index) => {
@@ -82,8 +82,11 @@ const generatePDF = (data, res) => {
         if (y + rowHeight > pageHeight) {
             doc.addPage();
             y = 40; // Redefine a posição vertical
-            drawHeader(doc, y); // Redesenha o cabeçalho
+            drawHeader(doc, y); // Redesenha o cabeçalho com Helvetica-Bold
             y += rowHeight;
+
+            // Garantir que a fonte nas páginas subsequentes seja Helvetica normal
+            doc.font('Helvetica');  // Redefine a fonte para Helvetica (não negrito)
         }
 
         // Escreve os dados na linha atual
@@ -108,6 +111,7 @@ const generatePDF = (data, res) => {
     doc.pipe(res);
     doc.end();
 };
+
 
 // Rota para gerar o PDF
 router.get('/generate-pdf', async (req, res) => {
