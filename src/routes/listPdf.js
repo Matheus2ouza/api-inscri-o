@@ -40,44 +40,62 @@ const generatePDF = (data, res) => {
 
     // Dimensões das colunas
     const columnWidths = { id: 50, nome: 300, localidade: 200 };
+    const tableWidth = columnWidths.id + columnWidths.nome + columnWidths.localidade; // Largura total da tabela
 
-    // Configura título
+    // Espaçamento e altura
+    const rowHeight = 20; // Altura de cada linha
+    const pageHeight = 720; // Altura utilizável (A4 com margem)
+    const headerHeight = 40; // Altura do cabeçalho
+
+    // Desenha o cabeçalho da tabela
+    const drawHeader = (doc, y) => {
+        doc.fontSize(10).font('Helvetica-Bold');
+        doc.text('ID', 40 + 5, y + 5, { width: columnWidths.id, align: 'center' });
+        doc.text('Nome', 40 + columnWidths.id + 5, y + 5, { width: columnWidths.nome });
+        doc.text('Localidade', 40 + columnWidths.id + columnWidths.nome + 5, y + 5, {
+            width: columnWidths.localidade,
+        });
+
+        // Linha horizontal abaixo do cabeçalho
+        doc.moveTo(40, y + rowHeight).lineTo(40 + tableWidth, y + rowHeight).stroke();
+    };
+
+    // Configura o título da primeira página
     doc.fontSize(14).text('Tabela de Dados', { align: 'center' });
     doc.moveDown();
     doc.fontSize(10).text(`Relatório Gerado em: ${new Date().toLocaleString()}`);
     doc.moveDown();
 
-    // Define as posições iniciais
+    // Inicializa a posição vertical
     let y = doc.y;
-    const xStart = 40; // Margem lateral esquerda
-    const tableWidth = columnWidths.id + columnWidths.nome + columnWidths.localidade; // Largura total da tabela
 
-    // Desenha o cabeçalho
-    doc.fontSize(10).font('Helvetica-Bold');
-    doc.text('ID', xStart + 5, y + 5, { width: columnWidths.id, align: 'center' });
-    doc.text('Nome', xStart + columnWidths.id + 5, y + 5, { width: columnWidths.nome });
-    doc.text('Localidade', xStart + columnWidths.id + columnWidths.nome + 5, y + 5, {
-        width: columnWidths.localidade,
-    });
+    // Desenha o cabeçalho inicial
+    drawHeader(doc, y);
+    y += rowHeight;
 
-    // Linha horizontal abaixo do cabeçalho
-    y += 20;
-    doc.moveTo(xStart, y).lineTo(xStart + tableWidth, y).stroke();
-
-    // Preenche os dados
+    // Adiciona os dados
     doc.font('Helvetica');
-    data.forEach((row) => {
-        doc.text(row.id, xStart + 5, y + 5, { width: columnWidths.id, align: 'center' });
-        doc.text(row.nome, xStart + columnWidths.id + 5, y + 5, { width: columnWidths.nome });
-        doc.text(row.localidade, xStart + columnWidths.id + columnWidths.nome + 5, y + 5, {
+    data.forEach((row, index) => {
+        // Adiciona uma nova página se necessário
+        if (y + rowHeight > pageHeight) {
+            doc.addPage();
+            y = 40; // Redefine a posição vertical
+            drawHeader(doc, y); // Redesenha o cabeçalho
+            y += rowHeight;
+        }
+
+        // Escreve os dados na linha atual
+        doc.text(row.id, 40 + 5, y + 5, { width: columnWidths.id, align: 'center' });
+        doc.text(row.nome, 40 + columnWidths.id + 5, y + 5, { width: columnWidths.nome });
+        doc.text(row.localidade, 40 + columnWidths.id + columnWidths.nome + 5, y + 5, {
             width: columnWidths.localidade,
         });
 
-        // Incrementa a posição vertical
-        y += 20;
-
         // Linha horizontal entre as linhas
-        doc.moveTo(xStart, y).lineTo(xStart + tableWidth, y).stroke();
+        doc.moveTo(40, y + rowHeight).lineTo(40 + tableWidth, y + rowHeight).stroke();
+
+        // Incrementa a posição vertical
+        y += rowHeight;
     });
 
     // Define os cabeçalhos HTTP para o download
@@ -88,6 +106,7 @@ const generatePDF = (data, res) => {
     doc.pipe(res);
     doc.end();
 };
+
 
 
 // Rota para gerar o PDF
