@@ -49,7 +49,7 @@ const generatePDF = (data, res) => {
 
     // Desenha o cabeçalho da tabela
     const drawHeader = (doc, y) => {
-        doc.fontSize(10).font('Helvetica-Bold');
+        doc.fontSize(10).font('Helvetica-Bold');  // Cabeçalho com fonte negrito
         doc.text('ID', 40 + 5, y + 5, { width: columnWidths.id, align: 'center' });
         doc.text('Nome', 40 + columnWidths.id + 5, y + 5, { width: columnWidths.nome });
         doc.text('Localidade', 40 + columnWidths.id + columnWidths.nome + 5, y + 5, {
@@ -73,8 +73,10 @@ const generatePDF = (data, res) => {
     drawHeader(doc, y);
     y += rowHeight;
 
+    // Define a fonte para o corpo da tabela
+    doc.font('Helvetica');  // Fonte para os dados (fonte normal)
+
     // Adiciona os dados
-    doc.font('Helvetica');
     data.forEach((row, index) => {
         // Adiciona uma nova página se necessário
         if (y + rowHeight > pageHeight) {
@@ -106,8 +108,6 @@ const generatePDF = (data, res) => {
     doc.pipe(res);
     doc.end();
 };
-
-
 
 // Rota para gerar o PDF
 router.get('/generate-pdf', async (req, res) => {
