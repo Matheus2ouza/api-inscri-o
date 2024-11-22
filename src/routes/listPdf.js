@@ -125,9 +125,18 @@ const generatePDF = (data, res, localidade = null) => {
         doc.moveDown(); // Espaço entre localidades
     });
 
+    // Defina o nome do arquivo baseado na localidade ou na ausência de filtro
+    let pdfFilename;
+    if (localidade) {
+        pdfFilename = `lista de hospedagem - ${localidade}.pdf`;
+    } else {
+        pdfFilename = 'lista de hospedagem geral.pdf';
+    }
+
+    // Codifica o nome do arquivo para garantir que não contenha caracteres especiais
+    const safeFilename = encodeURIComponent(pdfFilename);
+
     // Define os cabeçalhos HTTP para o download com o nome do PDF ajustado
-    const pdfFilename = localidade ? `lista de hospedagem - ${localidade}.pdf` : 'lista de hospedagem geral.pdf';
-    const safeFilename = encodeURIComponent(safeFilename)
     res.setHeader('Content-Type', 'application/pdf');
     res.setHeader('Content-Disposition', `attachment; filename="${safeFilename}"`);
 
