@@ -45,21 +45,21 @@ const generatePDF = (data, res) => {
     const doc = new PDFDocument({ margin: 40 });
 
     // Definindo as dimensões e o espaçamento
-    const columnWidths = { id: 50, nome: 300, localidade: 200 };
+    const columnWidths = { numero: 50, nome: 300, localidade: 200 };
     const rowHeight = 20; // Altura de cada linha
     const headerHeight = 40; // Altura do cabeçalho
 
     // Função para desenhar o cabeçalho
     const drawHeader = (doc, y) => {
         doc.fontSize(10).font('Helvetica-Bold');  // Cabeçalho com fonte negrito
-        doc.text('ID', 40 + 5, y + 5, { width: columnWidths.id, align: 'center' });
-        doc.text('Nome', 40 + columnWidths.id + 5, y + 5, { width: columnWidths.nome });
-        doc.text('Localidade', 40 + columnWidths.id + columnWidths.nome + 5, y + 5, {
+        doc.text('N°', 40 + 5, y + 5, { width: columnWidths.numero, align: 'center' });
+        doc.text('Nome', 40 + columnWidths.numero + 5, y + 5, { width: columnWidths.nome });
+        doc.text('Localidade', 40 + columnWidths.numero + columnWidths.nome + 5, y + 5, {
             width: columnWidths.localidade,
         });
         
         // Linha horizontal abaixo do cabeçalho
-        doc.moveTo(40, y + rowHeight).lineTo(40 + columnWidths.id + columnWidths.nome + columnWidths.localidade, y + rowHeight).stroke();
+        doc.moveTo(40, y + rowHeight).lineTo(40 + columnWidths.numero + columnWidths.nome + columnWidths.localidade, y + rowHeight).stroke();
     };
 
     // Adiciona as localidade no PDF, cada uma em uma página nova se necessário
@@ -68,7 +68,9 @@ const generatePDF = (data, res) => {
         if (localidadeIndex > 0) {
             doc.addPage();  // Adiciona uma nova página para a próxima localidade
         }
-        doc.fontSize(12).font('Helvetica-Bold').text(localidade, { align: 'center' });
+
+        // Título da página com a localidade
+        doc.fontSize(14).font('Helvetica-Bold').text(`Lista de Hospedagem - ${localidade}`, { align: 'center' });
         doc.moveDown();
 
         // Desenha o cabeçalho
@@ -76,17 +78,18 @@ const generatePDF = (data, res) => {
         drawHeader(doc, y);
         y += rowHeight;
 
-        // Adiciona as pessoas à tabela sem limite de 20 por página
+        // Adiciona as pessoas à tabela, reiniciando a contagem de N°
+        let number = 1;  // Reinicia a contagem para cada localidade
         pessoas.forEach((pessoa) => {
             doc.fontSize(10).font('Helvetica');
-            doc.text(pessoa.id, 40 + 5, y + 5, { width: columnWidths.id, align: 'center' });
-            doc.text(pessoa.nome, 40 + columnWidths.id + 5, y + 5, { width: columnWidths.nome });
-            doc.text(pessoa.localidade, 40 + columnWidths.id + columnWidths.nome + 5, y + 5, {
+            doc.text(number, 40 + 5, y + 5, { width: columnWidths.numero, align: 'center' });
+            doc.text(pessoa.nome, 40 + columnWidths.numero + 5, y + 5, { width: columnWidths.nome });
+            doc.text(pessoa.localidade, 40 + columnWidths.numero + columnWidths.nome + 5, y + 5, {
                 width: columnWidths.localidade,
             });
 
             // Linha horizontal entre as pessoas
-            doc.moveTo(40, y + rowHeight).lineTo(40 + columnWidths.id + columnWidths.nome + columnWidths.localidade, y + rowHeight).stroke();
+            doc.moveTo(40, y + rowHeight).lineTo(40 + columnWidths.numero + columnWidths.nome + columnWidths.localidade, y + rowHeight).stroke();
             y += rowHeight;
 
             // Se a página estiver cheia, adicionar uma nova página
@@ -96,6 +99,8 @@ const generatePDF = (data, res) => {
                 drawHeader(doc, y);  // Redesenha o cabeçalho na nova página
                 y += rowHeight;
             }
+
+            number++; // Incrementa o número para a próxima pessoa
         });
 
         doc.moveDown(); // Espaço entre localidades
@@ -109,8 +114,6 @@ const generatePDF = (data, res) => {
     doc.pipe(res);
     doc.end();
 };
-
-
 
 // Rota para gerar o PDF
 router.get('/generate-pdf', async (req, res) => {
