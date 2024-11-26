@@ -14,6 +14,7 @@ const loginAdminRoutes = require('./src/routes/loginAdmin.js');
 const report = require('./src/routes/report.js');
 const listHosting = require('./src/routes/listHosting.js');
 const generatePdf = require('./src/routes/listPdf.js');
+const getPaymentReceipts = require('./src/routes/paymentReceipts.js')
 
 app.use(express.json());
 
@@ -45,6 +46,7 @@ app.use('/loginAdmin', loginAdminRoutes);
 app.use('/report', report);
 app.use('/listHosting', listHosting)
 app.use('/generatePdf', generatePdf)
+app.use('/comprovantes', getPaymentReceipts)
 
 
 const port = process.env.PORT
