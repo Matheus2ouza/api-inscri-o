@@ -7,15 +7,18 @@ const { pool } = require('../db/dbConnection'); // Importando o pool de conexão
 router.get('/', async (req, res) => {
     try {
         const query = `
-        SELECT 
-            pagamento.id,
-            pagamento.valor_pago,
-            pagamento.comprovante_imagem,
-            localidades.nome AS localidade_nome
-        FROM 
-            pagamento
-        JOIN 
-            localidades ON pagamento.localidade_id = localidades.id;
+            SELECT 
+                pagamento.id,
+                pagamento.valor_pago,
+                pagamento.comprovante_imagem,
+                localidades.nome AS localidade_nome,
+                inscricao_geral.qtd_geral
+            FROM 
+                pagamento
+            JOIN 
+                localidades ON pagamento.localidade_id = localidades.id
+            JOIN
+                inscricao_geral ON localidades.id = inscricao_geral.localidade_id;
         `;
 
         const { rows } = await pool.query(query);
