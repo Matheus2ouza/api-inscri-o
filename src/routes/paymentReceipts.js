@@ -1,10 +1,6 @@
-const express = require('express');
-const router = express.Router();
-const { pool } = require('../db/dbConnection');
-
 router.get('/', async (req, res) => {
     try {
-        //Query para buscar os comprovantes
+        // Query para buscar os comprovantes
         const query = `
         SELECT 
             pagamento.id,
@@ -17,16 +13,22 @@ router.get('/', async (req, res) => {
             localidades ON pagamento.localidade_id = localidades.id;
         `;
 
-        //Executando a query no banco de dados
-        const { rows } = await pool.query(query)
+        // Executando a query no banco de dados
+        const { rows } = await pool.query(query);
 
-        //Retorno do resultado como JSON
-        res.status(200).json(rows);
-    } catch(err) {
-        //Se ocorrer algum error, retorna o erro
-        console.error (`Erro ao buscar os comprovantes: ${err}`)
-        res.status(500).json({ message: 'Erro interno do servidor'})
+        // Processando o campo comprovante_imagem para Base64
+        const processedRows = rows.map(row => ({
+            ...row,
+            comprovante_imagem: row.comprovante_imagem
+                ? Buffer.from(row.comprovante_imagem).toString('base64')
+                : null // Caso não exista uma imagem
+        }));
+
+        // Retorno do resultado como JSON
+        res.status(200).json(processedRows);
+    } catch (err) {
+        // Se ocorrer algum erro, retorna o erro
+        console.error(`Erro ao buscar os comprovantes: ${err}`);
+        res.status(500).json({ message: 'Erro interno do servidor' });
     }
 });
-
-module.exports = router
