@@ -12,14 +12,22 @@ router.get('/', async (req, res) => {
                 pagamento.id,
                 pagamento.valor_pago,
                 pagamento.comprovante_imagem,
-                localidades.id AS localidade_id,
-                localidades.nome AS localidade_nome
+                localidades.nome AS localidade_nome,
+                SUM(inscricao_geral.qtd_geral) AS qtd_geral
             FROM 
                 pagamento
             JOIN 
                 localidades ON pagamento.localidade_id = localidades.id
-            ORDER BY 
-                pagamento.id DESC
+            JOIN
+                inscricao_geral ON localidades.id = inscricao_geral.localidade_id
+                
+            GROUP BY 
+                pagamento.id, 
+                pagamento.valor_pago, 
+                pagamento.comprovante_imagem, 
+                localidades.nome
+                
+            order by pagamento.id desc
         `;
         const { rows: pagamentos } = await pool.query(query1);
 
