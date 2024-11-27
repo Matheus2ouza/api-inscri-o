@@ -27,12 +27,14 @@ router.get('/', async (req, res) => {
         const query2 = `
             SELECT 
                 localidade_id,
+                nome_responsavel,
                 SUM(qtd_geral) AS qtd_geral
             FROM 
                 inscricao_geral
             GROUP BY 
-                localidade_id
+                localidade_id, nome_responsavel
         `;
+    
         const { rows: qtdGerais } = await pool.query(query2);
 
         // Processando os resultados dos pagamentos
