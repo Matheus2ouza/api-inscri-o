@@ -13,6 +13,7 @@ router.get('/', async (req, res) => {
             FROM public.hospedagem h
             JOIN public.inscricao_geral ig ON h.id_inscricao = ig.id
             JOIN public.localidades l ON ig.localidade_id = l.id
+            order by l.nome
         `);
         const inscricoes0_6 = await pool.query(`SELECT lc.nome, sum(insc.qtd_masculino) as qtd_masculino, sum(insc.qtd_feminino) as qtd_feminino  FROM public.inscricao_0_6 as insc
                                                 inner join inscricao_geral as ig on insc.inscricao_geral_id = ig.id
