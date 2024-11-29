@@ -35,6 +35,18 @@ router.get('/', async (req, res) => {
                                                 FROM public.inscricao_geral ig
                                                 LEFT JOIN public.localidades l ON ig.localidade_id = l.id
         `);
+        const inscricao_servico = await pool.query(
+            `SELECT lc.nome, sum(insc.qtd_masculino) as qtd_masculino, sum(insc.qtd_feminino) as qtd_feminino  FROM public.inscricao_servico as insc
+                                                inner join inscricao_geral as ig on insc.inscricao_geral_id = ig.id
+                                                inner join localidades as lc on ig.localidade_id = lc.id
+                                                GROUP BY lc.nome`
+        );
+        const inscricao_tx_participacao = await pool.query(
+            `SELECT lc.nome, sum(insc.qtd_masculino) as qtd_masculino, sum(insc.qtd_feminino) as qtd_feminino  FROM public.inscricao_tx_participacao as insc
+                                                inner join inscricao_geral as ig on insc.inscricao_geral_id = ig.id
+                                                inner join localidades as lc on ig.localidade_id = lc.id
+                                                GROUP BY lc.nome`
+        );
         const movimentacaoFinanceira = await pool.query('SELECT id, descricao, valor FROM public.movimentacao_financeira');
         const pagamento = await pool.query(`
             SELECT p.id, p.valor_pago, l.nome AS localidade
@@ -73,6 +85,16 @@ router.get('/', async (req, res) => {
                 success: true,
                 data: inscricoes10_acima.rows,
                 message: 'Dados de inscrições 10 anos ou mais obtidos com sucesso.'
+            },
+            inscricao_servico: {
+                success: true,
+                data: inscricao_servico.rows,
+                message: 'Dados de inscrições serviço obtidos com sucesso.'
+            },
+            inscricao_tx_participacao: {
+                success: true,
+                data: inscricao_tx_participacao.rows,
+                message: 'Dados de inscrições taxa de participação obtidos com sucesso.'
             },
             inscricaoGeral: {
                 success: true,
