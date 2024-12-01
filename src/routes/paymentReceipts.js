@@ -50,9 +50,7 @@ router.get('/', async (req, res) => {
             const qtdGeral = qtdGerais.find(item => item.localidade_id === localidadeId)?.qtd_geral || 0;
         
             // Variável para armazenar a imagem base64 com prefixo
-            let comprovanteImagem = pagamento.comprovante_imagem
-                ? Buffer.from(pagamento.comprovante_imagem).toString('base64')
-                : null;
+            let comprovanteImagem = pagamento.comprovante_imagem || null;
         
             if (comprovanteImagem) {
                 // Verificação de tipo de imagem e adição do prefixo correto
