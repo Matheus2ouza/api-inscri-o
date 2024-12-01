@@ -1,5 +1,6 @@
 const express = require('express');
 const router = express.Router(); // Certifique-se de definir o router aqui
+const imageType = require('image-type');
 
 const { pool } = require('../db/dbConnection'); // Importando o pool de conexão com o banco de dados
 
@@ -45,7 +46,6 @@ router.get('/', async (req, res) => {
     
         const { rows: qtdGerais } = await pool.query(query2);
 
-        // Processando os resultados dos pagamentos
         const processedPagamentos = pagamentos.map(pagamento => {
             const localidadeId = pagamento.localidade_id;
             const qtdGeral = qtdGerais.find(item => item.localidade_id === localidadeId)?.qtd_geral || 0;
@@ -55,20 +55,14 @@ router.get('/', async (req, res) => {
             if (comprovanteImagem) {
                 // Verifica se comprovante_imagem é um Buffer
                 if (Buffer.isBuffer(comprovanteImagem)) {
-                    // Converte para base64
-                    comprovanteImagem = comprovanteImagem.toString('base64');
-                }
+                    // Detecta o tipo da imagem
+                    const tipoImagem = imageType(comprovanteImagem);
         
-                // Agora, verifica se a string base64 começa com o prefixo da imagem e adiciona o tipo correto
-                if (typeof comprovanteImagem === 'string') {
-                    if (comprovanteImagem.startsWith('iVBOR')) {
-                        // Imagem PNG
-                        comprovanteImagem = `data:image/png;base64,${comprovanteImagem}`;
-                    } else if (comprovanteImagem.startsWith('/9j')) {
-                        // Imagem JPEG
-                        comprovanteImagem = `data:image/jpeg;base64,${comprovanteImagem}`;
+                    if (tipoImagem && (tipoImagem.ext === 'png' || tipoImagem.ext === 'jpeg')) {
+                        // Converte para base64 e adiciona o prefixo adequado
+                        comprovanteImagem = `data:image/${tipoImagem.ext};base64,${comprovanteImagem.toString('base64')}`;
                     } else {
-                        // Caso não seja PNG nem JPEG, loga o erro e retorna null
+                        // Caso o tipo não seja PNG nem JPEG, loga o erro e retorna null
                         console.error('Tipo de imagem desconhecido');
                         comprovanteImagem = null;
                     }
