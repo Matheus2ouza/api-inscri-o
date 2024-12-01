@@ -13,6 +13,7 @@ router.get('/', async (req, res) => {
             FROM public.hospedagem h
             JOIN public.inscricao_geral ig ON h.id_inscricao = ig.id
             JOIN public.localidades l ON ig.localidade_id = l.id
+            order by l.nome
         `);
         const inscricoes0_6 = await pool.query(`SELECT lc.nome, sum(insc.qtd_masculino) as qtd_masculino, sum(insc.qtd_feminino) as qtd_feminino  FROM public.inscricao_0_6 as insc
                                                 inner join inscricao_geral as ig on insc.inscricao_geral_id = ig.id
@@ -35,7 +36,30 @@ router.get('/', async (req, res) => {
                                                 FROM public.inscricao_geral ig
                                                 LEFT JOIN public.localidades l ON ig.localidade_id = l.id
         `);
-        const movimentacaoFinanceira = await pool.query('SELECT id, descricao, valor FROM public.movimentacao_financeira');
+        const inscricao_servico = await pool.query(
+            `SELECT lc.nome, sum(insc.qtd_masculino) as qtd_masculino, sum(insc.qtd_feminino) as qtd_feminino  FROM public.inscricao_servico as insc
+                                                inner join inscricao_geral as ig on insc.inscricao_geral_id = ig.id
+                                                inner join localidades as lc on ig.localidade_id = lc.id
+                                                GROUP BY lc.nome`
+        );
+        const inscricao_tx_participacao = await pool.query(
+            `SELECT lc.nome, sum(insc.qtd_masculino) as qtd_masculino, sum(insc.qtd_feminino) as qtd_feminino  FROM public.inscricao_tx_participacao as insc
+                                                inner join inscricao_geral as ig on insc.inscricao_geral_id = ig.id
+                                                inner join localidades as lc on ig.localidade_id = lc.id
+                                                GROUP BY lc.nome`
+        );
+        const movimentacaoFinanceira = await pool.query(`
+                                                            SELECT 
+                                                                mf.id,
+                                                                CONCAT('Pagamento referente à localidade: ', loc.nome) AS descricao,
+                                                                mf.valor
+                                                            FROM 
+                                                                public.movimentacao_financeira mf
+                                                            LEFT JOIN 
+                                                                public.localidades loc 
+                                                                ON CAST(SUBSTRING(mf.descricao FROM 'ID: (\\d+)') AS INT) = loc.id
+                                                        `);
+
         const pagamento = await pool.query(`
             SELECT p.id, p.valor_pago, l.nome AS localidade
             FROM public.pagamento p
@@ -73,6 +97,16 @@ router.get('/', async (req, res) => {
                 success: true,
                 data: inscricoes10_acima.rows,
                 message: 'Dados de inscrições 10 anos ou mais obtidos com sucesso.'
+            },
+            inscricao_servico: {
+                success: true,
+                data: inscricao_servico.rows,
+                message: 'Dados de inscrições serviço obtidos com sucesso.'
+            },
+            inscricao_tx_participacao: {
+                success: true,
+                data: inscricao_tx_participacao.rows,
+                message: 'Dados de inscrições taxa de participação obtidos com sucesso.'
             },
             inscricaoGeral: {
                 success: true,
