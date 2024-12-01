@@ -45,36 +45,44 @@ router.get('/', async (req, res) => {
     
         const { rows: qtdGerais } = await pool.query(query2);
 
-        // Processando os resultados dos pagamentos
-        const processedPagamentos = pagamentos.map(pagamento => {
-            const localidadeId = pagamento.localidade_id;
-            const qtdGeral = qtdGerais.find(item => item.localidade_id === localidadeId)?.qtd_geral || 0;
+// Processando os resultados dos pagamentos
+const processedPagamentos = pagamentos.map(pagamento => {
+    const localidadeId = pagamento.localidade_id;
+    const qtdGeral = qtdGerais.find(item => item.localidade_id === localidadeId)?.qtd_geral || 0;
 
-            // Verificando o campo comprovante_imagem e adicionando o prefixo 'data:image/' correspondente
-            let comprovanteImagem = pagamento.comprovante_imagem || null;
+    // Verificando o campo comprovante_imagem e adicionando o prefixo 'data:image/' correspondente
+    let comprovanteImagem = pagamento.comprovante_imagem || null;
 
-            if (comprovanteImagem) {
-                // Verifica se a imagem é base64 e começa com os prefixos para PNG ou JPEG
-                if (comprovanteImagem.startsWith('iVBOR')) {
-                    // PNG
-                    comprovanteImagem = `data:image/png;base64,${comprovanteImagem}`;
-                } else if (comprovanteImagem.startsWith('/9j')) {
-                    // JPEG
-                    comprovanteImagem = `data:image/jpeg;base64,${comprovanteImagem}`;
-                } else {
-                    // Tipo de imagem desconhecido
-                    console.error('Tipo de imagem desconhecido');
-                    comprovanteImagem = null;
-                }
+    if (comprovanteImagem) {
+        // Garantir que comprovanteImagem seja uma string antes de verificar o tipo
+        if (typeof comprovanteImagem === 'string') {
+            // Verifica se a imagem é base64 e começa com os prefixos para PNG ou JPEG
+            if (comprovanteImagem.startsWith('iVBOR')) {
+                // PNG
+                comprovanteImagem = `data:image/png;base64,${comprovanteImagem}`;
+            } else if (comprovanteImagem.startsWith('/9j')) {
+                // JPEG
+                comprovanteImagem = `data:image/jpeg;base64,${comprovanteImagem}`;
+            } else {
+                // Tipo de imagem desconhecido
+                console.error('Tipo de imagem desconhecido');
+                comprovanteImagem = null;
             }
+        } else {
+            // Se comprovanteImagem não for uma string, loga o erro e define como null
+            console.error('comprovanteImagem não é uma string válida');
+            comprovanteImagem = null;
+        }
+    }
 
-            // Retornando o objeto com a imagem processada
-            return {
-                ...pagamento,
-                qtd_geral: qtdGeral,
-                comprovante_imagem: comprovanteImagem
-            };
-        });
+    // Retornando o objeto com a imagem processada
+    return {
+        ...pagamento,
+        qtd_geral: qtdGeral,
+        comprovante_imagem: comprovanteImagem
+    };
+});
+
 
 
         // Retornando os resultados das duas consultas
