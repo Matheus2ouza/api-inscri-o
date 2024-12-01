@@ -49,14 +49,39 @@ router.get('/', async (req, res) => {
         const processedPagamentos = pagamentos.map(pagamento => {
             const localidadeId = pagamento.localidade_id;
             const qtdGeral = qtdGerais.find(item => item.localidade_id === localidadeId)?.qtd_geral || 0;
-
+        
+            let comprovanteImagem = pagamento.comprovante_imagem || null;
+        
+            if (comprovanteImagem) {
+                // Verifica se comprovante_imagem é um Buffer
+                if (Buffer.isBuffer(comprovanteImagem)) {
+                    // Converte para base64
+                    comprovanteImagem = comprovanteImagem.toString('base64');
+                }
+        
+                // Agora, verifica se a string base64 começa com o prefixo da imagem e adiciona o tipo correto
+                if (typeof comprovanteImagem === 'string') {
+                    if (comprovanteImagem.startsWith('iVBOR')) {
+                        // Imagem PNG
+                        comprovanteImagem = `data:image/png;base64,${comprovanteImagem}`;
+                    } else if (comprovanteImagem.startsWith('/9j')) {
+                        // Imagem JPEG
+                        comprovanteImagem = `data:image/jpeg;base64,${comprovanteImagem}`;
+                    } else {
+                        // Caso não seja PNG nem JPEG, loga o erro e retorna null
+                        console.error('Tipo de imagem desconhecido');
+                        comprovanteImagem = null;
+                    }
+                }
+            }
+        
             return {
                 ...pagamento,
                 qtd_geral: qtdGeral,
-                // Retorna o comprovante_imagem do jeito que está no banco (sem conversão)
-                comprovante_imagem: pagamento.comprovante_imagem || null
+                comprovante_imagem: comprovanteImagem
             };
         });
+        
 
         // Retornando os resultados das duas consultas
         res.status(200).json({
