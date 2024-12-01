@@ -45,18 +45,37 @@ router.get('/', async (req, res) => {
     
         const { rows: qtdGerais } = await pool.query(query2);
 
-        // Processando os resultados dos pagamentos
         const processedPagamentos = pagamentos.map(pagamento => {
             const localidadeId = pagamento.localidade_id;
             const qtdGeral = qtdGerais.find(item => item.localidade_id === localidadeId)?.qtd_geral || 0;
+        
+            // Variável para armazenar a imagem base64 com prefixo
+            let comprovanteImagem = pagamento.comprovante_imagem
+                ? Buffer.from(pagamento.comprovante_imagem).toString('base64')
+                : null;
+        
+            if (comprovanteImagem) {
+                // Verificação de tipo de imagem e adição do prefixo correto
+                if (comprovanteImagem.startsWith('iVBOR')) {
+                    // PNG
+                    comprovanteImagem = `data:image/png;base64,${comprovanteImagem}`;
+                } else if (comprovanteImagem.startsWith('/9j')) {
+                    // JPEG
+                    comprovanteImagem = `data:image/jpeg;base64,${comprovanteImagem}`;
+                } else {
+                    // Tipo de imagem desconhecido
+                    console.error('Tipo de imagem desconhecido');
+                    comprovanteImagem = null;
+                }
+            }
+        
             return {
                 ...pagamento,
                 qtd_geral: qtdGeral,
-                comprovante_imagem: pagamento.comprovante_imagem
-                    ? Buffer.from(pagamento.comprovante_imagem).toString('base64')
-                    : null
+                comprovante_imagem: comprovanteImagem
             };
         });
+        
 
         // Retornando os resultados das duas consultas
         res.status(200).json({
