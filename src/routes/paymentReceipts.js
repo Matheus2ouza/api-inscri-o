@@ -45,15 +45,16 @@ router.get('/', async (req, res) => {
     
         const { rows: qtdGerais } = await pool.query(query2);
 
+        // Processando os resultados dos pagamentos
         const processedPagamentos = pagamentos.map(pagamento => {
             const localidadeId = pagamento.localidade_id;
             const qtdGeral = qtdGerais.find(item => item.localidade_id === localidadeId)?.qtd_geral || 0;
-        
-            // Variável para armazenar a imagem base64 com prefixo
+
+            // Verificando o campo comprovante_imagem e adicionando o prefixo 'data:image/' correspondente
             let comprovanteImagem = pagamento.comprovante_imagem || null;
-        
+
             if (comprovanteImagem) {
-                // Verificação de tipo de imagem e adição do prefixo correto
+                // Verifica se a imagem é base64 e começa com os prefixos para PNG ou JPEG
                 if (comprovanteImagem.startsWith('iVBOR')) {
                     // PNG
                     comprovanteImagem = `data:image/png;base64,${comprovanteImagem}`;
@@ -66,14 +67,15 @@ router.get('/', async (req, res) => {
                     comprovanteImagem = null;
                 }
             }
-        
+
+            // Retornando o objeto com a imagem processada
             return {
                 ...pagamento,
                 qtd_geral: qtdGeral,
                 comprovante_imagem: comprovanteImagem
             };
         });
-        
+
 
         // Retornando os resultados das duas consultas
         res.status(200).json({
