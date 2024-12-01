@@ -54,7 +54,12 @@ const processedPagamentos = pagamentos.map(pagamento => {
     let comprovanteImagem = pagamento.comprovante_imagem || null;
 
     if (comprovanteImagem) {
-        // Garantir que comprovanteImagem seja uma string antes de verificar o tipo
+        // Verificar se é um Buffer e converter para string
+        if (Buffer.isBuffer(comprovanteImagem)) {
+            comprovanteImagem = comprovanteImagem.toString('base64');
+        }
+
+        // Verifica se comprovanteImagem é uma string válida
         if (typeof comprovanteImagem === 'string') {
             // Verifica se a imagem é base64 e começa com os prefixos para PNG ou JPEG
             if (comprovanteImagem.startsWith('iVBOR')) {
@@ -69,8 +74,8 @@ const processedPagamentos = pagamentos.map(pagamento => {
                 comprovanteImagem = null;
             }
         } else {
-            // Se comprovanteImagem não for uma string, loga o erro e define como null
-            console.error('comprovanteImagem não é uma string válida');
+            // Se comprovanteImagem não for uma string ou Buffer válido, loga o erro
+            console.error('comprovanteImagem não é uma string ou Buffer válido');
             comprovanteImagem = null;
         }
     }
@@ -82,6 +87,7 @@ const processedPagamentos = pagamentos.map(pagamento => {
         comprovante_imagem: comprovanteImagem
     };
 });
+
 
 
 
