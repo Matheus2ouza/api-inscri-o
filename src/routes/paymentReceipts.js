@@ -1,12 +1,11 @@
 const express = require('express');
-const router = express.Router(); // Certifique-se de definir o router aqui
-
+const router = express.Router();
 const { pool } = require('../db/dbConnection'); // Importando o pool de conexão com o banco de dados
 
-// Definindo a rota GET para a API
+// Rota GET para obter os dados processados
 router.get('/', async (req, res) => {
     try {
-        // Primeira consulta: Obtendo dados de pagamento
+        // Primeira consulta: Dados de pagamento
         const query1 = `
             SELECT 
                 pagamento.id,
@@ -20,18 +19,16 @@ router.get('/', async (req, res) => {
                 localidades ON pagamento.localidade_id = localidades.id
             JOIN
                 inscricao_geral ON localidades.id = inscricao_geral.localidade_id
-                
             GROUP BY 
                 pagamento.id, 
                 pagamento.valor_pago, 
                 pagamento.comprovante_imagem, 
                 localidades.nome
-                
-            order by pagamento.id desc
+            ORDER BY pagamento.id DESC
         `;
         const { rows: pagamentos } = await pool.query(query1);
 
-        // Segunda consulta: Obtendo a soma de qtd_geral por localidade
+        // Segunda consulta: Soma de `qtd_geral` por localidade
         const query2 = `
             SELECT 
                 localidade_id,
@@ -42,33 +39,39 @@ router.get('/', async (req, res) => {
             GROUP BY 
                 localidade_id, nome_responsavel
         `;
-    
         const { rows: qtdGerais } = await pool.query(query2);
 
-        // Processando os resultados dos pagamentos
+        // Processando os resultados
         const processedPagamentos = pagamentos.map(pagamento => {
             const localidadeId = pagamento.localidade_id;
             const qtdGeral = qtdGerais.find(item => item.localidade_id === localidadeId)?.qtd_geral || 0;
-            
+
+            // Processa a imagem no formato hexadecimal (\x...)
+            let comprovanteImagemBase64 = null;
+            if (pagamento.comprovante_imagem) {
+                const hexData = pagamento.comprovante_imagem.slice(2); // Remove o prefixo \x
+                const buffer = Buffer.from(hexData, 'hex'); // Converte de hex para Buffer
+                comprovanteImagemBase64 = buffer.toString('base64'); // Converte para Base64
+            }
+
             return {
                 ...pagamento,
                 qtd_geral: qtdGeral,
-                comprovante_imagem: pagamento.comprovante_imagem || null // Não faz a conversão para base64
+                comprovante_imagem: comprovanteImagemBase64 ? `data:image/jpeg;base64,${comprovanteImagemBase64}` : null // Adiciona o prefixo base64
             };
         });
 
-        // Retornando os resultados das duas consultas
+        // Resposta da API
         res.status(200).json({
             pagamentos: processedPagamentos,
             qtdGerais: qtdGerais
         });
 
     } catch (err) {
-        // Retorna erro caso algo dê errado
         console.error(`Erro ao buscar os dados: ${err}`);
         res.status(500).json({ message: 'Erro interno do servidor' });
     }
 });
 
-// Exporta o router para ser usado no server
+// Exporta o router para uso no server.js
 module.exports = router;
