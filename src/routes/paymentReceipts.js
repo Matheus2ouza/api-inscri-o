@@ -46,35 +46,38 @@ router.get('/', async (req, res) => {
     
         const { rows: qtdGerais } = await pool.query(query2);
 
-        const processedPagamentos = pagamentos.map(pagamento => {
-            const localidadeId = pagamento.localidade_id;
-            const qtdGeral = qtdGerais.find(item => item.localidade_id === localidadeId)?.qtd_geral || 0;
+        const imageType = require('image-type');
+
+const processedPagamentos = pagamentos.map(pagamento => {
+    const localidadeId = pagamento.localidade_id;
+    const qtdGeral = qtdGerais.find(item => item.localidade_id === localidadeId)?.qtd_geral || 0;
+
+    let comprovanteImagem = pagamento.comprovante_imagem || null;
+
+    if (comprovanteImagem) {
+        // Remove o prefixo \x e converte a string hexadecimal para um Buffer
+        const bufferImagem = Buffer.from(comprovanteImagem.replace(/^\\x/, ''), 'hex');
         
-            let comprovanteImagem = pagamento.comprovante_imagem || null;
-        
-            if (comprovanteImagem) {
-                // Verifica se comprovante_imagem é um Buffer
-                if (Buffer.isBuffer(comprovanteImagem)) {
-                    // Detecta o tipo da imagem
-                    const tipoImagem = imageType(comprovanteImagem);
-        
-                    if (tipoImagem && (tipoImagem.ext === 'png' || tipoImagem.ext === 'jpeg')) {
-                        // Converte para base64 e adiciona o prefixo adequado
-                        comprovanteImagem = `data:image/${tipoImagem.ext};base64,${comprovanteImagem.toString('base64')}`;
-                    } else {
-                        // Caso o tipo não seja PNG nem JPEG, loga o erro e retorna null
-                        console.error('Tipo de imagem desconhecido');
-                        comprovanteImagem = null;
-                    }
-                }
-            }
-        
-            return {
-                ...pagamento,
-                qtd_geral: qtdGeral,
-                comprovante_imagem: comprovanteImagem
-            };
-        });
+        // Detecta o tipo da imagem
+        const tipoImagem = imageType(bufferImagem);
+
+        if (tipoImagem && (tipoImagem.ext === 'png' || tipoImagem.ext === 'jpeg')) {
+            // Converte para base64 e adiciona o prefixo adequado
+            comprovanteImagem = `data:image/${tipoImagem.ext};base64,${bufferImagem.toString('base64')}`;
+        } else {
+            // Caso o tipo não seja PNG nem JPEG, loga o erro e retorna null
+            console.error('Tipo de imagem desconhecido');
+            comprovanteImagem = null;
+        }
+    }
+
+    return {
+        ...pagamento,
+        qtd_geral: qtdGeral,
+        comprovante_imagem: comprovanteImagem
+    };
+});
+
         
 
         // Retornando os resultados das duas consultas
