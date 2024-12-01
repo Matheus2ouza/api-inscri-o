@@ -46,38 +46,43 @@ router.get('/', async (req, res) => {
     
         const { rows: qtdGerais } = await pool.query(query2);
 
-        const imageType = require('image-type');
-
-const processedPagamentos = pagamentos.map(pagamento => {
-    const localidadeId = pagamento.localidade_id;
-    const qtdGeral = qtdGerais.find(item => item.localidade_id === localidadeId)?.qtd_geral || 0;
-
-    let comprovanteImagem = pagamento.comprovante_imagem || null;
-
-    if (comprovanteImagem) {
-        // Remove o prefixo \x e converte a string hexadecimal para um Buffer
-        const bufferImagem = Buffer.from(comprovanteImagem.replace(/^\\x/, ''), 'hex');
+        const processedPagamentos = pagamentos.map(pagamento => {
+            const localidadeId = pagamento.localidade_id;
+            const qtdGeral = qtdGerais.find(item => item.localidade_id === localidadeId)?.qtd_geral || 0;
         
-        // Detecta o tipo da imagem
-        const tipoImagem = imageType(bufferImagem);
-
-        if (tipoImagem && (tipoImagem.ext === 'png' || tipoImagem.ext === 'jpeg')) {
-            // Converte para base64 e adiciona o prefixo adequado
-            comprovanteImagem = `data:image/${tipoImagem.ext};base64,${bufferImagem.toString('base64')}`;
-        } else {
-            // Caso o tipo não seja PNG nem JPEG, loga o erro e retorna null
-            console.error('Tipo de imagem desconhecido');
-            comprovanteImagem = null;
-        }
-    }
-
-    return {
-        ...pagamento,
-        qtd_geral: qtdGeral,
-        comprovante_imagem: comprovanteImagem
-    };
-});
-
+            let comprovanteImagem = pagamento.comprovante_imagem || null;
+        
+            if (comprovanteImagem) {
+                // Verifica se a imagem é um Buffer, se for, converte para base64
+                if (Buffer.isBuffer(comprovanteImagem)) {
+                    comprovanteImagem = comprovanteImagem.toString('base64');
+                }
+        
+                // Se for uma string, remove o prefixo \x e converte a string hexadecimal para um Buffer
+                if (typeof comprovanteImagem === 'string' && comprovanteImagem.startsWith('\\x')) {
+                    const bufferImagem = Buffer.from(comprovanteImagem.replace(/^\\x/, ''), 'hex');
+                    
+                    // Detecta o tipo da imagem
+                    const tipoImagem = imageType(bufferImagem);
+        
+                    if (tipoImagem && (tipoImagem.ext === 'png' || tipoImagem.ext === 'jpeg')) {
+                        // Converte para base64 e adiciona o prefixo adequado
+                        comprovanteImagem = `data:image/${tipoImagem.ext};base64,${bufferImagem.toString('base64')}`;
+                    } else {
+                        // Caso o tipo não seja PNG nem JPEG, loga o erro e retorna null
+                        console.error('Tipo de imagem desconhecido');
+                        comprovanteImagem = null;
+                    }
+                }
+            }
+        
+            return {
+                ...pagamento,
+                qtd_geral: qtdGeral,
+                comprovante_imagem: comprovanteImagem
+            };
+        });
+        
         
 
         // Retornando os resultados das duas consultas
