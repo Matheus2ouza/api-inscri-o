@@ -45,51 +45,18 @@ router.get('/', async (req, res) => {
     
         const { rows: qtdGerais } = await pool.query(query2);
 
-// Processando os resultados dos pagamentos
-const processedPagamentos = pagamentos.map(pagamento => {
-    const localidadeId = pagamento.localidade_id;
-    const qtdGeral = qtdGerais.find(item => item.localidade_id === localidadeId)?.qtd_geral || 0;
+        // Processando os resultados dos pagamentos
+        const processedPagamentos = pagamentos.map(pagamento => {
+            const localidadeId = pagamento.localidade_id;
+            const qtdGeral = qtdGerais.find(item => item.localidade_id === localidadeId)?.qtd_geral || 0;
 
-    // Verificando o campo comprovante_imagem e adicionando o prefixo 'data:image/' correspondente
-    let comprovanteImagem = pagamento.comprovante_imagem || null;
-
-    if (comprovanteImagem) {
-        // Verificar se é um Buffer e converter para string
-        if (Buffer.isBuffer(comprovanteImagem)) {
-            comprovanteImagem = comprovanteImagem.toString('base64');
-        }
-
-        // Verifica se comprovanteImagem é uma string válida
-        if (typeof comprovanteImagem === 'string') {
-            // Verifica se a imagem é base64 e começa com os prefixos para PNG ou JPEG
-            if (comprovanteImagem.startsWith('iVBOR')) {
-                // PNG
-                comprovanteImagem = `data:image/png;base64,${comprovanteImagem}`;
-            } else if (comprovanteImagem.startsWith('/9j')) {
-                // JPEG
-                comprovanteImagem = `data:image/jpeg;base64,${comprovanteImagem}`;
-            } else {
-                // Tipo de imagem desconhecido
-                console.error('Tipo de imagem desconhecido');
-                comprovanteImagem = null;
-            }
-        } else {
-            // Se comprovanteImagem não for uma string ou Buffer válido, loga o erro
-            console.error('comprovanteImagem não é uma string ou Buffer válido');
-            comprovanteImagem = null;
-        }
-    }
-
-    // Retornando o objeto com a imagem processada
-    return {
-        ...pagamento,
-        qtd_geral: qtdGeral,
-        comprovante_imagem: comprovanteImagem
-    };
-});
-
-
-
+            return {
+                ...pagamento,
+                qtd_geral: qtdGeral,
+                // Retorna o comprovante_imagem do jeito que está no banco (sem conversão)
+                comprovante_imagem: pagamento.comprovante_imagem || null
+            };
+        });
 
         // Retornando os resultados das duas consultas
         res.status(200).json({
