@@ -28,22 +28,21 @@ router.get('/', async (req, res) => {
         `;
         const { rows: pagamentos } = await pool.query(query1);
 
-        // Segunda consulta: Soma de `qtd_geral` por localidade
+        // Segunda consulta: Dados de qtd_masculino e qtd_feminino por localidade
         const query2 = `
             SELECT 
                 inscricao_geral.localidade_id,
                 inscricao_geral.nome_responsavel,
-                SUM(inscricao_geral.qtd_geral) AS qtd_geral,
-                SUM(COALESCE(inscricao_0_6.qtd_masculino, 0)) AS qtd_0_6_masculino,
-                SUM(COALESCE(inscricao_0_6.qtd_feminino, 0)) AS qtd_0_6_feminino,
-                SUM(COALESCE(inscricao_7_10.qtd_masculino, 0)) AS qtd_7_10_masculino,
-                SUM(COALESCE(inscricao_7_10.qtd_feminino, 0)) AS qtd_7_10_feminino,
-                SUM(COALESCE(inscricao_10_acima.qtd_masculino, 0)) AS qtd_10_acima_masculino,
-                SUM(COALESCE(inscricao_10_acima.qtd_feminino, 0)) AS qtd_10_acima_feminino,
-                SUM(COALESCE(inscricao_servico.qtd_masculino, 0)) AS qtd_servico_masculino,
-                SUM(COALESCE(inscricao_servico.qtd_feminino, 0)) AS qtd_servico_feminino,
-                SUM(COALESCE(inscricao_tx_participacao.qtd_masculino, 0)) AS qtd_tx_participacao_masculino,
-                SUM(COALESCE(inscricao_tx_participacao.qtd_feminino, 0)) AS qtd_tx_participacao_feminino
+                inscricao_0_6.qtd_masculino AS qtd_0_6_masculino,
+                inscricao_0_6.qtd_feminino AS qtd_0_6_feminino,
+                inscricao_7_10.qtd_masculino AS qtd_7_10_masculino,
+                inscricao_7_10.qtd_feminino AS qtd_7_10_feminino,
+                inscricao_10_acima.qtd_masculino AS qtd_10_acima_masculino,
+                inscricao_10_acima.qtd_feminino AS qtd_10_acima_feminino,
+                inscricao_servico.qtd_masculino AS qtd_servico_masculino,
+                inscricao_servico.qtd_feminino AS qtd_servico_feminino,
+                inscricao_tx_participacao.qtd_masculino AS qtd_tx_participacao_masculino,
+                inscricao_tx_participacao.qtd_feminino AS qtd_tx_participacao_feminino
             FROM 
                 inscricao_geral
             LEFT JOIN 
@@ -56,16 +55,15 @@ router.get('/', async (req, res) => {
                 inscricao_servico ON inscricao_geral.id = inscricao_servico.inscricao_geral_id
             LEFT JOIN 
                 inscricao_tx_participacao ON inscricao_geral.id = inscricao_tx_participacao.inscricao_geral_id
-            GROUP BY 
-                inscricao_geral.localidade_id, 
-                inscricao_geral.nome_responsavel;
         `;
         const { rows: qtdGerais } = await pool.query(query2);
 
         // Processando os resultados
         const processedPagamentos = pagamentos.map(pagamento => {
             const localidadeId = pagamento.localidade_id;
-            const qtdGeral = qtdGerais.find(item => item.localidade_id === localidadeId)?.qtd_geral || 0;
+
+            // Encontrar o item correspondente na consulta `qtdGerais` baseado no `localidade_id`
+            const qtdGeralData = qtdGerais.find(item => item.localidade_id === localidadeId) || {};
 
             // Processa a imagem no formato hexadecimal (\x...)
             let comprovanteImagemBase64 = null;
@@ -77,8 +75,19 @@ router.get('/', async (req, res) => {
 
             return {
                 ...pagamento,
-                qtd_geral: qtdGeral,
-                comprovante_imagem: comprovanteImagemBase64 ? `data:image/jpeg;base64,${comprovanteImagemBase64}` : null // Adiciona o prefixo base64
+                qtd_geral: qtdGeralData.qtd_geral || 0,
+                comprovante_imagem: comprovanteImagemBase64 ? `data:image/jpeg;base64,${comprovanteImagemBase64}` : null,
+                // Passando os dados de masculino e feminino de cada categoria/serviço
+                qtd_0_6_masculino: qtdGeralData.qtd_0_6_masculino || 0,
+                qtd_0_6_feminino: qtdGeralData.qtd_0_6_feminino || 0,
+                qtd_7_10_masculino: qtdGeralData.qtd_7_10_masculino || 0,
+                qtd_7_10_feminino: qtdGeralData.qtd_7_10_feminino || 0,
+                qtd_10_acima_masculino: qtdGeralData.qtd_10_acima_masculino || 0,
+                qtd_10_acima_feminino: qtdGeralData.qtd_10_acima_feminino || 0,
+                qtd_servico_masculino: qtdGeralData.qtd_servico_masculino || 0,
+                qtd_servico_feminino: qtdGeralData.qtd_servico_feminino || 0,
+                qtd_tx_participacao_masculino: qtdGeralData.qtd_tx_participacao_masculino || 0,
+                qtd_tx_participacao_feminino: qtdGeralData.qtd_tx_participacao_feminino || 0,
             };
         });
 
