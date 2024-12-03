@@ -31,13 +31,34 @@ router.get('/', async (req, res) => {
         // Segunda consulta: Soma de `qtd_geral` por localidade
         const query2 = `
             SELECT 
-                localidade_id,
-                nome_responsavel,
-                SUM(qtd_geral) AS qtd_geral
+                inscricao_geral.localidade_id,
+                inscricao_geral.nome_responsavel,
+                SUM(inscricao_geral.qtd_geral) AS qtd_geral,
+                SUM(COALESCE(inscricao_0_6.qtd_masculino, 0)) AS qtd_0_6_masculino,
+                SUM(COALESCE(inscricao_0_6.qtd_feminino, 0)) AS qtd_0_6_feminino,
+                SUM(COALESCE(inscricao_7_10.qtd_masculino, 0)) AS qtd_7_10_masculino,
+                SUM(COALESCE(inscricao_7_10.qtd_feminino, 0)) AS qtd_7_10_feminino,
+                SUM(COALESCE(inscricao_10_acima.qtd_masculino, 0)) AS qtd_10_acima_masculino,
+                SUM(COALESCE(inscricao_10_acima.qtd_feminino, 0)) AS qtd_10_acima_feminino,
+                SUM(COALESCE(inscricao_servico.qtd_masculino, 0)) AS qtd_servico_masculino,
+                SUM(COALESCE(inscricao_servico.qtd_feminino, 0)) AS qtd_servico_feminino,
+                SUM(COALESCE(inscricao_tx_participacao.qtd_masculino, 0)) AS qtd_tx_participacao_masculino,
+                SUM(COALESCE(inscricao_tx_participacao.qtd_feminino, 0)) AS qtd_tx_participacao_feminino
             FROM 
                 inscricao_geral
+            LEFT JOIN 
+                inscricao_0_6 ON inscricao_geral.id = inscricao_0_6.inscricao_geral_id
+            LEFT JOIN 
+                inscricao_7_10 ON inscricao_geral.id = inscricao_7_10.inscricao_geral_id
+            LEFT JOIN 
+                inscricao_10_acima ON inscricao_geral.id = inscricao_10_acima.inscricao_geral_id
+            LEFT JOIN 
+                inscricao_servico ON inscricao_geral.id = inscricao_servico.inscricao_geral_id
+            LEFT JOIN 
+                inscricao_tx_participacao ON inscricao_geral.id = inscricao_tx_participacao.inscricao_geral_id
             GROUP BY 
-                localidade_id, nome_responsavel
+                inscricao_geral.localidade_id, 
+                inscricao_geral.nome_responsavel;
         `;
         const { rows: qtdGerais } = await pool.query(query2);
 
