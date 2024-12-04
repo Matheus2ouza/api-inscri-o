@@ -1,8 +1,23 @@
 const express = require('express');
 const router = express.Router();
-const { pool } = require('../db/dbConnection'); // Importando o pool de conexão com o banco de dados
+const { pool } = require('../db/dbConnection');
+const fs = require('fs');
+const path = require('path');
 
-// Rota GET para obter os dados processados
+// Função para salvar o arquivo e retornar a URL
+const salvarComprovante = (comprovanteImagemBuffer, idImagem, tipoArquivo) => {
+    const pastaComprovantes = path.join(__dirname, '..', 'uploads', 'comprovantes');
+    if (!fs.existsSync(pastaComprovantes)) {
+        fs.mkdirSync(pastaComprovantes, { recursive: true });
+    }
+
+    const nomeArquivo = `comprovante_${idImagem}.${tipoArquivo}`;
+    const caminhoArquivo = path.join(pastaComprovantes, nomeArquivo);
+    fs.writeFileSync(caminhoArquivo, comprovanteImagemBuffer);
+
+    return `/uploads/comprovantes/${nomeArquivo}`;
+};
+
 router.get('/', async (req, res) => {
     try {
         // Primeira consulta: Dados de pagamento
@@ -11,20 +26,13 @@ router.get('/', async (req, res) => {
                 pagamento.id,
                 pagamento.valor_pago,
                 pagamento.comprovante_imagem,
-                localidades.nome AS localidade_nome,
-                SUM(inscricao_geral.qtd_geral) AS qtd_geral
+                localidades.nome AS localidade_nome
             FROM 
                 pagamento
             JOIN 
                 localidades ON pagamento.localidade_id = localidades.id
-            JOIN
-                inscricao_geral ON localidades.id = inscricao_geral.localidade_id
-            GROUP BY 
-                pagamento.id, 
-                pagamento.valor_pago, 
-                pagamento.comprovante_imagem, 
-                localidades.nome
-            ORDER BY pagamento.id DESC
+            WHERE 
+                comprovante_imagem IS NOT NULL;
         `;
         const { rows: pagamentos } = await pool.query(query1);
 
@@ -65,19 +73,19 @@ router.get('/', async (req, res) => {
             // Encontrar o item correspondente na consulta `qtdGerais` baseado no `localidade_id`
             const qtdGeralData = qtdGerais.find(item => item.localidade_id === localidadeId) || {};
 
-            // Processa a imagem no formato hexadecimal (\x...)
-            let comprovanteImagemBase64 = null;
+            // Processa o comprovante de imagem e retorna a URL do arquivo
+            let comprovanteImagemUrl = null;
             if (pagamento.comprovante_imagem) {
                 const hexData = pagamento.comprovante_imagem.slice(2); // Remove o prefixo \x
                 const buffer = Buffer.from(hexData, 'hex'); // Converte de hex para Buffer
-                comprovanteImagemBase64 = buffer.toString('base64'); // Converte para Base64
+                // Salvar o arquivo e obter a URL
+                comprovanteImagemUrl = salvarComprovante(buffer, pagamento.id, 'jpg'); // Aqui, você pode verificar o tipo de arquivo para definir 'jpg', 'pdf', etc.
             }
 
             return {
                 ...pagamento,
                 qtd_geral: qtdGeralData.qtd_geral || 0,
-                comprovante_imagem: comprovanteImagemBase64 ? `data:image/jpeg;base64,${comprovanteImagemBase64}` : null,
-                // Passando os dados de masculino e feminino de cada categoria/serviço
+                comprovante_imagem: comprovanteImagemUrl, // URL do arquivo salvo
                 qtd_0_6_masculino: qtdGeralData.qtd_0_6_masculino || 0,
                 qtd_0_6_feminino: qtdGeralData.qtd_0_6_feminino || 0,
                 qtd_7_10_masculino: qtdGeralData.qtd_7_10_masculino || 0,
@@ -103,5 +111,4 @@ router.get('/', async (req, res) => {
     }
 });
 
-// Exporta o router para uso no server.js
 module.exports = router;
