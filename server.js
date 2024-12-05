@@ -16,6 +16,7 @@ const listHosting = require('./src/routes/listHosting.js');
 const generatePdf = require('./src/routes/listPdf.js');
 const getPaymentReceipts = require('./src/routes/paymentReceipts.js');
 const setcomprovante = require('./src/routes/imagemPayment.js');
+const getcomprovante = require('./src/routes/comprovanteGet.js')
 
 app.use(express.json());
 
@@ -49,6 +50,7 @@ app.use('/listHosting', listHosting);
 app.use('/generatePdf', generatePdf);
 app.use('/comprovantes', getPaymentReceipts);
 app.use('/comprovante', setcomprovante);
+app.use('buscarComporvante', getcomprovante)
 
 const port = process.env.PORT;
 console.log(port);
