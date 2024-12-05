@@ -4,6 +4,10 @@
       {
         "src": "server.js",
         "use": "@vercel/node"
+      },
+      {
+        "src": "src/python-scripts/processImages.py",
+        "use": "@vercel/python"
       }
     ],
     "routes": [

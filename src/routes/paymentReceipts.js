@@ -2,6 +2,8 @@ const express = require('express');
 const router = express.Router();
 const { pool } = require('../db/dbConnection'); // Importando o pool de conexão com o banco de dados
 const imageType = require('image-type'); // Importando a biblioteca image-type
+const { spawn } = require('child_process'); // Para rodar o script Python
+const JSON = require('json'); // Biblioteca para trabalhar com JSON
 
 // Função para verificar o tipo de arquivo e adicionar o prefixo adequado
 async function addBase64Prefix(buffer) {
@@ -57,14 +59,11 @@ router.get('/', async (req, res) => {
                         LEFT JOIN inscricao_tx_participacao ON inscricao_geral.id = inscricao_tx_participacao.inscricao_geral_id`;
         const { rows: qtdGerais } = await pool.query(query2);
 
-        // Processando os resultados
-        const processedPagamentos = pagamentos.map(async (pagamento) => {
+        // Preparando os dados a serem enviados para o Python
+        const dadosParaPython = pagamentos.map((pagamento) => {
             const localidadeId = pagamento.localidade_id;
-
-            // Encontrar o item correspondente na consulta `qtdGerais` baseado no `localidade_id`
             const qtdGeralData = qtdGerais.find(item => item.localidade_id === localidadeId) || {};
 
-            // Processa a imagem no formato hexadecimal (\x...)
             let comprovanteImagemBase64 = null;
             if (pagamento.comprovante_imagem) {
                 let hexData = pagamento.comprovante_imagem;
@@ -73,19 +72,20 @@ router.get('/', async (req, res) => {
                 if (typeof hexData === 'string' && hexData.startsWith('\\x')) {
                     hexData = hexData.slice(2); // Remove o prefixo '\x'
                 }
-                
+
                 // Converte o valor hexadecimal para Buffer
                 const buffer = Buffer.from(hexData, 'hex');
                 
                 // Adiciona o prefixo adequado com base no tipo do arquivo
-                comprovanteImagemBase64 = await addBase64Prefix(buffer); 
+                comprovanteImagemBase64 = addBase64Prefix(buffer); 
             }
 
             return {
-                ...pagamento,  // Mantém os dados originais de pagamento
+                id: pagamento.id,
+                valor_pago: pagamento.valor_pago,
+                comprovante_imagem: comprovanteImagemBase64,
+                localidade_nome: pagamento.localidade_nome,
                 qtd_geral: qtdGeralData.qtd_geral || 0,  // Mantém a quantidade geral
-                comprovante_imagem: comprovanteImagemBase64 ? comprovanteImagemBase64 : null,
-                // Passando os dados de masculino e feminino de cada categoria/serviço
                 qtd_0_6_masculino: qtdGeralData.qtd_0_6_masculino || 0,
                 qtd_0_6_feminino: qtdGeralData.qtd_0_6_feminino || 0,
                 qtd_7_10_masculino: qtdGeralData.qtd_7_10_masculino || 0,
@@ -99,12 +99,26 @@ router.get('/', async (req, res) => {
             };
         });
 
-        // Resposta da API
-        const pagamentosResult = await Promise.all(processedPagamentos);
+        // Iniciando o processo Python para processar os dados
+        const pythonProcess = spawn('python3', ['script.py']); // Assumindo que o script Python está em "script.py"
 
-        res.status(200).json({
-            pagamentos: pagamentosResult,
-            qtdGerais: qtdGerais
+        // Enviar os dados para o Python
+        pythonProcess.stdin.write(JSON.stringify(dadosParaPython));
+        pythonProcess.stdin.end();
+
+        // Receber a saída do Python
+        pythonProcess.stdout.on('data', (data) => {
+            const result = JSON.parse(data.toString());
+            res.status(200).json({
+                pagamentos: result,
+                qtdGerais: qtdGerais
+            });
+        });
+
+        // Capturar erro
+        pythonProcess.stderr.on('data', (data) => {
+            console.error('Erro:', data.toString());
+            res.status(500).json({ message: 'Erro interno do servidor' });
         });
 
     } catch (err) {
