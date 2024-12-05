@@ -3,7 +3,6 @@ const router = express.Router();
 const { pool } = require('../db/dbConnection'); // Importando o pool de conexão com o banco de dados
 const imageType = require('image-type'); // Importando a biblioteca image-type
 const { spawn } = require('child_process'); // Para rodar o script Python
-const JSON = require('json'); // Biblioteca para trabalhar com JSON
 
 // Função para verificar o tipo de arquivo e adicionar o prefixo adequado
 async function addBase64Prefix(buffer) {
