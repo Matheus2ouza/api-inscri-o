@@ -63,17 +63,19 @@ router.get('/', async (req, res) => {
             let comprovanteImagemBase64 = null;
             if (pagamento.comprovante_imagem) {
                 let hexData = pagamento.comprovante_imagem;
-                if (hexData.startsWith('\\x')) {
+                
+                // Garante que hexData seja uma string antes de verificar se começa com '\x'
+                if (typeof hexData === 'string' && hexData.startsWith('\\x')) {
                     hexData = hexData.slice(2); // Remove o prefixo '\x'
                 }
                 
-                // Verifica se os dados são válidos para Buffer
-                if (!/^[0-9a-fA-F]+$/.test(hexData)) {
+                // Verifica se os dados são válidos para Buffer (se for hexadecimal)
+                if (typeof hexData === 'string' && /^[0-9a-fA-F]+$/.test(hexData)) {
+                    const buffer = Buffer.from(hexData, 'hex'); // Converte de hex para Buffer
+                    comprovanteImagemBase64 = await addBase64Prefix(buffer); // Adiciona o prefixo adequado
+                } else {
                     throw new Error('Formato de imagem inválido');
                 }
-
-                const buffer = Buffer.from(hexData, 'hex'); // Converte de hex para Buffer
-                comprovanteImagemBase64 = await addBase64Prefix(buffer); // Adiciona o prefixo adequado
             }
 
             return {
