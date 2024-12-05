@@ -11,6 +11,7 @@
     "pdfkit": "^0.13.0",
     "image-type": "^2.1.0",
     "file-type": "^16.5.0",
-    "magic-bytes": "^1.0.0"
+    "magic": "^9.0.0"
   }
 }
+
