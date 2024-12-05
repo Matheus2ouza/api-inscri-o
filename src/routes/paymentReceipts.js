@@ -11,6 +11,7 @@ router.get('/', async (req, res) => {
                 pagamento.id,
                 pagamento.valor_pago,
                 pagamento.comprovante_imagem,
+                pagamento.localidade_id,
                 localidades.nome AS localidade_nome
             FROM 
                 pagamento
@@ -67,9 +68,9 @@ router.get('/', async (req, res) => {
             }
 
             return {
-                ...pagamento,
-                qtd_geral: qtdGeralData.qtd_geral || 0,
-                comprovante_imagem: comprovanteImagemBase64 ? `data:image/jpeg;base64,${comprovanteImagemBase64}` : null,
+                ...pagamento,  // Mantém os dados originais de pagamento
+                qtd_geral: qtdGeralData.qtd_geral || 0,  // Mantém a quantidade geral
+                comprovante_imagem: comprovanteImagemBase64 ? comprovanteImagemBase64 : null,
                 // Passando os dados de masculino e feminino de cada categoria/serviço
                 qtd_0_6_masculino: qtdGeralData.qtd_0_6_masculino || 0,
                 qtd_0_6_feminino: qtdGeralData.qtd_0_6_feminino || 0,
