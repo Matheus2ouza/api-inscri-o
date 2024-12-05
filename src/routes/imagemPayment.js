@@ -9,6 +9,7 @@ const upload = multer({ storage });
 
 // Rota para registrar o comprovante de pagamento
 router.post('/', upload.single('comprovante_pagamento'), async (req, res) => {
+    const { cidade } = req.body; // Cidade passada pelo frontend
     const { originalname } = req.file; // Nome original do arquivo
     const comprovante_pagamento = req.file ? req.file.buffer : null;  // Dados binários da imagem (sem conversão para base64)
     const tipo_arquivo = req.file ? req.file.mimetype : null;  // Tipo MIME do arquivo
@@ -19,16 +20,10 @@ router.post('/', upload.single('comprovante_pagamento'), async (req, res) => {
         return res.status(400).json({ message: 'Comprovante de pagamento é obrigatório.' });
     }
 
-    // Extrai a cidade do nome do arquivo usando expressão regular
-    const regex = /comprovante_\d+_(.+?)\.\w+$/;
-    const match = originalname.match(regex);
-    let cidade = null;
-
-    if (match && match[1]) {
-        cidade = match[1];  // Captura o nome da cidade
-    } else {
-        console.warn('Nome do arquivo não segue o formato esperado.');
-        return res.status(400).json({ message: 'Nome do arquivo não segue o formato esperado.' });
+    // Verifica se a cidade foi fornecida
+    if (!cidade) {
+        console.warn('Cidade não fornecida.');
+        return res.status(400).json({ message: 'Cidade é obrigatória.' });
     }
 
     try {
@@ -58,7 +53,7 @@ router.post('/', upload.single('comprovante_pagamento'), async (req, res) => {
         console.info(`Comprovante de pagamento registrado com sucesso, ID: ${comprovanteId}`);
 
         return res.status(201).json({ message: 'Comprovante registrado com sucesso!', comprovanteId });
-        
+
     } catch (err) {
         console.error(`Erro ao registrar comprovante: ${err}`);
         return res.status(500).json({ error: 'Erro ao registrar comprovante.' });
