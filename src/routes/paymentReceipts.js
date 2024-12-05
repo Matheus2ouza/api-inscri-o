@@ -5,6 +5,29 @@ const { pool } = require('../db/dbConnection'); // Importando o pool de conexão
 // Rota GET para obter os dados processados
 router.get('/', async (req, res) => {
     try {
+        // Primeira consulta: Dados de pagamento
+        const query1 = `
+            SELECT 
+                pagamento.id,
+                pagamento.valor_pago,
+                pagamento.comprovante_imagem,
+                localidades.nome AS localidade_nome,
+                SUM(inscricao_geral.qtd_geral) AS qtd_geral
+            FROM 
+                pagamento
+            JOIN 
+                localidades ON pagamento.localidade_id = localidades.id
+            JOIN
+                inscricao_geral ON localidades.id = inscricao_geral.localidade_id
+            GROUP BY 
+                pagamento.id, 
+                pagamento.valor_pago, 
+                pagamento.comprovante_imagem, 
+                localidades.nome
+            ORDER BY pagamento.id DESC
+        `;
+        const { rows: pagamentos } = await pool.query(query1);
+
         // Segunda consulta: Dados de qtd_masculino e qtd_feminino por localidade
         const query2 = `
             SELECT 
@@ -36,10 +59,25 @@ router.get('/', async (req, res) => {
         const { rows: qtdGerais } = await pool.query(query2);
 
         // Processando os resultados
-        const processedQtdGerais = qtdGerais.map(qtdGeralData => {
+        const processedPagamentos = pagamentos.map(pagamento => {
+            const localidadeId = pagamento.localidade_id;
+
+            // Encontrar o item correspondente na consulta `qtdGerais` baseado no `localidade_id`
+            const qtdGeralData = qtdGerais.find(item => item.localidade_id === localidadeId) || {};
+
+            // Processa a imagem no formato hexadecimal (\x...)
+            let comprovanteImagemBase64 = null;
+            if (pagamento.comprovante_imagem) {
+                const hexData = pagamento.comprovante_imagem.slice(2); // Remove o prefixo \x
+                const buffer = Buffer.from(hexData, 'hex'); // Converte de hex para Buffer
+                comprovanteImagemBase64 = buffer.toString('base64'); // Converte para Base64
+            }
+
             return {
-                localidade_id: qtdGeralData.localidade_id,
-                nome_responsavel: qtdGeralData.nome_responsavel,
+                ...pagamento,
+                qtd_geral: qtdGeralData.qtd_geral || 0,
+                comprovante_imagem: comprovanteImagemBase64 ? `data:image/jpeg;base64,${comprovanteImagemBase64}` : null,
+                // Passando os dados de masculino e feminino de cada categoria/serviço
                 qtd_0_6_masculino: qtdGeralData.qtd_0_6_masculino || 0,
                 qtd_0_6_feminino: qtdGeralData.qtd_0_6_feminino || 0,
                 qtd_7_10_masculino: qtdGeralData.qtd_7_10_masculino || 0,
@@ -55,7 +93,8 @@ router.get('/', async (req, res) => {
 
         // Resposta da API
         res.status(200).json({
-            qtdGerais: processedQtdGerais
+            pagamentos: processedPagamentos,
+            qtdGerais: qtdGerais
         });
 
     } catch (err) {
