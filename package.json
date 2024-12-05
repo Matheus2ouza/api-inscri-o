@@ -9,9 +9,7 @@
     "multer": "^1.4.5-lts.1",
     "pg": "^8.13.0",
     "pdfkit": "^0.13.0",
-    "image-type": "^2.1.0",
-    "file-type": "^16.5.0",
-    "magic": "^9.0.0"
+    "image-type": "^2.1.0"
   }
 }
 
