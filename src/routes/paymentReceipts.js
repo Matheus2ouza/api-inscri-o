@@ -99,8 +99,10 @@ router.get('/', async (req, res) => {
             };
         });
 
+        const pythonScriptPath = path.join(__dirname, '..', '..', 'python', 'processImages.py');
+
         // Iniciando o processo Python para processar os dados
-        const pythonProcess = spawn('python3', ['script.py']); // Assumindo que o script Python está em "script.py"
+        const pythonProcess = spawn('python3', [pythonScriptPath]); // Assumindo que o script Python está em "script.py"
 
         // Enviar os dados para o Python
         pythonProcess.stdin.write(JSON.stringify(dadosParaPython));
