@@ -1,12 +1,13 @@
 const express = require('express');
 const router = express.Router();
 const { pool } = require('../db/dbConnection'); // Importando o pool de conexão com o banco de dados
-const fileType = require('file-type'); // Importando a biblioteca file-type
+const MagicBytes = require('magic-bytes.js'); // Importando a biblioteca magic-bytes.js
 
 // Função para verificar o tipo de arquivo e adicionar o prefixo adequado
 async function addBase64Prefix(buffer) {
-    // Detecta o tipo do arquivo
-    const { ext, mime } = await fileType.buffer(buffer);  // Usando 'fileType.buffer()' em vez de 'fileType.fromBuffer()'
+    // Detecta o tipo do arquivo usando magic-bytes.js
+    const magic = new MagicBytes(buffer);
+    const mime = magic.getMimeType();
 
     if (!mime) {
         throw new Error('Tipo de arquivo não detectado');
@@ -31,50 +32,25 @@ async function addBase64Prefix(buffer) {
 router.get('/', async (req, res) => {
     try {
         // Primeira consulta: Dados de pagamento
-        const query1 = `
-            SELECT 
-                pagamento.id,
-                pagamento.valor_pago,
-                pagamento.comprovante_imagem,
-                pagamento.localidade_id,
-                localidades.nome AS localidade_nome
-            FROM 
-                pagamento
-            JOIN 
-                localidades ON pagamento.localidade_id = localidades.id
-            WHERE 
-                comprovante_imagem IS NOT NULL;
-        `;
+        const query1 = `SELECT pagamento.id, pagamento.valor_pago, pagamento.comprovante_imagem, pagamento.localidade_id, localidades.nome AS localidade_nome
+                        FROM pagamento
+                        JOIN localidades ON pagamento.localidade_id = localidades.id
+                        WHERE comprovante_imagem IS NOT NULL;`;
         const { rows: pagamentos } = await pool.query(query1);
 
         // Segunda consulta: Dados de qtd_masculino e qtd_feminino por localidade
-        const query2 = `
-            SELECT 
-                inscricao_geral.localidade_id,
-                inscricao_geral.nome_responsavel,
-                inscricao_0_6.qtd_masculino AS qtd_0_6_masculino,
-                inscricao_0_6.qtd_feminino AS qtd_0_6_feminino,
-                inscricao_7_10.qtd_masculino AS qtd_7_10_masculino,
-                inscricao_7_10.qtd_feminino AS qtd_7_10_feminino,
-                inscricao_10_acima.qtd_masculino AS qtd_10_acima_masculino,
-                inscricao_10_acima.qtd_feminino AS qtd_10_acima_feminino,
-                inscricao_servico.qtd_masculino AS qtd_servico_masculino,
-                inscricao_servico.qtd_feminino AS qtd_servico_feminino,
-                inscricao_tx_participacao.qtd_masculino AS qtd_tx_participacao_masculino,
-                inscricao_tx_participacao.qtd_feminino AS qtd_tx_participacao_feminino
-            FROM 
-                inscricao_geral
-            LEFT JOIN 
-                inscricao_0_6 ON inscricao_geral.id = inscricao_0_6.inscricao_geral_id
-            LEFT JOIN 
-                inscricao_7_10 ON inscricao_geral.id = inscricao_7_10.inscricao_geral_id
-            LEFT JOIN 
-                inscricao_10_acima ON inscricao_geral.id = inscricao_10_acima.inscricao_geral_id
-            LEFT JOIN 
-                inscricao_servico ON inscricao_geral.id = inscricao_servico.inscricao_geral_id
-            LEFT JOIN 
-                inscricao_tx_participacao ON inscricao_geral.id = inscricao_tx_participacao.inscricao_geral_id
-        `;
+        const query2 = `SELECT inscricao_geral.localidade_id, inscricao_geral.nome_responsavel,
+                        inscricao_0_6.qtd_masculino AS qtd_0_6_masculino, inscricao_0_6.qtd_feminino AS qtd_0_6_feminino,
+                        inscricao_7_10.qtd_masculino AS qtd_7_10_masculino, inscricao_7_10.qtd_feminino AS qtd_7_10_feminino,
+                        inscricao_10_acima.qtd_masculino AS qtd_10_acima_masculino, inscricao_10_acima.qtd_feminino AS qtd_10_acima_feminino,
+                        inscricao_servico.qtd_masculino AS qtd_servico_masculino, inscricao_servico.qtd_feminino AS qtd_servico_feminino,
+                        inscricao_tx_participacao.qtd_masculino AS qtd_tx_participacao_masculino, inscricao_tx_participacao.qtd_feminino AS qtd_tx_participacao_feminino
+                        FROM inscricao_geral
+                        LEFT JOIN inscricao_0_6 ON inscricao_geral.id = inscricao_0_6.inscricao_geral_id
+                        LEFT JOIN inscricao_7_10 ON inscricao_geral.id = inscricao_7_10.inscricao_geral_id
+                        LEFT JOIN inscricao_10_acima ON inscricao_geral.id = inscricao_10_acima.inscricao_geral_id
+                        LEFT JOIN inscricao_servico ON inscricao_geral.id = inscricao_servico.inscricao_geral_id
+                        LEFT JOIN inscricao_tx_participacao ON inscricao_geral.id = inscricao_tx_participacao.inscricao_geral_id`;
         const { rows: qtdGerais } = await pool.query(query2);
 
         // Processando os resultados
