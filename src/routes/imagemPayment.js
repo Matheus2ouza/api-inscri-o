@@ -9,7 +9,7 @@ const upload = multer({ storage });
 
 // Rota para registrar o comprovante de pagamento
 router.post('/', upload.single('comprovante_pagamento'), async (req, res) => {
-    const { cidade } = req.body; // Cidade passada pelo frontend
+    const { cidade, pagamento_id } = req.body; // Recebe cidade e pagamento_id
     const { originalname } = req.file; // Nome original do arquivo
     const comprovante_pagamento = req.file ? req.file.buffer : null;  // Dados binários da imagem (sem conversão para base64)
     const tipo_arquivo = req.file ? req.file.mimetype : null;  // Tipo MIME do arquivo
@@ -24,6 +24,12 @@ router.post('/', upload.single('comprovante_pagamento'), async (req, res) => {
     if (!cidade) {
         console.warn('Cidade não fornecida.');
         return res.status(400).json({ message: 'Cidade é obrigatória.' });
+    }
+
+    // Verifica se o pagamento_id foi fornecido
+    if (!pagamento_id) {
+        console.warn('Pagamento ID não fornecido.');
+        return res.status(400).json({ message: 'Pagamento ID é obrigatório.' });
     }
 
     try {
@@ -45,8 +51,8 @@ router.post('/', upload.single('comprovante_pagamento'), async (req, res) => {
 
         // Insere o comprovante de pagamento na tabela "comprovantes"
         const result = await pool.query(
-            'INSERT INTO comprovantes (comprovante_imagem, tipo_arquivo, localidade_id) VALUES ($1, $2, $3) RETURNING id',
-            [comprovante_pagamento, tipo_arquivo, localidade_id]  // Dados binários e tipo MIME diretamente
+            'INSERT INTO comprovantes (comprovante_imagem, tipo_arquivo, localidade_id, pagamento_id) VALUES ($1, $2, $3, $4) RETURNING id',
+            [comprovante_pagamento, tipo_arquivo, localidade_id, pagamento_id]  // Inclui pagamento_id na inserção
         );
 
         const comprovanteId = result.rows[0].id;
