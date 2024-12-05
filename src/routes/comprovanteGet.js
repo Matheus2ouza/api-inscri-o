@@ -15,7 +15,7 @@ router.get('/', async (req, res) => {
 
         // Mapeia os comprovantes para retornar as imagens em base64
         const comprovantes = result.rows.map((comprovante) => {
-            const { id, tipo_arquivo, comprovante_imagem, localidade_id } = comprovante;
+            const { id, tipo_arquivo, comprovante_imagem, localidade_id, pagamento_id } = comprovante;
 
             let base64Data = null;
 
@@ -33,6 +33,7 @@ router.get('/', async (req, res) => {
                 tipo_arquivo,
                 base64Image: base64Data, // Retorna os dados base64
                 localidade_id,
+                pagamento_id,
             };
         });
 
