@@ -2,12 +2,12 @@ const express = require('express');
 const router = express.Router();
 const { pool } = require('../db/dbConnection');
 
-// Rota para obter todos os comprovantes de pagamento (somente metadados)
+// Rota para obter todos os comprovantes de pagamento (com todos os dados)
 router.get('/', async (req, res) => {
     try {
-        // Consulta para pegar todos os comprovantes com seus metadados
+        // Consulta para pegar todos os dados dos comprovantes
         const result = await pool.query(
-            'SELECT id, tipo_arquivo FROM comprovantes'
+            'SELECT * FROM comprovantes'  // Seleciona todos os dados da tabela
         );
 
         if (result.rows.length === 0) {
@@ -15,15 +15,8 @@ router.get('/', async (req, res) => {
             return res.status(404).json({ message: 'Nenhum comprovante encontrado.' });
         }
 
-        // Envia os comprovantes em uma resposta JSON com metadados
-        const comprovantes = result.rows.map(comprovante => {
-            return {
-                id: comprovante.id,
-                tipo_arquivo: comprovante.tipo_arquivo,
-            };
-        });
-
-        return res.status(200).json({ comprovantes });
+        // Envia os comprovantes em uma resposta JSON com todos os dados
+        return res.status(200).json({ comprovantes: result.rows });
 
     } catch (err) {
         console.error(`Erro ao recuperar comprovantes: ${err}`);
