@@ -3,7 +3,6 @@ const express = require('express');
 const app = express();
 const cors = require('cors');
 const { checkDatabaseConnection } = require('./src/db/dbConnection.js');
-const axios = require('axios');  // Adicionando axios para chamadas HTTP
 
 // Importações de Rotas
 const locationsRoutes = require('./src/routes/locations.js');
@@ -16,6 +15,7 @@ const report = require('./src/routes/report.js');
 const listHosting = require('./src/routes/listHosting.js');
 const generatePdf = require('./src/routes/listPdf.js');
 const getPaymentReceipts = require('./src/routes/paymentReceipts.js');
+const setcomprovante = require('./src/routes/imagemPayment.js');
 
 app.use(express.json());
 
@@ -38,23 +38,6 @@ app.get('/', (req, res) => {
     res.send('Bem-vindo à minha API! ❤️');
 });
 
-// Rota para chamar a API Python via HTTP
-app.use('/api-python', async (req, res) => {
-    try {
-        // Substitua pela URL da sua API Python hospedada no Vercel
-        const pythonApiUrl = 'https://seu-dominio-python.vercel.app/api/comprovantes';  // Substitua pela URL real da sua API Python
-
-        // Realiza uma requisição GET para a API Python
-        const response = await axios.get(pythonApiUrl);
-
-        // Envia a resposta da API Python de volta para o front-end
-        res.status(response.status).json(response.data);
-    } catch (error) {
-        console.error('Erro ao chamar a API Python:', error);
-        res.status(500).json({ error: 'Erro ao se comunicar com a API Python' });
-    }
-});
-
 app.use('/localidades', locationsRoutes);
 app.use('/registro', register);
 app.use('/pagamento', paymentRoutes);
@@ -65,6 +48,7 @@ app.use('/report', report);
 app.use('/listHosting', listHosting);
 app.use('/generatePdf', generatePdf);
 app.use('/comprovantes', getPaymentReceipts);
+app.use('/comprovante', setcomprovante);
 
 const port = process.env.PORT;
 console.log(port);
