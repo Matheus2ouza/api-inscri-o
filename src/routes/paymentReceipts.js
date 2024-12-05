@@ -6,7 +6,7 @@ const fileType = require('file-type'); // Importando a biblioteca file-type
 // Função para verificar o tipo de arquivo e adicionar o prefixo adequado
 async function addBase64Prefix(buffer) {
     // Detecta o tipo do arquivo
-    const { ext, mime } = await fileType.fromBuffer(buffer);
+    const { ext, mime } = await fileType.buffer(buffer);  // Usando 'fileType.buffer()' em vez de 'fileType.fromBuffer()'
 
     if (!mime) {
         throw new Error('Tipo de arquivo não detectado');
