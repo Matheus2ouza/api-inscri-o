@@ -5,25 +5,30 @@ const imageType = require('image-type'); // Importando a biblioteca image-type
 
 // Função para verificar o tipo de arquivo e adicionar o prefixo adequado
 async function addBase64Prefix(buffer) {
-    // Detecta o tipo do arquivo usando image-type
-    const type = imageType(buffer);  // Retorna um objeto com 'ext' e 'mime'
+    // Tentando detectar o tipo da imagem usando image-type
+    const image = imageType(buffer);
 
-    if (!type) {
-        throw new Error('Tipo de arquivo não detectado');
-    }
-
-    // Adiciona o prefixo correspondente ao tipo de arquivo detectado
-    switch (type.mime) {
-        case 'image/jpeg':
-            return `data:image/jpeg;base64,${buffer.toString('base64')}`;
-        case 'image/png':
-            return `data:image/png;base64,${buffer.toString('base64')}`;
-        case 'image/webp':
-            return `data:image/webp;base64,${buffer.toString('base64')}`;
-        case 'application/pdf':
+    if (image) {
+        // Se for uma imagem, adicionamos o prefixo de imagem adequado
+        switch (image.mime) {
+            case 'image/jpeg':
+                return `data:image/jpeg;base64,${buffer.toString('base64')}`;
+            case 'image/png':
+                return `data:image/png;base64,${buffer.toString('base64')}`;
+            case 'image/webp':
+                return `data:image/webp;base64,${buffer.toString('base64')}`;
+            default:
+                throw new Error('Tipo de imagem não suportado');
+        }
+    } else {
+        // Se não for uma imagem, verificamos se é um PDF
+        const pdfMagicBytes = buffer.toString('hex', 0, 4); // Verifica os primeiros 4 bytes para PDF
+        if (pdfMagicBytes === '25504446') {
+            // Se for PDF, adicionamos o prefixo de PDF
             return `data:application/pdf;base64,${buffer.toString('base64')}`;
-        default:
+        } else {
             throw new Error('Tipo de arquivo não suportado');
+        }
     }
 }
 
@@ -64,18 +69,16 @@ router.get('/', async (req, res) => {
             if (pagamento.comprovante_imagem) {
                 let hexData = pagamento.comprovante_imagem;
                 
-                // Garante que hexData seja uma string antes de verificar se começa com '\x'
+                // Verifica se hexData começa com '\x' e remove esse prefixo
                 if (typeof hexData === 'string' && hexData.startsWith('\\x')) {
                     hexData = hexData.slice(2); // Remove o prefixo '\x'
                 }
                 
-                // Verifica se os dados são válidos para Buffer (se for hexadecimal)
-                if (typeof hexData === 'string' && /^[0-9a-fA-F]+$/.test(hexData)) {
-                    const buffer = Buffer.from(hexData, 'hex'); // Converte de hex para Buffer
-                    comprovanteImagemBase64 = await addBase64Prefix(buffer); // Adiciona o prefixo adequado
-                } else {
-                    throw new Error('Formato de imagem inválido');
-                }
+                // Converte o valor hexadecimal para Buffer
+                const buffer = Buffer.from(hexData, 'hex');
+                
+                // Adiciona o prefixo adequado com base no tipo do arquivo
+                comprovanteImagemBase64 = await addBase64Prefix(buffer); 
             }
 
             return {
@@ -110,6 +113,4 @@ router.get('/', async (req, res) => {
     }
 });
 
-
-// Exporta o router para uso no server.js
 module.exports = router;
