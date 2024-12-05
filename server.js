@@ -50,7 +50,7 @@ app.use('/listHosting', listHosting);
 app.use('/generatePdf', generatePdf);
 app.use('/comprovantes', getPaymentReceipts);
 app.use('/comprovante', setcomprovante);
-app.use('buscarComporvante', getcomprovante)
+app.use('/buscarComporvante', getcomprovante)
 
 const port = process.env.PORT;
 console.log(port);
