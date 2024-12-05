@@ -1,6 +1,31 @@
 const express = require('express');
 const router = express.Router();
 const { pool } = require('../db/dbConnection'); // Importando o pool de conexão com o banco de dados
+const fileType = require('file-type'); // Importando a biblioteca file-type
+
+// Função para verificar o tipo de arquivo e adicionar o prefixo adequado
+async function addBase64Prefix(buffer) {
+    // Detecta o tipo do arquivo
+    const { ext, mime } = await fileType.fromBuffer(buffer);
+
+    if (!mime) {
+        throw new Error('Tipo de arquivo não detectado');
+    }
+
+    // Adiciona o prefixo correspondente ao tipo de arquivo detectado
+    switch (mime) {
+        case 'image/jpeg':
+            return `data:image/jpeg;base64,${buffer.toString('base64')}`;
+        case 'image/png':
+            return `data:image/png;base64,${buffer.toString('base64')}`;
+        case 'image/webp':
+            return `data:image/webp;base64,${buffer.toString('base64')}`;
+        case 'application/pdf':
+            return `data:application/pdf;base64,${buffer.toString('base64')}`;
+        default:
+            throw new Error('Tipo de arquivo não suportado');
+    }
+}
 
 // Rota GET para obter os dados processados
 router.get('/', async (req, res) => {
@@ -53,7 +78,7 @@ router.get('/', async (req, res) => {
         const { rows: qtdGerais } = await pool.query(query2);
 
         // Processando os resultados
-        const processedPagamentos = pagamentos.map(pagamento => {
+        const processedPagamentos = pagamentos.map(async (pagamento) => {
             const localidadeId = pagamento.localidade_id;
 
             // Encontrar o item correspondente na consulta `qtdGerais` baseado no `localidade_id`
@@ -64,7 +89,7 @@ router.get('/', async (req, res) => {
             if (pagamento.comprovante_imagem) {
                 const hexData = pagamento.comprovante_imagem.slice(2); // Remove o prefixo \x
                 const buffer = Buffer.from(hexData, 'hex'); // Converte de hex para Buffer
-                comprovanteImagemBase64 = buffer.toString('base64'); // Converte para Base64
+                comprovanteImagemBase64 = await addBase64Prefix(buffer); // Adiciona o prefixo adequado
             }
 
             return {
@@ -86,8 +111,10 @@ router.get('/', async (req, res) => {
         });
 
         // Resposta da API
+        const pagamentosResult = await Promise.all(processedPagamentos);
+
         res.status(200).json({
-            pagamentos: processedPagamentos,
+            pagamentos: pagamentosResult,
             qtdGerais: qtdGerais
         });
 
