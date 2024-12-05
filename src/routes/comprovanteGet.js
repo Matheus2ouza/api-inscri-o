@@ -6,7 +6,7 @@ const { pool } = require('../db/dbConnection');
 router.get('/', async (req, res) => {
     try {
         // Consulta para pegar todos os dados dos comprovantes
-        const result = await pool.query('SELECT id, tipo_arquivo, comprovante_imagem FROM comprovantes');
+        const result = await pool.query('SELECT * FROM comprovantes');
 
         if (result.rows.length === 0) {
             console.warn('Nenhum comprovante encontrado.');
@@ -15,7 +15,7 @@ router.get('/', async (req, res) => {
 
         // Mapeia os comprovantes para retornar as imagens em base64
         const comprovantes = result.rows.map((comprovante) => {
-            const { id, tipo_arquivo, comprovante_imagem } = comprovante;
+            const { id, tipo_arquivo, comprovante_imagem, localidade_id } = comprovante;
 
             let base64Data = null;
 
@@ -32,6 +32,7 @@ router.get('/', async (req, res) => {
                 id,
                 tipo_arquivo,
                 base64Image: base64Data, // Retorna os dados base64
+                localidade_id,
             };
         });
 
