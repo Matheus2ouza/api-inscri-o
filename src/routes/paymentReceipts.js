@@ -1,20 +1,19 @@
 const express = require('express');
 const router = express.Router();
 const { pool } = require('../db/dbConnection'); // Importando o pool de conexão com o banco de dados
-const MagicBytes = require('magic-bytes.js'); // Importando a biblioteca magic-bytes.js
+const imageType = require('image-type'); // Importando a biblioteca image-type
 
 // Função para verificar o tipo de arquivo e adicionar o prefixo adequado
 async function addBase64Prefix(buffer) {
-    // Detecta o tipo do arquivo usando magic-bytes.js
-    const magic = new MagicBytes(buffer);
-    const mime = magic.getMimeType();
+    // Detecta o tipo do arquivo usando image-type
+    const type = imageType(buffer);  // Retorna um objeto com 'ext' e 'mime'
 
-    if (!mime) {
+    if (!type) {
         throw new Error('Tipo de arquivo não detectado');
     }
 
     // Adiciona o prefixo correspondente ao tipo de arquivo detectado
-    switch (mime) {
+    switch (type.mime) {
         case 'image/jpeg':
             return `data:image/jpeg;base64,${buffer.toString('base64')}`;
         case 'image/png':
