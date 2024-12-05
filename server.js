@@ -39,10 +39,10 @@ app.get('/', (req, res) => {
 });
 
 // Rota para chamar a API Python via HTTP
-app.use('/comprovantesImagem', async (req, res) => {
+app.use('/api-python', async (req, res) => {
     try {
         // Substitua pela URL da sua API Python hospedada no Vercel
-        const pythonApiUrl = 'https://api-inscri-o.vercel.app/';  // Substitua pela URL real da sua API Python
+        const pythonApiUrl = 'https://seu-dominio-python.vercel.app/api/comprovantes';  // Substitua pela URL real da sua API Python
 
         // Realiza uma requisição GET para a API Python
         const response = await axios.get(pythonApiUrl);
