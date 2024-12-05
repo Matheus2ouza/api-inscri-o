@@ -62,7 +62,16 @@ router.get('/', async (req, res) => {
             // Processa a imagem no formato hexadecimal (\x...)
             let comprovanteImagemBase64 = null;
             if (pagamento.comprovante_imagem) {
-                const hexData = pagamento.comprovante_imagem.slice(2); // Remove o prefixo \x
+                let hexData = pagamento.comprovante_imagem;
+                if (hexData.startsWith('\\x')) {
+                    hexData = hexData.slice(2); // Remove o prefixo '\x'
+                }
+                
+                // Verifica se os dados são válidos para Buffer
+                if (!/^[0-9a-fA-F]+$/.test(hexData)) {
+                    throw new Error('Formato de imagem inválido');
+                }
+
                 const buffer = Buffer.from(hexData, 'hex'); // Converte de hex para Buffer
                 comprovanteImagemBase64 = await addBase64Prefix(buffer); // Adiciona o prefixo adequado
             }
@@ -98,6 +107,7 @@ router.get('/', async (req, res) => {
         res.status(500).json({ message: 'Erro interno do servidor' });
     }
 });
+
 
 // Exporta o router para uso no server.js
 module.exports = router;
