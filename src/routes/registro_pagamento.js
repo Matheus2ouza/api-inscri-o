@@ -4,6 +4,11 @@ const { pool } = require("../db/dbConnection");
 
 const registerRoutes = express.Router();
 
+// Rota de teste GET
+registerRoutes.get("/teste", (req, res) => {
+  res.status(200).json({ message: "Rota de teste funcionando!" });
+});
+
 // Rota para criar uma entrada ou saída no caixa
 registerRoutes.post(
   "/caixa",
