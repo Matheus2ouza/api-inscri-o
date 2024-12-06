@@ -51,13 +51,6 @@ registerRoutes.post(
     body("tipo_refeicao").notEmpty().withMessage("Tipo de refeição é obrigatório."),
     body("quantidade").isInt({ min: 1 }).withMessage("Quantidade deve ser positiva."),
     body("valortotal").isNumeric().withMessage("Valor total deve ser numérico."),
-    body("detalhes").isArray().withMessage("Detalhes devem ser um array."),
-    body("detalhes.*.valor")
-      .isNumeric()
-      .withMessage("O valor em detalhes deve ser numérico."),
-    body("detalhes.*.formapagamento")
-      .notEmpty()
-      .withMessage("Forma de pagamento é obrigatória em detalhes."),
   ],
   async (req, res) => {
     const errors = validationResult(req);
@@ -65,7 +58,7 @@ registerRoutes.post(
       return res.status(400).json({ errors: errors.array() });
     }
 
-    const { tipo_refeicao, quantidade, valortotal, detalhes } = req.body;
+    const { tipo_refeicao, quantidade, valortotal } = req.body;
 
     try {
       const venda = await pool.query(
@@ -74,19 +67,45 @@ registerRoutes.post(
       );
       const vendaId = venda.rows[0].id;
 
-      for (const detalhe of detalhes) {
-        await pool.query(
-          "INSERT INTO venda_alimentacao_detalhes (id_alimentacao, valor, formapagamento) VALUES ($1, $2, $3)",
-          [vendaId, detalhe.valor, detalhe.formapagamento]
-        );
-      }
-
       return res
         .status(201)
         .json({ message: "Venda de alimentação registrada", id: vendaId });
     } catch (err) {
       console.error(`Erro ao registrar venda de alimentação: ${err.message}`);
       return res.status(500).json({ error: "Erro ao registrar venda de alimentação." });
+    }
+  }
+);
+
+// Rota para registrar detalhes de venda de alimentação
+registerRoutes.post(
+  "/venda-alimentacao/detalhes/:vendaId",
+  [
+    body("valor").isNumeric().withMessage("Valor deve ser numérico."),
+    body("formapagamento").notEmpty().withMessage("Forma de pagamento é obrigatória."),
+  ],
+  async (req, res) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({ errors: errors.array() });
+    }
+
+    const { vendaId } = req.params;
+    const { valor, formapagamento } = req.body;
+
+    try {
+      // Inserir os detalhes da venda de alimentação
+      await pool.query(
+        "INSERT INTO venda_alimentacao_detalhes (id_alimentacao, valor, formapagamento) VALUES ($1, $2, $3)",
+        [vendaId, valor, formapagamento]
+      );
+
+      return res
+        .status(201)
+        .json({ message: "Detalhe da venda de alimentação registrado." });
+    } catch (err) {
+      console.error(`Erro ao registrar detalhe de venda de alimentação: ${err.message}`);
+      return res.status(500).json({ error: "Erro ao registrar detalhe da venda de alimentação." });
     }
   }
 );
@@ -100,13 +119,6 @@ registerRoutes.post(
       .withMessage("Tipo de inscrição é obrigatório e deve ser um número."),
     body("vl_total").isNumeric().withMessage("Valor total deve ser numérico."),
     body("data").isISO8601().withMessage("Data deve estar no formato ISO."),
-    body("detalhes").isArray().withMessage("Detalhes devem ser um array."),
-    body("detalhes.*.valor")
-      .isNumeric()
-      .withMessage("O valor em detalhes deve ser numérico."),
-    body("detalhes.*.formapagamento")
-      .notEmpty()
-      .withMessage("Forma de pagamento é obrigatória em detalhes."),
   ],
   async (req, res) => {
     const {
@@ -121,34 +133,28 @@ registerRoutes.post(
       qtd_feminino_visitante,
       vl_total,
       data,
-      detalhes,
     } = req.body;
+
+    const dadosInscricao = [
+      tipo_inscricao_id,
+      qtd_masculino_06 || 0,
+      qtd_feminino_06 || 0,
+      qtd_masculino_7_10 || 0,
+      qtd_feminino_7_10 || 0,
+      qtd_masculino_normal || 0,
+      qtd_feminino_normal || 0,
+      qtd_masculino_visitante || 0,
+      qtd_feminino_visitante || 0,
+      vl_total,
+      data,
+    ];
 
     try {
       const inscricao = await pool.query(
         "INSERT INTO inscricao_avulsa (tipo_inscricao_id, qtd_masculino_06, qtd_feminino_06, qtd_masculino_7_10, qtd_feminino_7_10, qtd_masculino_normal, qtd_feminino_normal, qtd_masculino_visitante, qtd_feminino_visitante, vl_total, data) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11) RETURNING id",
-        [
-          tipo_inscricao_id,
-          qtd_masculino_06 || 0,
-          qtd_feminino_06 || 0,
-          qtd_masculino_7_10 || 0,
-          qtd_feminino_7_10 || 0,
-          qtd_masculino_normal || 0,
-          qtd_feminino_normal || 0,
-          qtd_masculino_visitante || 0,
-          qtd_feminino_visitante || 0,
-          vl_total,
-          data,
-        ]
+        dadosInscricao
       );
       const inscricaoId = inscricao.rows[0].id;
-
-      for (const detalhe of detalhes) {
-        await pool.query(
-          "INSERT INTO inscricao_avulsa_detalhes (id_inscricao_avulsa, valor, formapagamento) VALUES ($1, $2, $3)",
-          [inscricaoId, detalhe.valor, detalhe.formapagamento]
-        );
-      }
 
       return res
         .status(201)
@@ -156,6 +162,39 @@ registerRoutes.post(
     } catch (err) {
       console.error(`Erro ao registrar inscrição avulsa: ${err.message}`);
       return res.status(500).json({ error: "Erro ao registrar inscrição avulsa." });
+    }
+  }
+);
+
+// Rota para registrar detalhes de inscrição avulsa
+registerRoutes.post(
+  "/inscricao-avulsa/detalhes/:inscricaoId",
+  [
+    body("valor").isNumeric().withMessage("Valor deve ser numérico."),
+    body("formapagamento").notEmpty().withMessage("Forma de pagamento é obrigatória."),
+  ],
+  async (req, res) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({ errors: errors.array() });
+    }
+
+    const { inscricaoId } = req.params;
+    const { valor, formapagamento } = req.body;
+
+    try {
+      // Inserir os detalhes da inscrição avulsa
+      await pool.query(
+        "INSERT INTO inscricao_avulsa_detalhes (id_inscricao_avulsa, valor, formapagamento) VALUES ($1, $2, $3)",
+        [inscricaoId, valor, formapagamento]
+      );
+
+      return res
+        .status(201)
+        .json({ message: "Detalhe da inscrição avulsa registrado." });
+    } catch (err) {
+      console.error(`Erro ao registrar detalhe de inscrição avulsa: ${err.message}`);
+      return res.status(500).json({ error: "Erro ao registrar detalhe da inscrição avulsa." });
     }
   }
 );
