@@ -73,11 +73,11 @@ router.get('/', async (req, res) => {
         `);
 
         const venda_alimentacao = await pool.query(`
-            SELECT tipo_refeicao, quantidade, valor_unitario, valor_total as qtd_geral, data, forma_pagamento 
+            SELECT tipo_refeicao, quantidade, valor_unitario, valor_total as valor, data, forma_pagamento 
             FROM venda_alimentacao 
         `);
         const saida_financeiro = await pool.query(`
-            SELECT descricao, responsavel, valor as qtd_geral, tipomovimento, data FROM caixa
+            SELECT descricao, responsavel, valor, tipomovimento, data FROM caixa
         `);
         const tipoInscricao = await pool.query('SELECT id, descricao, valor FROM public.tipo_inscricao');
 
