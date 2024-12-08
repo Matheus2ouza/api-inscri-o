@@ -65,6 +65,12 @@ router.get('/', async (req, res) => {
             FROM public.pagamento p
             LEFT JOIN public.localidades l ON p.localidade_id = l.id
         `);
+        const inscricaoAvulsa = await pool.query(`
+            select 
+                localidade,qtd_geral_06, qtd_geral_7_10, qtd_geral_normal, qtd_geral_servico,qtd_geral_visitante,
+                (qtd_geral_06 + qtd_geral_7_10 + qtd_geral_normal + qtd_geral_servico + qtd_geral_visitante) as TotalGeral, vl_total, forma_pagamento        
+                from inscricao_avulsa ORDER BY 1 
+        `);
         const tipoInscricao = await pool.query('SELECT id, descricao, valor FROM public.tipo_inscricao');
 
         // Monta o objeto de resposta para cada tabela
@@ -106,6 +112,11 @@ router.get('/', async (req, res) => {
             inscricao_tx_participacao: {
                 success: true,
                 data: inscricao_tx_participacao.rows,
+                message: 'Dados de inscrições taxa de participação obtidos com sucesso.'
+            },
+            inscricaoAvulsa: {
+                success: true,
+                data: inscricaoAvulsa.rows,
                 message: 'Dados de inscrições taxa de participação obtidos com sucesso.'
             },
             inscricaoGeral: {
