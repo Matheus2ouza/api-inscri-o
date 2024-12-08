@@ -68,7 +68,7 @@ router.get('/', async (req, res) => {
         const inscricaoAvulsa = await pool.query(`
             select 
                 localidade,qtd_geral_06, qtd_geral_7_10, qtd_geral_normal, qtd_geral_servico,qtd_geral_visitante, qtd_geral_participacao ,
-                    (qtd_geral_06 + qtd_geral_7_10 + qtd_geral_normal + qtd_geral_servico + qtd_geral_visitante + qtd_geral_participacao) as TotalGeral, vl_total, forma_pagamento 
+                    (qtd_geral_06 + qtd_geral_7_10 + qtd_geral_normal + qtd_geral_servico + qtd_geral_visitante + qtd_geral_participacao) as qtd_geral, vl_total, forma_pagamento 
                     from inscricao_avulsa ORDER BY 1  
         `);
         const tipoInscricao = await pool.query('SELECT id, descricao, valor FROM public.tipo_inscricao');
