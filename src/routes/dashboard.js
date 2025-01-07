@@ -65,6 +65,20 @@ router.get('/', async (req, res) => {
             FROM public.pagamento p
             LEFT JOIN public.localidades l ON p.localidade_id = l.id
         `);
+        const inscricaoAvulsa = await pool.query(`
+            select 
+                localidade,qtd_geral_06, qtd_geral_7_10, qtd_geral_normal, qtd_geral_servico,qtd_geral_visitante, qtd_geral_participacao ,
+                    (qtd_geral_06 + qtd_geral_7_10 + qtd_geral_normal + qtd_geral_servico + qtd_geral_visitante + qtd_geral_participacao) as qtd_geral, vl_total, forma_pagamento 
+                    from inscricao_avulsa ORDER BY 1  
+        `);
+
+        const venda_alimentacao = await pool.query(`
+            SELECT tipo_refeicao, quantidade, valor_unitario, valor_total as valor, data, forma_pagamento 
+            FROM venda_alimentacao 
+        `);
+        const saida_financeiro = await pool.query(`
+            SELECT descricao, responsavel, valor, tipomovimento, data FROM caixa
+        `);
         const tipoInscricao = await pool.query('SELECT id, descricao, valor FROM public.tipo_inscricao');
 
         // Monta o objeto de resposta para cada tabela
@@ -108,10 +122,25 @@ router.get('/', async (req, res) => {
                 data: inscricao_tx_participacao.rows,
                 message: 'Dados de inscrições taxa de participação obtidos com sucesso.'
             },
+            inscricaoAvulsa: {
+                success: true,
+                data: inscricaoAvulsa.rows,
+                message: 'Dados de inscrições taxa de participação obtidos com sucesso.'
+            },
             inscricaoGeral: {
                 success: true,
                 data: inscricaoGeral.rows,
                 message: 'Dados das inscrições gerais obtidos com sucesso.'
+            },
+            venda_alimentacao: {
+                success: true,
+                data: venda_alimentacao.rows,
+                message: 'Dados das venda de alimentacao obtidos com sucesso.'
+            },
+            saida_financeiro: {
+                success: true,
+                data: saida_financeiro.rows,
+                message: 'Dados da saida financeiro obtidos com sucesso.'
             },
             movimentacaoFinanceira: {
                 success: true,
