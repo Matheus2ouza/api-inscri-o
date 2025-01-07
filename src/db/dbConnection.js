@@ -3,7 +3,7 @@ import pg from 'pg';
 const { Pool } = pg;
 
 const pool = new Pool({
-  connectionString: process.env.POSTGRES_URL_SECOND,
+  connectionString: process.env.POSTGRES_URL,
 })
 
 let isConnected = false; // Variável de controle
