@@ -110,61 +110,129 @@ registerRoutes.post(
   }
 );
 
-// Rota para registrar inscrição avulsa
 registerRoutes.post(
   "/inscricao-avulsa",
   [
-    body("tipo_inscricao_id")
-      .isInt()
-      .withMessage("Tipo de inscrição é obrigatório e deve ser um número."),
-    body("vl_total").isNumeric().withMessage("Valor total deve ser numérico."),
-    body("data").isISO8601().withMessage("Data deve estar no formato ISO."),
+    body("localidade").isString().withMessage("Localidade é obrigatória."),
+    body("quantidadeTotal").isInt().withMessage("Quantidade total deve ser um número inteiro."),
+    body("valorTotal").isNumeric().withMessage("Valor total deve ser numérico."),
+    body("formasDePagamento").isArray().withMessage("Formas de pagamento devem ser um array."),
+    body("qtdDetalhes").isArray().withMessage("Detalhes das quantidades devem ser um array."),
   ],
   async (req, res) => {
     const {
-      tipo_inscricao_id,
-      qtd_masculino_06,
-      qtd_feminino_06,
-      qtd_masculino_7_10,
-      qtd_feminino_7_10,
-      qtd_masculino_normal,
-      qtd_feminino_normal,
-      qtd_masculino_visitante,
-      qtd_feminino_visitante,
-      vl_total,
-      data,
+      localidade,
+      qtdDetalhes, // Array com as faixas e suas quantidades
+      quantidadeTotal,
+      valorTotal,
+      formasDePagamento, // Array com detalhes das formas de pagamento
     } = req.body;
 
-    const dadosInscricao = [
-      tipo_inscricao_id,
-      qtd_masculino_06 || 0,
-      qtd_feminino_06 || 0,
-      qtd_masculino_7_10 || 0,
-      qtd_feminino_7_10 || 0,
-      qtd_masculino_normal || 0,
-      qtd_feminino_normal || 0,
-      qtd_masculino_visitante || 0,
-      qtd_feminino_visitante || 0,
-      vl_total,
-      data,
-    ];
+    // Cria um objeto separado para as faixas de idade
+    const faixasPorIdade = {};
+
+    // Processa as faixas e organiza em um novo objeto
+    qtdDetalhes.forEach(faixa => {
+      faixasPorIdade[faixa.faixa] = faixa.quantidade || 0;
+    });
+
+    let data = new Date();
 
     try {
-      const inscricao = await pool.query(
-        "INSERT INTO inscricao_avulsa (tipo_inscricao_id, qtd_masculino_06, qtd_feminino_06, qtd_masculino_7_10, qtd_feminino_7_10, qtd_masculino_normal, qtd_feminino_normal, qtd_masculino_visitante, qtd_feminino_visitante, vl_total, data) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11) RETURNING id",
-        dadosInscricao
+      // Verifica se a localidade existe
+      const localeCheck = await pool.query(
+        "SELECT * FROM localidades WHERE nome = $1",
+        [localidade]
       );
-      const inscricaoId = inscricao.rows[0].id;
 
-      return res
-        .status(201)
-        .json({ message: "Inscrição avulsa registrada", id: inscricaoId });
+      const city = localeCheck.rows[0];
+
+      if (!city) {
+        console.warn(`Localidade não encontrada: ${localidade}`);
+        return res.status(401).json({ message: "Localidade inválida" });
+      }
+
+      // Insere os dados na tabela `inscricao_avulsa2`
+      const inscricao = await pool.query(
+        `INSERT INTO inscricao_avulsa2 (
+           evento_id, 
+           localidade_id, 
+           qtd_0_6, 
+           qtd_7_10, 
+           qtd_10_normal, 
+           qtd_visitante, 
+           data
+         ) VALUES ($1, $2, $3, $4, $5, $6, NOW()) RETURNING id`,
+        [
+          2,
+          city.id,
+          faixasPorIdade['0-6'] || 0,
+          faixasPorIdade['7-10'] || 0,
+          faixasPorIdade['10plus'] || 0,
+          faixasPorIdade['visitante'] || 0,
+          data,
+        ]
+      );
+
+      // Verifica se a inserção da inscrição foi bem-sucedida
+      if (!inscricao.rows[0] || !inscricao.rows[0].id) {
+        const errorMessage = 'Erro ao inserir inscrição avulsa. Não foi possível registrar os dados.';
+        console.error(errorMessage);
+        return res.status(500).json({ message: errorMessage });
+      }
+
+      // Inscrição inserida com sucesso
+      console.log(`Inscrição avulsa registrada com sucesso: ${inscricao.rows[0].id}`);
+
+      // Inserção das formas de pagamento na tabela `pagamento_avulso`
+      if (formasDePagamento.length > 0) {
+        try {
+          const pagamentoQueries = formasDePagamento.map((pagamento) => {
+            return pool.query(
+              `INSERT INTO pagamento_avulso (
+                inscricao_avulsa2_id, 
+                tipo_pagamento, 
+                valor
+              ) VALUES ($1, $2, $3)`,
+              [inscricao.rows[0].id, pagamento.tipo, pagamento.valor]
+            );
+          });
+
+          await Promise.all(pagamentoQueries); // Executa todas as queries em paralelo
+          console.log("Formas de pagamento registradas com sucesso.");
+        } catch (error) {
+          console.error(`Erro ao inserir formas de pagamento: ${error.message}`);
+          return res.status(500).json({ message: 'Erro ao processar as formas de pagamento.', error: error.message });
+        }
+      }
+
+      // Inserção na tabela `movimentacao_financeira`
+      const financialMovement = await pool.query(
+        `INSERT INTO movimentacao_financeira (tipo, descricao, valor, data)
+         VALUES($1, $2, $3, $4)`,
+        ["Entrada", `Inscrição avulsa, id:${inscricao.rows[0].id}`, valorTotal, data]
+      );
+
+      if (!financialMovement.rows || financialMovement.rows.length === 0) {
+        const errorMessage = 'Erro ao registrar movimentação financeira. Não foi possível inserir os dados.';
+        console.error(errorMessage);
+        return res.status(500).json({ message: errorMessage });
+      }
+
+      console.log(`Movimentação financeira registrada com sucesso: ${financialMovement.rows[0].id}`);
+
+      return res.status(201).json({
+        message: "Inscrição avulsa registrada com sucesso.",
+        id: inscricao.rows[0].id,
+      });
     } catch (err) {
       console.error(`Erro ao registrar inscrição avulsa: ${err.message}`);
       return res.status(500).json({ error: "Erro ao registrar inscrição avulsa." });
     }
   }
 );
+
+
 
 // Rota para registrar detalhes de inscrição avulsa
 registerRoutes.post(
