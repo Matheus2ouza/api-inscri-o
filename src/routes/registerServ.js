@@ -2,7 +2,7 @@ const express = require("express");
 const {body, validationResult } = require("express-validator");
 const { pool } = require("../db/dbConnection");
 
-const registerServ = [
+const registerServico = [
     async(req, res) => {
         const errors = validationResult(req);
         if (!errors.isEmpty()) {
@@ -99,4 +99,4 @@ const registerServ = [
     }
 ];
 
-module.exports = registerServ
+module.exports = registerServico;
