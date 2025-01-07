@@ -7,6 +7,7 @@ const { checkDatabaseConnection } = require('./src/db/dbConnection.js');
 // Importações de Rotas
 const locationsRoutes = require('./src/routes/locations.js');
 const register = require('./src/routes/register.js');
+const registerServ = require('./src/routes/registerServ.js')
 const paymentRoutes = require('./src/routes/payment.js');
 const hospedagemRoutes = require('./src/routes/hospedagem.js');
 const dashboardRoutes = require('./src/routes/dashboard.js');
@@ -42,6 +43,7 @@ app.get('/', (req, res) => {
 
 app.use('/localidades', locationsRoutes);
 app.use('/registro', register);
+app.use('/registroServ', registerServ)
 app.use('/pagamento', paymentRoutes);
 app.use('/hospedagem', hospedagemRoutes);
 app.use('/dashboard', dashboardRoutes);
