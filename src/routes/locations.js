@@ -4,7 +4,7 @@ const { pool } = require('../db/dbConnection')
 
 router.get('/', async (req, res) => {
     try {
-        const locations = await pool.query('SELECT * FROM localidades');
+        const locations = await pool.query('SELECT * FROM localidades_new');
         const result = locations.rows;
 
         if (result.length === 0) { // Verifica se não há localidades
