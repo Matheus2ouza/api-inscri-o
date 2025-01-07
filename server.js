@@ -25,11 +25,7 @@ app.use(express.json());
 // Conexão com o banco de dados
 checkDatabaseConnection();
 
-app.use(cors({
-    origin: '*',
-    methods: 'GET, POST',
-    allowedHeaders: 'Content-Type'
-}));
+app.use(cors());
 
 app.use((req, res, next) => {
     console.info(`Request: ${req.method} ${req.url}`);
