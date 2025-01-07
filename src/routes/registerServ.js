@@ -81,7 +81,7 @@ const registerServico = [
                 const totalAge = totalSubscribers;
                 totalGeral = totalAge * valorTipoInscricao;
 
-                console.info(`Total para faixa etária 10+: ${totalAge10} (quantidade: ${totalSubscribers}, valor: ${valorTipoInscricao})`);
+                console.info(`Total para faixa etária 10+: ${totalAge} (quantidade: ${totalSubscribers}, valor: ${valorTipoInscricao})`);
                 console.info(`Sucesso ao inserir na tabela inscricao_10_acima: tipo_inscricao_id = ${tipoInscricaoId}, valor = ${valorTipoInscricao} para ID de inscrição: ${enrollmentId}`);
 
                 // Atualiza saldo devedor
