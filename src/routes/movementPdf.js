@@ -36,27 +36,40 @@ router.post('/gerar-pdf', (req, res) => {
         doc.fontSize(16).text(`Data: ${date}`, { underline: true });
         doc.moveDown(0.5); // Espaço entre a data e as movimentações
 
-        // Verifica se há entradas e as imprime
-        if (movements[date].entrada.length > 0) {
-            doc.fontSize(14).text('Entradas:', { bold: true });
-            movements[date].entrada.forEach(movement => {
-                const valorEntrada = movement.valor.toFixed(2); // Agora é sempre número
-                doc.fontSize(12).text(`ID: ${movement.id} | ${movement.descricao} | R$ ${valorEntrada}`);
-                doc.moveDown(0.3); // Espaço entre cada movimento
-            });
-            doc.moveDown(1); // Espaço entre categorias
-        }
+        // Inicializa a tabela
+        doc.fontSize(12);
+        doc.text('ID', 50, doc.y);
+        doc.text('Tipo', 100, doc.y);
+        doc.text('Descrição', 200, doc.y);
+        doc.text('Valor', 400, doc.y);
+        doc.moveDown(0.5); // Espaço entre cabeçalhos e primeira linha
 
-        // Verifica se há saídas e as imprime
-        if (movements[date].saida.length > 0) {
-            doc.fontSize(14).text('Saídas:', { bold: true });
-            movements[date].saida.forEach(movement => {
-                const valorSaida = movement.valor.toFixed(2); // Agora é sempre número
-                doc.fontSize(12).text(`ID: ${movement.id} | ${movement.descricao} | R$ ${valorSaida}`);
-                doc.moveDown(0.3); // Espaço entre cada movimento
-            });
-            doc.moveDown(1); // Espaço entre categorias
-        }
+        // Tabelando as entradas e saídas
+        let total = 0;
+
+        movements[date].entrada.forEach(movement => {
+            const valorEntrada = movement.valor.toFixed(2);
+            doc.text(movement.id, 50, doc.y);
+            doc.text('Entrada', 100, doc.y);
+            doc.text(movement.descricao, 200, doc.y);
+            doc.text(`+ R$ ${valorEntrada}`, 400, doc.y);
+            doc.moveDown(0.3); // Espaço entre linhas
+            total += movement.valor;
+        });
+
+        movements[date].saida.forEach(movement => {
+            const valorSaida = movement.valor.toFixed(2);
+            doc.text(movement.id, 50, doc.y);
+            doc.text('Saída', 100, doc.y);
+            doc.text(movement.descricao, 200, doc.y);
+            doc.text(`- R$ ${valorSaida}`, 400, doc.y);
+            doc.moveDown(0.3); // Espaço entre linhas
+            total -= movement.valor;
+        });
+
+        // Adiciona o total
+        doc.moveDown(0.5); // Espaço antes do total
+        doc.fontSize(14).text(`Total: R$ ${total.toFixed(2)}`, 400, doc.y);
 
         doc.moveDown(1); // Espaço entre datas
     });
@@ -69,7 +82,5 @@ router.post('/gerar-pdf', (req, res) => {
     res.setHeader('Content-Disposition', 'attachment; filename="movimentacoes_financeiras.pdf"');
     doc.pipe(res); // Envia o PDF gerado diretamente para a resposta
 });
-
-
 
 module.exports = router;
