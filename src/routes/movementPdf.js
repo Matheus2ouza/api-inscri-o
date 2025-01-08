@@ -21,11 +21,21 @@ router.post('/gerar-pdf', (req, res) => {
         });
     });
 
-    const doc = new PDFDocument();
-    
+    const doc = new PDFDocument({ size: 'A4' });
+    const pageWidth = doc.page.width;
+    const pageHeight = doc.page.height;
+
     // Definir cabeçalhos para o PDF
     doc.fontSize(20).text('Movimentações Financeiras', { align: 'center' });
     doc.moveDown(1); // Move para a próxima linha
+
+    // Largura total disponível para a tabela (excluindo margens)
+    const tableLeftMargin = 50;
+    const tableRightMargin = 50;
+    const tableWidth = pageWidth - tableLeftMargin - tableRightMargin;
+
+    // Definir larguras das colunas com base no tamanho da página
+    const colWidths = [0.1 * tableWidth, 0.2 * tableWidth, 0.5 * tableWidth, 0.2 * tableWidth]; // Percentuais da largura total da tabela
 
     // Loop para percorrer os dados agrupados por dia
     Object.keys(movements).forEach((date, index) => {
@@ -39,17 +49,24 @@ router.post('/gerar-pdf', (req, res) => {
         // Inicializa a tabela
         const tableTop = doc.y;
         doc.fontSize(12);
-        const columnWidths = [50, 100, 200, 100];
-        
+
         // Cabeçalhos da tabela
-        doc.text('ID', 50, tableTop);
-        doc.text('Tipo', 100, tableTop);
-        doc.text('Descrição', 200, tableTop);
-        doc.text('Valor', 400, tableTop);
+        const headers = ['ID', 'Tipo', 'Descrição', 'Valor'];
+        const headerPositions = [
+            tableLeftMargin,
+            tableLeftMargin + colWidths[0],
+            tableLeftMargin + colWidths[0] + colWidths[1],
+            tableLeftMargin + colWidths[0] + colWidths[1] + colWidths[2]
+        ];
+
+        // Imprime os cabeçalhos da tabela
+        headers.forEach((header, i) => {
+            doc.text(header, headerPositions[i], tableTop, { width: colWidths[i], align: 'center' });
+        });
         doc.moveDown(0.5); // Espaço entre cabeçalhos e primeira linha
 
         // Adiciona uma linha horizontal para separar os cabeçalhos
-        doc.moveTo(50, doc.y).lineTo(500, doc.y).stroke(); 
+        doc.moveTo(tableLeftMargin, doc.y).lineTo(tableLeftMargin + tableWidth, doc.y).stroke(); 
         
         let total = 0;
         let yPosition = doc.y;
@@ -57,30 +74,30 @@ router.post('/gerar-pdf', (req, res) => {
         // Tabelando as entradas e saídas
         movements[date].entrada.forEach(movement => {
             const valorEntrada = movement.valor.toFixed(2);
-            doc.text(movement.id, 50, yPosition);
-            doc.text('Entrada', 100, yPosition);
-            doc.text(movement.descricao, 200, yPosition);
-            doc.text(`+ R$ ${valorEntrada}`, 400, yPosition);
+            doc.text(movement.id, tableLeftMargin, yPosition, { width: colWidths[0], align: 'center' });
+            doc.text('Entrada', tableLeftMargin + colWidths[0], yPosition, { width: colWidths[1], align: 'center' });
+            doc.text(movement.descricao, tableLeftMargin + colWidths[0] + colWidths[1], yPosition, { width: colWidths[2], align: 'left' });
+            doc.text(`+ R$ ${valorEntrada}`, tableLeftMargin + colWidths[0] + colWidths[1] + colWidths[2], yPosition, { width: colWidths[3], align: 'right' });
             yPosition += 20; // Espaço entre linhas
             total += movement.valor;
         });
 
         movements[date].saida.forEach(movement => {
             const valorSaida = movement.valor.toFixed(2);
-            doc.text(movement.id, 50, yPosition);
-            doc.text('Saída', 100, yPosition);
-            doc.text(movement.descricao, 200, yPosition);
-            doc.text(`- R$ ${valorSaida}`, 400, yPosition);
+            doc.text(movement.id, tableLeftMargin, yPosition, { width: colWidths[0], align: 'center' });
+            doc.text('Saída', tableLeftMargin + colWidths[0], yPosition, { width: colWidths[1], align: 'center' });
+            doc.text(movement.descricao, tableLeftMargin + colWidths[0] + colWidths[1], yPosition, { width: colWidths[2], align: 'left' });
+            doc.text(`- R$ ${valorSaida}`, tableLeftMargin + colWidths[0] + colWidths[1] + colWidths[2], yPosition, { width: colWidths[3], align: 'right' });
             yPosition += 20; // Espaço entre linhas
             total -= movement.valor;
         });
 
         // Adiciona uma linha horizontal após as movimentações
-        doc.moveTo(50, yPosition).lineTo(500, yPosition).stroke(); 
+        doc.moveTo(tableLeftMargin, yPosition).lineTo(tableLeftMargin + tableWidth, yPosition).stroke(); 
 
         // Exibe o total
         doc.moveDown(0.5); // Espaço antes do total
-        doc.fontSize(14).text(`Total: R$ ${total.toFixed(2)}`, 400, yPosition);
+        doc.fontSize(14).text(`Total: R$ ${total.toFixed(2)}`, tableLeftMargin + colWidths[0] + colWidths[1] + colWidths[2], yPosition, { width: colWidths[3], align: 'right' });
 
         doc.moveDown(1); // Espaço entre datas
     });
