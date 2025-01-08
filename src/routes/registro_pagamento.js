@@ -12,44 +12,51 @@ registerRoutes.get("/teste", (req, res) => {
 registerRoutes.get(
   "/movimentacao", 
   async (req, res) => {
-  try {
-    const result = await pool.query(`
-      SELECT 
-        mf.id,
-        mf.tipo,
-        CASE 
-          WHEN mf.descricao LIKE 'Inscrição avulsa, id:%' THEN
-            CONCAT(
-              'Inscrição avulsa, ', 
-              COALESCE(
-                (SELECT l.nome 
-                 FROM inscricao_avulsa2 ia
-                 JOIN localidades l ON ia.localidade_id = l.id
-                 WHERE ia.id = CAST(SUBSTRING(mf.descricao FROM 'id:(\d+)') AS INTEGER)),
-                'Localidade não encontrada'
+    try {
+      const sqlQuery = `
+        SELECT 
+          mf.id,
+          mf.tipo,
+          CASE 
+            WHEN mf.descricao LIKE 'Inscrição avulsa, id:%' THEN
+              CONCAT(
+                'Inscrição avulsa, ', 
+                COALESCE(
+                  (SELECT l.nome 
+                   FROM inscricao_avulsa2 ia
+                   JOIN localidades l ON ia.localidade_id = l.id
+                   WHERE ia.id = CAST(SUBSTRING(mf.descricao FROM 'id:(\d+)') AS INTEGER)),
+                  'Localidade não encontrada'
+                )
               )
-            )
-          ELSE mf.descricao
-        END AS descricao,
-        mf.valor,
-        mf.data
-      FROM movimentacao_financeira mf;
-    `);
+            ELSE mf.descricao
+          END AS descricao,
+          mf.valor,
+          mf.data
+        FROM movimentacao_financeira mf;
+      `;
 
-    // Log de depuração para verificar o retorno dos dados
-    result.rows.forEach(row => {
-      console.log("Descricao:", row.descricao);
-    });
+      // Log da consulta SQL
+      console.log("SQL Executado:", sqlQuery);
 
-    return res.status(200).json(result.rows);
-  } catch (error) {
-    console.error("Erro ao buscar movimentações financeiras:", error.message);
-    return res.status(500).json({
-      message: "Erro ao buscar movimentações financeiras.",
-      error: error.message,
-    });
+      const result = await pool.query(sqlQuery);
+      
+      // Log de depuração para verificar o retorno dos dados
+      result.rows.forEach(row => {
+        console.log("Descricao:", row.descricao);
+      });
+
+      return res.status(200).json(result.rows);
+    } catch (error) {
+      console.error("Erro ao buscar movimentações financeiras:", error.message);
+      return res.status(500).json({
+        message: "Erro ao buscar movimentações financeiras.",
+        error: error.message,
+      });
+    }
   }
-});
+);
+
 
 
 // Rota para criar uma entrada ou saída no caixa
