@@ -17,24 +17,30 @@ router.post('/gerar-pdf', (req, res) => {
     doc.moveDown(1); // Move para a próxima linha
 
     // Loop para percorrer os dados agrupados por dia
-    Object.keys(movements).forEach(date => {
+    Object.keys(movements).forEach((date, index) => {
+        if (index > 0) {
+            doc.addPage(); // Adiciona uma nova página para cada data
+        }
+
         doc.fontSize(16).text(`Data: ${date}`, { underline: true });
         doc.moveDown(0.5); // Espaço entre a data e as movimentações
 
-        // Loop para mostrar entradas
+        // Verifica se há entradas e as imprime
         if (movements[date].entrada.length > 0) {
             doc.fontSize(14).text('Entradas:', { bold: true });
             movements[date].entrada.forEach(movement => {
                 doc.fontSize(12).text(`ID: ${movement.id} | ${movement.descricao} | R$ ${movement.valor.toFixed(2)}`);
+                doc.moveDown(0.3); // Espaço entre cada movimento
             });
             doc.moveDown(1); // Espaço entre categorias
         }
 
-        // Loop para mostrar saídas
+        // Verifica se há saídas e as imprime
         if (movements[date].saida.length > 0) {
             doc.fontSize(14).text('Saídas:', { bold: true });
             movements[date].saida.forEach(movement => {
                 doc.fontSize(12).text(`ID: ${movement.id} | ${movement.descricao} | R$ ${movement.valor.toFixed(2)}`);
+                doc.moveDown(0.3); // Espaço entre cada movimento
             });
             doc.moveDown(1); // Espaço entre categorias
         }
