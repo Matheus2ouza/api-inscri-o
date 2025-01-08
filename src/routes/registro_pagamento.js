@@ -25,7 +25,7 @@ registerRoutes.get(
                   (SELECT l.nome 
                    FROM inscricao_avulsa2 ia
                    JOIN localidades l ON ia.localidade_id = l.id
-                   WHERE ia.id = CAST(SUBSTRING(mf.descricao FROM 'id:(\d+)') AS INTEGER)),
+                   WHERE ia.id = CAST(SUBSTRING(mf.descricao FROM 'id:(\\d+)') AS INTEGER)),
                   'Localidade não encontrada'
                 )
               )
