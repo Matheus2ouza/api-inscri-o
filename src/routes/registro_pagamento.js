@@ -155,24 +155,25 @@ registerRoutes.post(
       // Insere os dados na tabela `inscricao_avulsa2`
       const inscricao = await pool.query(
         `INSERT INTO inscricao_avulsa2 (
-           evento_id, 
-           localidade_id, 
-           qtd_0_6, 
-           qtd_7_10, 
-           qtd_10_normal, 
-           qtd_visitante, 
-           data
-         ) VALUES ($1, $2, $3, $4, $5, $6, $7 NOW()) RETURNING id`,
+          evento_id, 
+          localidade_id, 
+          qtd_0_6, 
+          qtd_7_10, 
+          qtd_10_normal, 
+          qtd_visitante, 
+          data
+        ) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING id`,
         [
-          2,
-          city.id,
-          faixasPorIdade['0-6'] || 0,
-          faixasPorIdade['7-10'] || 0,
-          faixasPorIdade['10plus'] || 0,
-          faixasPorIdade['visitante'] || 0,
-          data,
+          2, // evento_id
+          city.id, // localidade_id
+          faixasPorIdade['0-6'] || 0, // qtd_0_6
+          faixasPorIdade['7-10'] || 0, // qtd_7_10
+          faixasPorIdade['10plus'] || 0, // qtd_10_normal
+          faixasPorIdade['visitante'] || 0, // qtd_visitante
+          data
         ]
       );
+
 
       // Verifica se a inserção da inscrição foi bem-sucedida
       if (!inscricao.rows[0] || !inscricao.rows[0].id) {
