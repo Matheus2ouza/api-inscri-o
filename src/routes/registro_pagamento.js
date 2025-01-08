@@ -9,13 +9,12 @@ registerRoutes.get("/teste", (req, res) => {
   res.status(200).json({ message: "Rota de teste funcionando!" });
 });
 
-// Rota para buscar movimentação financeira
 registerRoutes.get(
   "/movimentacao", 
   async (req, res) => {
   try {
     const result = await pool.query(`
-        SELECT 
+      SELECT 
         mf.id,
         mf.tipo,
         CASE 
@@ -24,9 +23,9 @@ registerRoutes.get(
               'Inscrição avulsa, ', 
               COALESCE(
                 (SELECT l.nome 
-                FROM inscricao_avulsa2 ia
-                JOIN localidades l ON ia.localidade_id = l.id
-                WHERE ia.id = CAST(SUBSTRING(mf.descricao FROM 'id:(\d+)') AS INTEGER)),
+                 FROM inscricao_avulsa2 ia
+                 JOIN localidades l ON ia.localidade_id = l.id
+                 WHERE ia.id = CAST(SUBSTRING(mf.descricao FROM 'id:(\d+)') AS INTEGER)),
                 'Localidade não encontrada'
               )
             )
@@ -35,7 +34,7 @@ registerRoutes.get(
         mf.valor,
         mf.data
       FROM movimentacao_financeira mf;
-  `);
+    `);
     return res.status(200).json(result.rows);
   } catch (error) {
     console.error("Erro ao buscar movimentações financeiras:", error.message);
@@ -45,6 +44,7 @@ registerRoutes.get(
     });
   }
 });
+
 
 // Rota para criar uma entrada ou saída no caixa
 registerRoutes.post(
