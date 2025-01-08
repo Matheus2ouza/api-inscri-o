@@ -210,7 +210,7 @@ registerRoutes.post(
       // Inserção na tabela `movimentacao_financeira`
       const financialMovement = await pool.query(
         `INSERT INTO movimentacao_financeira (tipo, descricao, valor, data)
-         VALUES($1, $2, $3, $4)`,
+        VALUES($1, $2, $3, $4) RETURNING id`,
         ["Entrada", `Inscrição avulsa, id:${inscricao.rows[0].id}`, valorTotal, data]
       );
 
@@ -221,6 +221,7 @@ registerRoutes.post(
       }
 
       console.log(`Movimentação financeira registrada com sucesso: ${financialMovement.rows[0].id}`);
+
 
       return res.status(201).json({
         message: "Inscrição avulsa registrada com sucesso.",
