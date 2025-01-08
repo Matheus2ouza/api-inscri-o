@@ -27,10 +27,10 @@ router.post('/gerar-pdf', (req, res) => {
 
     // Largura da tabela e das colunas
     const tableWidth = pageWidth - 2 * pageMargin;
-    const colWidths = [0.1 * tableWidth, 0.2 * tableWidth, 0.4 * tableWidth, 0.2 * tableWidth, 0.1 * tableWidth];
+    const colWidths = [0.1 * tableWidth, 0.2 * tableWidth, 0.5 * tableWidth, 0.2 * tableWidth];
 
     // Cabeçalhos da tabela
-    const headers = ['ID', 'Tipo', 'Descrição', 'Valor', 'Data'];
+    const headers = ['ID', 'Tipo', 'Descrição', 'Valor'];
 
     // Definir o título do documento
     doc.fontSize(20).text('Movimentações Financeiras', { align: 'center' });
@@ -100,7 +100,6 @@ function renderRow(doc, movement, tipo, colWidths, yPosition, pageMargin, isSaid
         tipo,
         movement.descricao,
         `${isSaida ? '-' : '+'} R$ ${movement.valor.toFixed(2)}`,
-        new Date(movement.data).toLocaleDateString('pt-BR'),
     ];
 
     values.forEach((value, i) => {
@@ -108,6 +107,5 @@ function renderRow(doc, movement, tipo, colWidths, yPosition, pageMargin, isSaid
         doc.fontSize(10).text(value, xPosition, yPosition, { width: colWidths[i], align: i === 3 ? 'right' : 'center' });
     });
 }
-
 
 module.exports = router;
