@@ -19,6 +19,7 @@ const getPaymentReceipts = require('./src/routes/paymentReceipts.js');
 const setcomprovante = require('./src/routes/imagemPayment.js');
 const getcomprovante = require('./src/routes/comprovanteGet.js');
 const RegistroPagamento = require('./src/routes/registro_pagamento.js');
+const movementPdf = require('./src/routes/movementPdf.js')
 
 app.use(express.json());
 
@@ -57,6 +58,7 @@ app.use('/comprovantes', getPaymentReceipts);
 app.use('/comprovante', setcomprovante);
 app.use('/buscarComporvante', getcomprovante);
 app.use('/RegistroPagamento', RegistroPagamento);
+app.use('/movementPdf', movementPdf);
 
 const port = process.env.PORT;
 console.log(port);
