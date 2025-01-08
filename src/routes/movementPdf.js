@@ -1,5 +1,5 @@
 const express = require('express');
-const router = express.Router();
+const router = express.Router();  // Cria o roteador para modularizar as rotas
 const PDFDocument = require('pdfkit'); // Biblioteca para geração de PDFs
 
 // Função para gerar o PDF a partir dos dados recebidos
