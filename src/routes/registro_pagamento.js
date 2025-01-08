@@ -9,6 +9,22 @@ registerRoutes.get("/teste", (req, res) => {
   res.status(200).json({ message: "Rota de teste funcionando!" });
 });
 
+// Rota para buscar movimentação financeira
+registerRoutes.get(
+  "/movimentacao", 
+  async (req, res) => {
+  try {
+    const result = await pool.query("SELECT * FROM movimentacao_financeira");
+    return res.status(200).json(result.rows);
+  } catch (error) {
+    console.error("Erro ao buscar movimentações financeiras:", error.message);
+    return res.status(500).json({
+      message: "Erro ao buscar movimentações financeiras.",
+      error: error.message,
+    });
+  }
+});
+
 // Rota para criar uma entrada ou saída no caixa
 registerRoutes.post(
   "/caixa",
