@@ -3,9 +3,6 @@ const router = express.Router();  // Cria o roteador para modularizar as rotas
 const PDFDocument = require('pdfkit'); // Biblioteca para geração de PDFs
 
 // Função para gerar o PDF a partir dos dados recebidos
-const PDFDocument = require('pdfkit'); // Biblioteca para geração de PDFs
-
-// Função para gerar o PDF a partir dos dados recebidos
 router.post('/gerar-pdf', (req, res) => {
     const { movements } = req.body; // Recebe os dados agrupados do frontend
 
