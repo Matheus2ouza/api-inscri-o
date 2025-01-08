@@ -10,6 +10,17 @@ router.post('/gerar-pdf', (req, res) => {
         return res.status(400).json({ error: 'Dados inválidos ou ausentes.' });
     }
 
+    // Converte todos os valores para números antes de processar
+    Object.keys(movements).forEach(date => {
+        movements[date].entrada.forEach(movement => {
+            movement.valor = parseFloat(movement.valor); // Converte para número
+        });
+
+        movements[date].saida.forEach(movement => {
+            movement.valor = parseFloat(movement.valor); // Converte para número
+        });
+    });
+
     const doc = new PDFDocument();
     
     // Definir cabeçalhos para o PDF
@@ -29,8 +40,7 @@ router.post('/gerar-pdf', (req, res) => {
         if (movements[date].entrada.length > 0) {
             doc.fontSize(14).text('Entradas:', { bold: true });
             movements[date].entrada.forEach(movement => {
-                // Verifica se o valor é um número antes de chamar toFixed(2)
-                const valorEntrada = typeof movement.valor === 'number' ? movement.valor.toFixed(2) : 'N/A';
+                const valorEntrada = movement.valor.toFixed(2); // Agora é sempre número
                 doc.fontSize(12).text(`ID: ${movement.id} | ${movement.descricao} | R$ ${valorEntrada}`);
                 doc.moveDown(0.3); // Espaço entre cada movimento
             });
@@ -41,8 +51,7 @@ router.post('/gerar-pdf', (req, res) => {
         if (movements[date].saida.length > 0) {
             doc.fontSize(14).text('Saídas:', { bold: true });
             movements[date].saida.forEach(movement => {
-                // Verifica se o valor é um número antes de chamar toFixed(2)
-                const valorSaida = typeof movement.valor === 'number' ? movement.valor.toFixed(2) : 'N/A';
+                const valorSaida = movement.valor.toFixed(2); // Agora é sempre número
                 doc.fontSize(12).text(`ID: ${movement.id} | ${movement.descricao} | R$ ${valorSaida}`);
                 doc.moveDown(0.3); // Espaço entre cada movimento
             });
@@ -60,5 +69,7 @@ router.post('/gerar-pdf', (req, res) => {
     res.setHeader('Content-Disposition', 'attachment; filename="movimentacoes_financeiras.pdf"');
     doc.pipe(res); // Envia o PDF gerado diretamente para a resposta
 });
+
+
 
 module.exports = router;
