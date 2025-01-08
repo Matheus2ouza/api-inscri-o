@@ -35,6 +35,12 @@ registerRoutes.get(
         mf.data
       FROM movimentacao_financeira mf;
     `);
+
+    // Log de depuração para verificar o retorno dos dados
+    result.rows.forEach(row => {
+      console.log("Descricao:", row.descricao);
+    });
+
     return res.status(200).json(result.rows);
   } catch (error) {
     console.error("Erro ao buscar movimentações financeiras:", error.message);
