@@ -14,7 +14,28 @@ registerRoutes.get(
   "/movimentacao", 
   async (req, res) => {
   try {
-    const result = await pool.query("SELECT * FROM movimentacao_financeira");
+    const result = await pool.query(`
+        SELECT 
+        mf.id,
+        mf.tipo,
+        CASE 
+          WHEN mf.descricao LIKE 'Inscrição avulsa, id:%' THEN
+            CONCAT(
+              'Inscrição avulsa, ', 
+              COALESCE(
+                (SELECT l.nome 
+                FROM inscricao_avulsa2 ia
+                JOIN localidades l ON ia.localidade_id = l.id
+                WHERE ia.id = CAST(SUBSTRING(mf.descricao FROM 'id:(\d+)') AS INTEGER)),
+                'Localidade não encontrada'
+              )
+            )
+          ELSE mf.descricao
+        END AS descricao,
+        mf.valor,
+        mf.data
+      FROM movimentacao_financeira mf;
+  `);
     return res.status(200).json(result.rows);
   } catch (error) {
     console.error("Erro ao buscar movimentações financeiras:", error.message);
