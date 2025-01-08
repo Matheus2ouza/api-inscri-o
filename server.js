@@ -7,7 +7,7 @@ const { checkDatabaseConnection } = require('./src/db/dbConnection.js');
 // Importações de Rotas
 const locationsRoutes = require('./src/routes/locations.js');
 const register = require('./src/routes/register.js');
-const registerServico = require('./src/routes/registerServ.js')
+const registerServico = require('./src/routes/registerServ.js');
 const paymentRoutes = require('./src/routes/payment.js');
 const hospedagemRoutes = require('./src/routes/hospedagem.js');
 const dashboardRoutes = require('./src/routes/dashboard.js');
@@ -19,7 +19,7 @@ const getPaymentReceipts = require('./src/routes/paymentReceipts.js');
 const setcomprovante = require('./src/routes/imagemPayment.js');
 const getcomprovante = require('./src/routes/comprovanteGet.js');
 const RegistroPagamento = require('./src/routes/registro_pagamento.js');
-const movementPdf = require('./src/routes/movementPdf.js')
+const movementPdf = require('./src/routes/movementPdf.js');
 
 app.use(express.json());
 
@@ -46,7 +46,7 @@ app.get('/', (req, res) => {
 
 app.use('/localidades', locationsRoutes);
 app.use('/registro', register);
-app.use('/registroServ', registerServico)
+app.use('/registroServ', registerServico);
 app.use('/pagamento', paymentRoutes);
 app.use('/hospedagem', hospedagemRoutes);
 app.use('/dashboard', dashboardRoutes);
@@ -59,6 +59,18 @@ app.use('/comprovante', setcomprovante);
 app.use('/buscarComporvante', getcomprovante);
 app.use('/RegistroPagamento', RegistroPagamento);
 app.use('/movementPdf', movementPdf);
+
+// Middleware para capturar erros 404 (rota não encontrada)
+app.use((req, res, next) => {
+    console.error(`Rota não encontrada: ${req.method} ${req.originalUrl}`);
+    res.status(404).json({ error: 'Rota não encontrada' });
+});
+
+// Middleware para capturar outros erros
+app.use((err, req, res, next) => {
+    console.error(`Erro interno no servidor: ${err.message}`);
+    res.status(500).json({ error: 'Erro interno no servidor' });
+});
 
 const port = process.env.PORT;
 console.log(port);
