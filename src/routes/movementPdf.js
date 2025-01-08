@@ -29,7 +29,9 @@ router.post('/gerar-pdf', (req, res) => {
         if (movements[date].entrada.length > 0) {
             doc.fontSize(14).text('Entradas:', { bold: true });
             movements[date].entrada.forEach(movement => {
-                doc.fontSize(12).text(`ID: ${movement.id} | ${movement.descricao} | R$ ${movement.valor.toFixed(2)}`);
+                // Verifica se o valor é um número antes de chamar toFixed(2)
+                const valorEntrada = typeof movement.valor === 'number' ? movement.valor.toFixed(2) : 'N/A';
+                doc.fontSize(12).text(`ID: ${movement.id} | ${movement.descricao} | R$ ${valorEntrada}`);
                 doc.moveDown(0.3); // Espaço entre cada movimento
             });
             doc.moveDown(1); // Espaço entre categorias
@@ -39,7 +41,9 @@ router.post('/gerar-pdf', (req, res) => {
         if (movements[date].saida.length > 0) {
             doc.fontSize(14).text('Saídas:', { bold: true });
             movements[date].saida.forEach(movement => {
-                doc.fontSize(12).text(`ID: ${movement.id} | ${movement.descricao} | R$ ${movement.valor.toFixed(2)}`);
+                // Verifica se o valor é um número antes de chamar toFixed(2)
+                const valorSaida = typeof movement.valor === 'number' ? movement.valor.toFixed(2) : 'N/A';
+                doc.fontSize(12).text(`ID: ${movement.id} | ${movement.descricao} | R$ ${valorSaida}`);
                 doc.moveDown(0.3); // Espaço entre cada movimento
             });
             doc.moveDown(1); // Espaço entre categorias
