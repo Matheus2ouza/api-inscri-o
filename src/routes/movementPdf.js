@@ -97,11 +97,15 @@ function renderTableHeader(doc, headers, colWidths, yPosition, pageMargin) {
 
 // Função para renderizar uma linha da tabela
 function renderRow(doc, movement, tipo, colWidths, yPosition, pageMargin, isSaida = false) {
+    // Garantir que movement.valor seja um número
+    const valor = Number(movement.valor);
+    const valorFormatado = isNaN(valor) ? 'R$ inválido' : `R$ ${valor.toFixed(2)}`;
+
     const values = [
         movement.id,
         tipo,
         movement.descricao,
-        `${isSaida ? '-' : '+'} R$ ${movement.valor.toFixed(2)}`,
+        `${isSaida ? '-' : '+'} ${valorFormatado}`,
     ];
 
     values.forEach((value, i) => {
@@ -111,6 +115,7 @@ function renderRow(doc, movement, tipo, colWidths, yPosition, pageMargin, isSaid
 
     return yPosition + 20; // Retorna a nova posição vertical após renderizar a linha
 }
+
 
 // Função para renderizar os pagamentos em duas colunas (2x2)
 function renderPayments(doc, pagamentos, colWidths, yPosition, pageMargin) {
