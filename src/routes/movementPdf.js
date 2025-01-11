@@ -4,14 +4,38 @@ const PDFDocument = require('pdfkit'); // Biblioteca para geração de PDFs
 
 // Função para gerar o PDF a partir dos dados recebidos
 router.post('/gerar-pdf', (req, res) => {
-    // Exibe os dados recebidos no console para depuração
-    console.log("Dados recebidos da API:", req.body);
+    // Log detalhado do conteúdo recebido no corpo da requisição
+    console.log("Dados recebidos da API:");
+    console.log("req.body:", req.body);  // Exibe todo o req.body
 
     const { movements } = req.body;
 
     if (!movements || Object.keys(movements).length === 0) {
         return res.status(400).json({ error: 'Dados inválidos ou ausentes.' });
     }
+
+    // Exibe as chaves de 'movements' e detalha os valores
+    Object.keys(movements).forEach(date => {
+        console.log(`Movimentos para a data: ${date}`);
+        console.log("Entrada:", movements[date].entrada);
+        console.log("Saída:", movements[date].saida);
+
+        movements[date].entrada.forEach((movement, index) => {
+            console.log(`Entrada ${index + 1}:`);
+            console.log("ID:", movement.id);
+            console.log("Descrição:", movement.descricao);
+            console.log("Valor:", movement.valor);
+            console.log("Pagamentos:", movement.pagamentos);
+        });
+
+        movements[date].saida.forEach((movement, index) => {
+            console.log(`Saída ${index + 1}:`);
+            console.log("ID:", movement.id);
+            console.log("Descrição:", movement.descricao);
+            console.log("Valor:", movement.valor);
+            console.log("Pagamentos:", movement.pagamentos);
+        });
+    });
 
     // Converte todos os valores para números antes de processar
     Object.keys(movements).forEach(date => {
@@ -74,10 +98,13 @@ router.post('/gerar-pdf', (req, res) => {
             // Renderizar os detalhes dos pagamentos
             if (movement.pagamentos && movement.pagamentos.length > 0) {
                 movement.pagamentos.forEach((payment, paymentIndex) => {
+                    // Log detalhado para cada pagamento
+                    console.log(`Detalhes do pagamento ${paymentIndex + 1}:`);
+                    console.log("Tipo de pagamento:", payment.tipo_pagamento);
+                    console.log("Valor do pagamento:", payment.valor);
+
                     // Converte payment.valor para número
                     const paymentValue = Number(payment.valor);
-                    
-                    // Verifica se payment.valor é um número válido
                     if (!isNaN(paymentValue)) {
                         const paymentText = `Forma: ${payment.tipo_pagamento} | Valor: R$ ${paymentValue.toFixed(2)}`;
                         doc.fontSize(10).text(paymentText, pageMargin + colWidths[0] + colWidths[1], yPosition + paymentIndex * 12, { width: colWidths[2], align: 'left' });
@@ -99,10 +126,13 @@ router.post('/gerar-pdf', (req, res) => {
             // Renderizar os detalhes dos pagamentos
             if (movement.pagamentos && movement.pagamentos.length > 0) {
                 movement.pagamentos.forEach((payment, paymentIndex) => {
+                    // Log detalhado para cada pagamento
+                    console.log(`Detalhes do pagamento ${paymentIndex + 1}:`);
+                    console.log("Tipo de pagamento:", payment.tipo_pagamento);
+                    console.log("Valor do pagamento:", payment.valor);
+
                     // Converte payment.valor para número
                     const paymentValue = Number(payment.valor);
-                    
-                    // Verifica se payment.valor é um número válido
                     if (!isNaN(paymentValue)) {
                         const paymentText = `Forma: ${payment.tipo_pagamento} | Valor: R$ ${paymentValue.toFixed(2)}`;
                         doc.fontSize(10).text(paymentText, pageMargin + colWidths[0] + colWidths[1], yPosition + paymentIndex * 12, { width: colWidths[2], align: 'left' });
