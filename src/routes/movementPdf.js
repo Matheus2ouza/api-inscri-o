@@ -72,7 +72,7 @@ router.post('/gerar-pdf', (req, res) => {
 
             // Renderizar os detalhes dos pagamentos em 2x2
             if (movement.pagamentos && movement.pagamentos.length > 0) {
-                renderPagamento2x2(doc, movement.pagamentos, pageMargin, yPosition);
+                renderPagamento2x2(doc, movement.pagamentos, pageMargin, yPosition, pageWidth);
                 yPosition += Math.ceil(movement.pagamentos.length / 2) * 15;  // Ajusta o espaço para os pagamentos
             }
         });
@@ -85,7 +85,7 @@ router.post('/gerar-pdf', (req, res) => {
 
             // Renderizar os detalhes dos pagamentos em 2x2
             if (movement.pagamentos && movement.pagamentos.length > 0) {
-                renderPagamento2x2(doc, movement.pagamentos, pageMargin, yPosition);
+                renderPagamento2x2(doc, movement.pagamentos, pageMargin, yPosition, pageWidth);
                 yPosition += Math.ceil(movement.pagamentos.length / 2) * 15;  // Ajusta o espaço para os pagamentos
             }
         });
@@ -122,16 +122,21 @@ function renderRow(doc, movement, tipo, colWidths, yPosition, pageMargin, isSaid
     });
 }
 
-// Função para renderizar os detalhes dos pagamentos em 2x2
-function renderPagamento2x2(doc, pagamentos, pageMargin, yPosition) {
-    const colWidths = [0.4 * (doc.page.width - 2 * pageMargin), 0.4 * (doc.page.width - 2 * pageMargin)];
+// Função para renderizar os detalhes dos pagamentos em 2x2 (centralizados)
+function renderPagamento2x2(doc, pagamentos, pageMargin, yPosition, pageWidth) {
+    const colWidths = [0.4 * (pageWidth - 2 * pageMargin), 0.4 * (pageWidth - 2 * pageMargin)];
+    const totalWidth = colWidths[0] + colWidths[1];  // Largura total da tabela 2x2
+
+    // Calcular a posição inicial para centralizar a tabela
+    const startX = (pageWidth - totalWidth) / 2;  // Centralizando a tabela
+
     let row = 0;
     let col = 0;
 
     pagamentos.forEach((payment, index) => {
-        const xPosition = pageMargin + col * colWidths[0];
+        const xPosition = startX + col * colWidths[0]; // Centraliza nas colunas
         const yOffset = yPosition + row * 15;
-        
+
         const paymentValue = Number(payment.valor_pago);
         const paymentText = `Forma: ${payment.tipo_pagamento} | Valor: R$ ${isNaN(paymentValue) ? 'inválido' : paymentValue.toFixed(2)}`;
 
