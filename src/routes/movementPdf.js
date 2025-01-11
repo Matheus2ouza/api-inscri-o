@@ -115,19 +115,19 @@ function renderPayments(doc, pagamentos, colWidths, yPosition, pageMargin) {
         let col2X = pageMargin + colWidths[0] + colWidths[1] + colWidths[2];
         
         pagamentos.forEach((payment, paymentIndex) => {
-            const paymentValue = Number(payment.valor_pago);
+            const paymentValue = Number(payment.valor_pago); // Usar payment.valor_pago, não movement.valor
             const paymentText = `Forma: ${payment.tipo_pagamento} | Valor: R$ ${isNaN(paymentValue) ? 'inválido' : paymentValue.toFixed(2)}`;
             
             if (paymentIndex % 2 === 0) {
                 // Primeira coluna
-                doc.fontSize(10).text(paymentText, col1X, yPosition + Math.floor(paymentIndex / 2) * 15, { width: colWidths[2], align: 'left' });
+                doc.fontSize(10).text(paymentText, col1X, yPosition + Math.floor(paymentIndex / 2) * 12, { width: colWidths[2], align: 'left' });
             } else {
                 // Segunda coluna
-                doc.fontSize(10).text(paymentText, col2X, yPosition + Math.floor(paymentIndex / 2) * 15, { width: colWidths[2], align: 'left' });
+                doc.fontSize(10).text(paymentText, col2X, yPosition + Math.floor(paymentIndex / 2) * 12, { width: colWidths[2], align: 'left' });
             }
         });
 
-        yPosition += Math.ceil(pagamentos.length / 2) * 15; // Ajusta o espaço para os pagamentos (2x2)
+        yPosition += Math.ceil(pagamentos.length / 2) * 12; // Ajusta o espaço para os pagamentos (2x2)
     }
 
     return yPosition; // Retorna a nova posição vertical após renderizar os pagamentos
