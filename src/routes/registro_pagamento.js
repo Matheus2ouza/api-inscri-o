@@ -9,34 +9,58 @@ registerRoutes.get("/teste", (req, res) => {
   res.status(200).json({ message: "Rota de teste funcionando!" });
 });
 
-registerRoutes.get(
-  "/movimentacao", 
-  async (req, res) => {
-    try {
-      const sqlQuery = `
-        SELECT * from movimentacao_financeira;
-      `;
+registerRoutes.get("/movimentacao", async (req, res) => {
+  try {
+    // Consulta inicial para obter movimentações financeiras
+    const sqlQuery = `
+      SELECT * 
+      FROM movimentacao_financeira;
+    `;
 
-      // Log da consulta SQL
-      console.log("SQL Executado:", sqlQuery);
+    console.log("SQL Executado:", sqlQuery);
 
-      const result = await pool.query(sqlQuery);
-      
-      // Log de depuração para verificar o retorno dos dados
-      result.rows.forEach(row => {
-        console.log("Descricao:", row.descricao);
-      });
+    const movimentacoes = await pool.query(sqlQuery);
 
-      return res.status(200).json(result.rows);
-    } catch (error) {
-      console.error("Erro ao buscar movimentações financeiras:", error.message);
-      return res.status(500).json({
-        message: "Erro ao buscar movimentações financeiras.",
-        error: error.message,
-      });
-    }
+    // Processando cada movimentação para buscar pagamentos associados
+    const movimentacoesComPagamentos = await Promise.all(
+      movimentacoes.rows.map(async (movimentacao) => {
+        const match = movimentacao.descricao.match(/id inscrição: (\d+)/);
+        if (match) {
+          const inscricaoId = match[1]; // Extrai o ID da inscrição da descrição
+          console.log(`Buscando pagamentos para inscrição ID: ${inscricaoId}`);
+
+          // Busca pagamentos associados ao ID da inscrição
+          const pagamentos = await pool.query(
+            `SELECT * 
+             FROM pagamento_avulso 
+             WHERE inscricao_avulsa2_id = $1`,
+            [inscricaoId]
+          );
+
+          return {
+            ...movimentacao,
+            pagamentos: pagamentos.rows, // Adiciona os pagamentos associados
+          };
+        } else {
+          return {
+            ...movimentacao,
+            pagamentos: [], // Caso não haja ID de inscrição, lista de pagamentos é vazia
+          };
+        }
+      })
+    );
+
+    // Retorna a resposta com todas as movimentações e pagamentos associados
+    return res.status(200).json(movimentacoesComPagamentos);
+  } catch (error) {
+    console.error("Erro ao buscar movimentações financeiras:", error.message);
+    return res.status(500).json({
+      message: "Erro ao buscar movimentações financeiras.",
+      error: error.message,
+    });
   }
-);
+});
+
 
 
 
@@ -245,7 +269,7 @@ registerRoutes.post(
       const financialMovement = await pool.query(
         `INSERT INTO movimentacao_financeira (tipo, descricao, valor, data)
         VALUES($1, $2, $3, $4) RETURNING id`,
-        ["Entrada", `Inscrição avulsa, nome do responsavel: ${nomeResponsavel}`, valorTotal, data]
+        ["Entrada", `Inscrição avulsa, nome do responsavel: ${nomeResponsavel}, id inscrição: ${inscricao.id}`, valorTotal, data]
       );
 
       if (!financialMovement.rows || financialMovement.rows.length === 0) {
