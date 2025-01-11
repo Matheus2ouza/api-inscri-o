@@ -22,7 +22,7 @@ router.post('/gerar-pdf', (req, res) => {
     const headers = ['ID', 'Tipo', 'Descrição', 'Valor'];
 
     // Definir o título do documento
-    doc.fontSize(20).text('Movimentações Financeiras', { align: 'center' });
+    doc.fontSize(22).text('Movimentações Financeiras', { align: 'center', underline: true });
     doc.moveDown(1);
 
     // Processar cada data
@@ -87,7 +87,7 @@ router.post('/gerar-pdf', (req, res) => {
 function renderTableHeader(doc, headers, colWidths, yPosition, pageMargin) {
     headers.forEach((header, i) => {
         const xPosition = pageMargin + colWidths.slice(0, i).reduce((a, b) => a + b, 0);
-        doc.fontSize(12).text(header, xPosition, yPosition, { width: colWidths[i], align: 'center' });
+        doc.fontSize(12).text(header, xPosition, yPosition, { width: colWidths[i], align: 'center', underline: true });
     });
 }
 
@@ -105,7 +105,7 @@ function renderRow(doc, movement, tipo, colWidths, yPosition, pageMargin, isSaid
         doc.fontSize(10).text(value, xPosition, yPosition, { width: colWidths[i], align: i === 3 ? 'right' : 'center' });
     });
 
-    return yPosition + 20; // Retorna a nova posição vertical após renderizar a linha
+    return yPosition + 25; // Maior espaçamento entre as linhas para mais clareza
 }
 
 // Função para renderizar os pagamentos em duas colunas (2x2)
@@ -120,14 +120,14 @@ function renderPayments(doc, pagamentos, colWidths, yPosition, pageMargin) {
             
             if (paymentIndex % 2 === 0) {
                 // Primeira coluna
-                doc.fontSize(10).text(paymentText, col1X, yPosition + Math.floor(paymentIndex / 2) * 12, { width: colWidths[2], align: 'left' });
+                doc.fontSize(10).text(paymentText, col1X, yPosition + Math.floor(paymentIndex / 2) * 15, { width: colWidths[2], align: 'left' });
             } else {
                 // Segunda coluna
-                doc.fontSize(10).text(paymentText, col2X, yPosition + Math.floor(paymentIndex / 2) * 12, { width: colWidths[2], align: 'left' });
+                doc.fontSize(10).text(paymentText, col2X, yPosition + Math.floor(paymentIndex / 2) * 15, { width: colWidths[2], align: 'left' });
             }
         });
 
-        yPosition += Math.ceil(pagamentos.length / 2) * 12; // Ajusta o espaço para os pagamentos (2x2)
+        yPosition += Math.ceil(pagamentos.length / 2) * 15; // Ajusta o espaço para os pagamentos (2x2)
     }
 
     return yPosition; // Retorna a nova posição vertical após renderizar os pagamentos
