@@ -1,6 +1,6 @@
 const express = require('express');
-const router = express.Router();
-const PDFDocument = require('pdfkit');
+const router = express.Router();  // Cria o roteador para modularizar as rotas
+const PDFDocument = require('pdfkit'); // Biblioteca para geração de PDFs
 
 // Função para gerar o PDF a partir dos dados recebidos
 router.post('/gerar-pdf', (req, res) => {
@@ -16,14 +16,14 @@ router.post('/gerar-pdf', (req, res) => {
 
     // Largura da tabela e das colunas
     const tableWidth = pageWidth - 2 * pageMargin;
-    const colWidths = [0.1 * tableWidth, 0.3 * tableWidth, 0.4 * tableWidth, 0.2 * tableWidth];
+    const colWidths = [0.1 * tableWidth, 0.2 * tableWidth, 0.5 * tableWidth, 0.2 * tableWidth];
 
     // Cabeçalhos da tabela
     const headers = ['ID', 'Tipo', 'Descrição', 'Valor'];
 
     // Definir o título do documento
-    doc.fontSize(22).text('Movimentações Financeiras', { align: 'center', underline: true });
-    doc.moveDown(1);
+    doc.fontSize(20).text('Movimentações Financeiras', { align: 'center' });
+    doc.moveDown(2); // Maior espaçamento após o título
 
     // Processar cada data
     Object.keys(movements).forEach((date, index) => {
@@ -31,16 +31,16 @@ router.post('/gerar-pdf', (req, res) => {
             doc.addPage();
         }
 
-        doc.fontSize(16).text(`Data: ${date}`, { underline: true });
-        doc.moveDown(0.5);
+        // Adicionar data em negrito e sublinhado
+        doc.fontSize(16).text(`Data: ${date}`, { underline: true, font: 'Helvetica-Bold' });
+        doc.moveDown(1);
 
         // Início da tabela
         let yPosition = doc.y;
 
-        // Renderizar cabeçalhos
+        // Renderizar cabeçalhos com maior espaçamento e estilo
         renderTableHeader(doc, headers, colWidths, yPosition, pageMargin);
-
-        yPosition += 30; // Espaço após cabeçalhos
+        yPosition += 30; // Maior espaçamento após cabeçalhos
 
         // Linha horizontal abaixo dos cabeçalhos
         doc.moveTo(pageMargin, yPosition).lineTo(pageMargin + tableWidth, yPosition).stroke();
@@ -53,8 +53,10 @@ router.post('/gerar-pdf', (req, res) => {
             yPosition = renderRow(doc, movement, 'Entrada', colWidths, yPosition, pageMargin);
             total += movement.valor;
 
-            // Renderizar detalhes de pagamentos (2x2)
-            yPosition = renderPayments(doc, movement.pagamentos, colWidths, yPosition, pageMargin);
+            // Renderizar os detalhes dos pagamentos
+            if (movement.pagamentos && movement.pagamentos.length > 0) {
+                yPosition = renderPayments(doc, movement.pagamentos, colWidths, yPosition, pageMargin);
+            }
         });
 
         // Renderizar saídas
@@ -62,15 +64,17 @@ router.post('/gerar-pdf', (req, res) => {
             yPosition = renderRow(doc, movement, 'Saída', colWidths, yPosition, pageMargin, true);
             total -= movement.valor;
 
-            // Renderizar detalhes de pagamentos (2x2)
-            yPosition = renderPayments(doc, movement.pagamentos, colWidths, yPosition, pageMargin);
+            // Renderizar os detalhes dos pagamentos
+            if (movement.pagamentos && movement.pagamentos.length > 0) {
+                yPosition = renderPayments(doc, movement.pagamentos, colWidths, yPosition, pageMargin);
+            }
         });
 
         // Linha horizontal abaixo dos dados
         doc.moveTo(pageMargin, yPosition).lineTo(pageMargin + tableWidth, yPosition).stroke();
         yPosition += 10;
 
-        // Total
+        // Total, ajustado para melhor visualização
         doc.fontSize(14).text(`Total: R$ ${total.toFixed(2)}`, pageMargin + colWidths[0] + colWidths[1] + colWidths[2], yPosition, { width: colWidths[3], align: 'right' });
         yPosition += 20;
     });
@@ -87,7 +91,7 @@ router.post('/gerar-pdf', (req, res) => {
 function renderTableHeader(doc, headers, colWidths, yPosition, pageMargin) {
     headers.forEach((header, i) => {
         const xPosition = pageMargin + colWidths.slice(0, i).reduce((a, b) => a + b, 0);
-        doc.fontSize(12).text(header, xPosition, yPosition, { width: colWidths[i], align: 'center', underline: true });
+        doc.fontSize(12).text(header, xPosition, yPosition, { width: colWidths[i], align: 'center', font: 'Helvetica-Bold' });
     });
 }
 
@@ -105,7 +109,7 @@ function renderRow(doc, movement, tipo, colWidths, yPosition, pageMargin, isSaid
         doc.fontSize(10).text(value, xPosition, yPosition, { width: colWidths[i], align: i === 3 ? 'right' : 'center' });
     });
 
-    return yPosition + 25; // Maior espaçamento entre as linhas para mais clareza
+    return yPosition + 20; // Retorna a nova posição vertical após renderizar a linha
 }
 
 // Função para renderizar os pagamentos em duas colunas (2x2)
@@ -120,14 +124,14 @@ function renderPayments(doc, pagamentos, colWidths, yPosition, pageMargin) {
             
             if (paymentIndex % 2 === 0) {
                 // Primeira coluna
-                doc.fontSize(10).text(paymentText, col1X, yPosition + Math.floor(paymentIndex / 2) * 12, { width: colWidths[2], align: 'left' });
+                doc.fontSize(10).text(paymentText, col1X, yPosition + Math.floor(paymentIndex / 2) * 14, { width: colWidths[2], align: 'left' });
             } else {
                 // Segunda coluna
-                doc.fontSize(10).text(paymentText, col2X, yPosition + Math.floor(paymentIndex / 2) * 12, { width: colWidths[2], align: 'left' });
+                doc.fontSize(10).text(paymentText, col2X, yPosition + Math.floor(paymentIndex / 2) * 14, { width: colWidths[2], align: 'left' });
             }
         });
 
-        yPosition += Math.ceil(pagamentos.length / 2) * 12; // Ajusta o espaço para os pagamentos (2x2)
+        yPosition += Math.ceil(pagamentos.length / 2) * 14; // Ajusta o espaço para os pagamentos (2x2)
     }
 
     return yPosition; // Retorna a nova posição vertical após renderizar os pagamentos
