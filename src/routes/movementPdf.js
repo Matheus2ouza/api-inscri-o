@@ -106,14 +106,21 @@ router.post('/gerar-pdf', (req, res) => {
                     // Converte payment.valor_pago para número
                     const paymentValue = Number(payment.valor_pago); // Corrigido aqui para usar valor_pago
                     if (!isNaN(paymentValue)) {
+                        // Formato 2x2 para os detalhes dos pagamentos
+                        const col = paymentIndex % 2;  // Alterna entre as colunas 0 e 1
+                        const row = Math.floor(paymentIndex / 2);  // Alterna entre as linhas 0 e 1
+
+                        const xPosition = pageMargin + col * (colWidths[0] + colWidths[1]);  // Alterna as colunas
+                        const yOffset = yPosition + row * 15;  // Desloca para a linha abaixo
+
                         const paymentText = `Forma: ${payment.tipo_pagamento} | Valor: R$ ${paymentValue.toFixed(2)}`;
-                        doc.fontSize(10).text(paymentText, pageMargin + colWidths[0] + colWidths[1], yPosition + paymentIndex * 12, { width: colWidths[2], align: 'left' });
+                        doc.fontSize(8).text(paymentText, xPosition, yOffset, { width: colWidths[0] + colWidths[1], align: 'left' });
                     } else {
                         const paymentText = `Forma: ${payment.tipo_pagamento} | Valor: R$ inválido`;
-                        doc.fontSize(10).text(paymentText, pageMargin + colWidths[0] + colWidths[1], yPosition + paymentIndex * 12, { width: colWidths[2], align: 'left' });
+                        doc.fontSize(8).text(paymentText, pageMargin + colWidths[0] + colWidths[1], yPosition + paymentIndex * 12, { width: colWidths[2], align: 'left' });
                     }
                 });
-                yPosition += (movement.pagamentos.length * 12);  // Ajustar o espaço para os pagamentos
+                yPosition += Math.ceil(movement.pagamentos.length / 2) * 15;  // Ajustar o espaço para os pagamentos
             }
         });
 
@@ -134,14 +141,21 @@ router.post('/gerar-pdf', (req, res) => {
                     // Converte payment.valor_pago para número
                     const paymentValue = Number(payment.valor_pago); // Corrigido aqui para usar valor_pago
                     if (!isNaN(paymentValue)) {
+                        // Formato 2x2 para os detalhes dos pagamentos
+                        const col = paymentIndex % 2;  // Alterna entre as colunas 0 e 1
+                        const row = Math.floor(paymentIndex / 2);  // Alterna entre as linhas 0 e 1
+
+                        const xPosition = pageMargin + col * (colWidths[0] + colWidths[1]);  // Alterna as colunas
+                        const yOffset = yPosition + row * 15;  // Desloca para a linha abaixo
+
                         const paymentText = `Forma: ${payment.tipo_pagamento} | Valor: R$ ${paymentValue.toFixed(2)}`;
-                        doc.fontSize(10).text(paymentText, pageMargin + colWidths[0] + colWidths[1], yPosition + paymentIndex * 12, { width: colWidths[2], align: 'left' });
+                        doc.fontSize(8).text(paymentText, xPosition, yOffset, { width: colWidths[0] + colWidths[1], align: 'left' });
                     } else {
                         const paymentText = `Forma: ${payment.tipo_pagamento} | Valor: R$ inválido`;
-                        doc.fontSize(10).text(paymentText, pageMargin + colWidths[0] + colWidths[1], yPosition + paymentIndex * 12, { width: colWidths[2], align: 'left' });
+                        doc.fontSize(8).text(paymentText, pageMargin + colWidths[0] + colWidths[1], yPosition + paymentIndex * 12, { width: colWidths[2], align: 'left' });
                     }
                 });
-                yPosition += (movement.pagamentos.length * 12);  // Ajustar o espaço para os pagamentos
+                yPosition += Math.ceil(movement.pagamentos.length / 2) * 15;  // Ajustar o espaço para os pagamentos
             }
         });
 
