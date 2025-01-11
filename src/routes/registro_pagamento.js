@@ -14,26 +14,7 @@ registerRoutes.get(
   async (req, res) => {
     try {
       const sqlQuery = `
-        SELECT 
-          mf.id,
-          mf.tipo,
-          CASE 
-            WHEN mf.descricao LIKE 'Inscrição avulsa, id:%' THEN
-              CONCAT(
-                'Inscrição avulsa, ', 
-                COALESCE(
-                  (SELECT l.nome 
-                   FROM inscricao_avulsa2 ia
-                   JOIN localidades l ON ia.localidade_id = l.id
-                   WHERE ia.id = CAST(SUBSTRING(mf.descricao FROM 'id:(\\d+)') AS INTEGER)),
-                  'Localidade não encontrada'
-                )
-              )
-            ELSE mf.descricao
-          END AS descricao,
-          mf.valor,
-          mf.data
-        FROM movimentacao_financeira mf;
+        SELECT * FROM inscricao_avulsa2;
       `;
 
       // Log da consulta SQL
@@ -264,7 +245,7 @@ registerRoutes.post(
       const financialMovement = await pool.query(
         `INSERT INTO movimentacao_financeira (tipo, descricao, valor, data)
         VALUES($1, $2, $3, $4) RETURNING id`,
-        ["Entrada", `Inscrição avulsa, id:${inscricao.rows[0].id}`, valorTotal, data]
+        ["Entrada", `Inscrição avulsa, nome do responsavel: ${nomeResponsavel}`, valorTotal, data]
       );
 
       if (!financialMovement.rows || financialMovement.rows.length === 0) {
