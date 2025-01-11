@@ -13,11 +13,11 @@ router.post('/gerar-pdf', (req, res) => {
     // Converte todos os valores para números antes de processar
     Object.keys(movements).forEach(date => {
         movements[date].entrada.forEach(movement => {
-            movement.valor = parseFloat(movement.valor); // Converte para número
+            movement.valor = Number(movement.valor); // Converte para número
         });
 
         movements[date].saida.forEach(movement => {
-            movement.valor = parseFloat(movement.valor); // Converte para número
+            movement.valor = Number(movement.valor); // Converte para número
         });
     });
 
@@ -71,7 +71,9 @@ router.post('/gerar-pdf', (req, res) => {
             // Renderizar os detalhes dos pagamentos
             if (movement.pagamentos && movement.pagamentos.length > 0) {
                 movement.pagamentos.forEach((payment, paymentIndex) => {
-                    const paymentText = `Forma: ${payment.tipo_pagamento} | Valor: R$ ${payment.valor.toFixed(2)}`;
+                    // Converte payment.valor para número usando Number()
+                    const paymentValue = Number(payment.valor);
+                    const paymentText = `Forma: ${payment.tipo_pagamento} | Valor: R$ ${paymentValue.toFixed(2)}`;
                     doc.fontSize(10).text(paymentText, pageMargin + colWidths[0] + colWidths[1], yPosition + paymentIndex * 12, { width: colWidths[2], align: 'left' });
                 });
                 yPosition += (movement.pagamentos.length * 12);  // Ajustar o espaço para os pagamentos
@@ -87,7 +89,9 @@ router.post('/gerar-pdf', (req, res) => {
             // Renderizar os detalhes dos pagamentos
             if (movement.pagamentos && movement.pagamentos.length > 0) {
                 movement.pagamentos.forEach((payment, paymentIndex) => {
-                    const paymentText = `Forma: ${payment.tipo_pagamento} | Valor: R$ ${payment.valor.toFixed(2)}`;
+                    // Converte payment.valor para número usando Number()
+                    const paymentValue = Number(payment.valor);
+                    const paymentText = `Forma: ${payment.tipo_pagamento} | Valor: R$ ${paymentValue.toFixed(2)}`;
                     doc.fontSize(10).text(paymentText, pageMargin + colWidths[0] + colWidths[1], yPosition + paymentIndex * 12, { width: colWidths[2], align: 'left' });
                 });
                 yPosition += (movement.pagamentos.length * 12);  // Ajustar o espaço para os pagamentos
