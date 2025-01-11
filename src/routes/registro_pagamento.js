@@ -24,7 +24,9 @@ registerRoutes.get("/movimentacao", async (req, res) => {
     // Processando cada movimentação para buscar pagamentos associados
     const movimentacoesComPagamentos = await Promise.all(
       movimentacoes.rows.map(async (movimentacao) => {
-        const match = movimentacao.descricao.match(/id inscrição: (\d+)/);
+        // Verifica se a descrição contém o ID da inscrição
+        const match = movimentacao.descricao.match(/id: (\d+), nome responsavel:/);
+        
         if (match) {
           const inscricaoId = match[1]; // Extrai o ID da inscrição da descrição
           console.log(`Buscando pagamentos para inscrição ID: ${inscricaoId}`);
@@ -42,9 +44,10 @@ registerRoutes.get("/movimentacao", async (req, res) => {
             pagamentos: pagamentos.rows, // Adiciona os pagamentos associados
           };
         } else {
+          // Caso não haja ID de inscrição, lista de pagamentos é vazia
           return {
             ...movimentacao,
-            pagamentos: [], // Caso não haja ID de inscrição, lista de pagamentos é vazia
+            pagamentos: [],
           };
         }
       })
@@ -60,9 +63,6 @@ registerRoutes.get("/movimentacao", async (req, res) => {
     });
   }
 });
-
-
-
 
 // Rota para criar uma entrada ou saída no caixa
 registerRoutes.post(
