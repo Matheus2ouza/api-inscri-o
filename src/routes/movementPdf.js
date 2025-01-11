@@ -4,6 +4,9 @@ const PDFDocument = require('pdfkit'); // Biblioteca para geração de PDFs
 
 // Função para gerar o PDF a partir dos dados recebidos
 router.post('/gerar-pdf', (req, res) => {
+    // Exibe os dados recebidos no console para depuração
+    console.log("Dados recebidos da API:", req.body);
+
     const { movements } = req.body;
 
     if (!movements || Object.keys(movements).length === 0) {
@@ -71,10 +74,17 @@ router.post('/gerar-pdf', (req, res) => {
             // Renderizar os detalhes dos pagamentos
             if (movement.pagamentos && movement.pagamentos.length > 0) {
                 movement.pagamentos.forEach((payment, paymentIndex) => {
-                    // Converte payment.valor para número usando Number()
+                    // Converte payment.valor para número
                     const paymentValue = Number(payment.valor);
-                    const paymentText = `Forma: ${payment.tipo_pagamento} | Valor: R$ ${paymentValue.toFixed(2)}`;
-                    doc.fontSize(10).text(paymentText, pageMargin + colWidths[0] + colWidths[1], yPosition + paymentIndex * 12, { width: colWidths[2], align: 'left' });
+                    
+                    // Verifica se payment.valor é um número válido
+                    if (!isNaN(paymentValue)) {
+                        const paymentText = `Forma: ${payment.tipo_pagamento} | Valor: R$ ${paymentValue.toFixed(2)}`;
+                        doc.fontSize(10).text(paymentText, pageMargin + colWidths[0] + colWidths[1], yPosition + paymentIndex * 12, { width: colWidths[2], align: 'left' });
+                    } else {
+                        const paymentText = `Forma: ${payment.tipo_pagamento} | Valor: R$ inválido`;
+                        doc.fontSize(10).text(paymentText, pageMargin + colWidths[0] + colWidths[1], yPosition + paymentIndex * 12, { width: colWidths[2], align: 'left' });
+                    }
                 });
                 yPosition += (movement.pagamentos.length * 12);  // Ajustar o espaço para os pagamentos
             }
@@ -89,10 +99,17 @@ router.post('/gerar-pdf', (req, res) => {
             // Renderizar os detalhes dos pagamentos
             if (movement.pagamentos && movement.pagamentos.length > 0) {
                 movement.pagamentos.forEach((payment, paymentIndex) => {
-                    // Converte payment.valor para número usando Number()
+                    // Converte payment.valor para número
                     const paymentValue = Number(payment.valor);
-                    const paymentText = `Forma: ${payment.tipo_pagamento} | Valor: R$ ${paymentValue.toFixed(2)}`;
-                    doc.fontSize(10).text(paymentText, pageMargin + colWidths[0] + colWidths[1], yPosition + paymentIndex * 12, { width: colWidths[2], align: 'left' });
+                    
+                    // Verifica se payment.valor é um número válido
+                    if (!isNaN(paymentValue)) {
+                        const paymentText = `Forma: ${payment.tipo_pagamento} | Valor: R$ ${paymentValue.toFixed(2)}`;
+                        doc.fontSize(10).text(paymentText, pageMargin + colWidths[0] + colWidths[1], yPosition + paymentIndex * 12, { width: colWidths[2], align: 'left' });
+                    } else {
+                        const paymentText = `Forma: ${payment.tipo_pagamento} | Valor: R$ inválido`;
+                        doc.fontSize(10).text(paymentText, pageMargin + colWidths[0] + colWidths[1], yPosition + paymentIndex * 12, { width: colWidths[2], align: 'left' });
+                    }
                 });
                 yPosition += (movement.pagamentos.length * 12);  // Ajustar o espaço para os pagamentos
             }
