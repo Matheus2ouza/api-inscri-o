@@ -101,10 +101,10 @@ router.post('/gerar-pdf', (req, res) => {
                     // Log detalhado para cada pagamento
                     console.log(`Detalhes do pagamento ${paymentIndex + 1}:`);
                     console.log("Tipo de pagamento:", payment.tipo_pagamento);
-                    console.log("Valor do pagamento:", payment.valor);
+                    console.log("Valor do pagamento:", payment.valor_pago); // Correção aqui para acessar valor_pago
 
-                    // Converte payment.valor para número
-                    const paymentValue = Number(payment.valor);
+                    // Converte payment.valor_pago para número
+                    const paymentValue = Number(payment.valor_pago); // Corrigido aqui para usar valor_pago
                     if (!isNaN(paymentValue)) {
                         const paymentText = `Forma: ${payment.tipo_pagamento} | Valor: R$ ${paymentValue.toFixed(2)}`;
                         doc.fontSize(10).text(paymentText, pageMargin + colWidths[0] + colWidths[1], yPosition + paymentIndex * 12, { width: colWidths[2], align: 'left' });
@@ -129,10 +129,10 @@ router.post('/gerar-pdf', (req, res) => {
                     // Log detalhado para cada pagamento
                     console.log(`Detalhes do pagamento ${paymentIndex + 1}:`);
                     console.log("Tipo de pagamento:", payment.tipo_pagamento);
-                    console.log("Valor do pagamento:", payment.valor);
+                    console.log("Valor do pagamento:", payment.valor_pago); // Correção aqui para acessar valor_pago
 
-                    // Converte payment.valor para número
-                    const paymentValue = Number(payment.valor);
+                    // Converte payment.valor_pago para número
+                    const paymentValue = Number(payment.valor_pago); // Corrigido aqui para usar valor_pago
                     if (!isNaN(paymentValue)) {
                         const paymentText = `Forma: ${payment.tipo_pagamento} | Valor: R$ ${paymentValue.toFixed(2)}`;
                         doc.fontSize(10).text(paymentText, pageMargin + colWidths[0] + colWidths[1], yPosition + paymentIndex * 12, { width: colWidths[2], align: 'left' });
