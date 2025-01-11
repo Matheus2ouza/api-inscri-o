@@ -124,18 +124,22 @@ function renderRow(doc, movement, tipo, colWidths, yPosition, pageMargin, isSaid
 
 // Função para renderizar os detalhes dos pagamentos em 2x2 (centralizados)
 function renderPagamento2x2(doc, pagamentos, pageMargin, yPosition, pageWidth) {
-    const colWidths = [0.4 * (pageWidth - 2 * pageMargin), 0.4 * (pageWidth - 2 * pageMargin)];
+    // Ajuste na largura das colunas para reduzir o gap
+    const colWidths = [0.38 * (pageWidth - 2 * pageMargin), 0.38 * (pageWidth - 2 * pageMargin)];
     const totalWidth = colWidths[0] + colWidths[1];  // Largura total da tabela 2x2
 
-    // Calcular a posição inicial para centralizar a tabela
-    const startX = (pageWidth - totalWidth) / 2;  // Centralizando a tabela
+    // Calcular a posição inicial para centralizar, com um pequeno deslocamento para a direita
+    const startX = (pageWidth - totalWidth) / 2 + 20;  // Deslocar para a direita
 
     let row = 0;
     let col = 0;
 
+    // Diminuir o gap entre as linhas
+    const rowHeight = 12;  // Menor distância entre as linhas
+
     pagamentos.forEach((payment, index) => {
         const xPosition = startX + col * colWidths[0]; // Centraliza nas colunas
-        const yOffset = yPosition + row * 15;
+        const yOffset = yPosition + row * rowHeight;   // Menor espaço entre as linhas
 
         const paymentValue = Number(payment.valor_pago);
         const paymentText = `Forma: ${payment.tipo_pagamento} | Valor: R$ ${isNaN(paymentValue) ? 'inválido' : paymentValue.toFixed(2)}`;
@@ -150,5 +154,6 @@ function renderPagamento2x2(doc, pagamentos, pageMargin, yPosition, pageWidth) {
         }
     });
 }
+
 
 module.exports = router;
