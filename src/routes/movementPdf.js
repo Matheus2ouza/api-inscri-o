@@ -97,6 +97,7 @@ router.post('/gerar-pdf', (req, res) => {
 
             // Renderizar os detalhes dos pagamentos abaixo da descrição
             if (movement.pagamentos && movement.pagamentos.length > 0) {
+                yPosition += 5;  // Ajusta a distância para os pagamentos
                 movement.pagamentos.forEach((payment, paymentIndex) => {
                     // Log detalhado para cada pagamento
                     console.log(`Detalhes do pagamento ${paymentIndex + 1}:`);
@@ -126,6 +127,7 @@ router.post('/gerar-pdf', (req, res) => {
 
             // Renderizar os detalhes dos pagamentos
             if (movement.pagamentos && movement.pagamentos.length > 0) {
+                yPosition += 5;  // Ajusta a distância para os pagamentos
                 movement.pagamentos.forEach((payment, paymentIndex) => {
                     // Log detalhado para cada pagamento
                     console.log(`Detalhes do pagamento ${paymentIndex + 1}:`);
