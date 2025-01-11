@@ -14,7 +14,7 @@ registerRoutes.get(
   async (req, res) => {
     try {
       const sqlQuery = `
-        SELECT * FROM inscricao_avulsa2;
+        SELECT * from movimentacao_financeira;
       `;
 
       // Log da consulta SQL
