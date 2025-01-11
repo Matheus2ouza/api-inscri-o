@@ -67,6 +67,15 @@ router.post('/gerar-pdf', (req, res) => {
             renderRow(doc, movement, 'Entrada', colWidths, yPosition, pageMargin);
             yPosition += 20;
             total += movement.valor;
+
+            // Renderizar os detalhes dos pagamentos
+            if (movement.pagamentos && movement.pagamentos.length > 0) {
+                movement.pagamentos.forEach((payment, paymentIndex) => {
+                    const paymentText = `Forma: ${payment.tipo_pagamento} | Valor: R$ ${payment.valor.toFixed(2)}`;
+                    doc.fontSize(10).text(paymentText, pageMargin + colWidths[0] + colWidths[1], yPosition + paymentIndex * 12, { width: colWidths[2], align: 'left' });
+                });
+                yPosition += (movement.pagamentos.length * 12);  // Ajustar o espaço para os pagamentos
+            }
         });
 
         // Renderizar saídas
@@ -74,6 +83,15 @@ router.post('/gerar-pdf', (req, res) => {
             renderRow(doc, movement, 'Saída', colWidths, yPosition, pageMargin, true);
             yPosition += 20;
             total -= movement.valor;
+
+            // Renderizar os detalhes dos pagamentos
+            if (movement.pagamentos && movement.pagamentos.length > 0) {
+                movement.pagamentos.forEach((payment, paymentIndex) => {
+                    const paymentText = `Forma: ${payment.tipo_pagamento} | Valor: R$ ${payment.valor.toFixed(2)}`;
+                    doc.fontSize(10).text(paymentText, pageMargin + colWidths[0] + colWidths[1], yPosition + paymentIndex * 12, { width: colWidths[2], align: 'left' });
+                });
+                yPosition += (movement.pagamentos.length * 12);  // Ajustar o espaço para os pagamentos
+            }
         });
 
         // Linha horizontal abaixo dos dados
