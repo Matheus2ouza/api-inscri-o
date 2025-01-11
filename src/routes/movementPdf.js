@@ -67,7 +67,8 @@ router.post('/gerar-pdf', (req, res) => {
         // Renderizar entradas
         movements[date].entrada.forEach(movement => {
             renderRow(doc, movement, 'Entrada', colWidths, yPosition, pageMargin);
-            yPosition += 20;
+            yPosition += 40; // Aqui aumentamos a distância entre as entradas
+
             total += movement.valor;
 
             // Renderizar os detalhes dos pagamentos em 2x2
@@ -80,7 +81,8 @@ router.post('/gerar-pdf', (req, res) => {
         // Renderizar saídas
         movements[date].saida.forEach(movement => {
             renderRow(doc, movement, 'Saída', colWidths, yPosition, pageMargin, true);
-            yPosition += 20;
+            yPosition += 40; // Aumenta o espaçamento entre as saídas
+
             total -= movement.valor;
 
             // Renderizar os detalhes dos pagamentos em 2x2
@@ -154,6 +156,5 @@ function renderPagamento2x2(doc, pagamentos, pageMargin, yPosition, pageWidth) {
         }
     });
 }
-
 
 module.exports = router;
