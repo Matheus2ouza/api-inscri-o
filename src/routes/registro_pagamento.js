@@ -175,7 +175,8 @@ registerRoutes.post(
       qtdDetalhes, // Array com as faixas e suas quantidades
       quantidadeTotal,
       valorTotal,
-      formasDePagamento, // Array com detalhes das formas de pagamento
+      formasDePagamento,
+      nomeResponsavel// Array com detalhes das formas de pagamento
     } = req.body;
 
     // Cria um objeto separado para as faixas de idade
@@ -211,8 +212,9 @@ registerRoutes.post(
           qtd_7_10, 
           qtd_10_normal, 
           qtd_visitante, 
-          data
-        ) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING id`,
+          data,
+          nome_responsavel
+        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING id`,
         [
           2, // evento_id
           city.id, // localidade_id
@@ -220,7 +222,8 @@ registerRoutes.post(
           faixasPorIdade['7-10'] || 0, // qtd_7_10
           faixasPorIdade['10plus'] || 0, // qtd_10_normal
           faixasPorIdade['visitante'] || 0, // qtd_visitante
-          data
+          data,
+          nomeResponsavel
         ]
       );
 
