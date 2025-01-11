@@ -4,38 +4,14 @@ const PDFDocument = require('pdfkit'); // Biblioteca para geração de PDFs
 
 // Função para gerar o PDF a partir dos dados recebidos
 router.post('/gerar-pdf', (req, res) => {
-    // Log detalhado do conteúdo recebido no corpo da requisição
     console.log("Dados recebidos da API:");
-    console.log("req.body:", req.body);  // Exibe todo o req.body
+    console.log("req.body:", req.body);
 
     const { movements } = req.body;
 
     if (!movements || Object.keys(movements).length === 0) {
         return res.status(400).json({ error: 'Dados inválidos ou ausentes.' });
     }
-
-    // Exibe as chaves de 'movements' e detalha os valores
-    Object.keys(movements).forEach(date => {
-        console.log(`Movimentos para a data: ${date}`);
-        console.log("Entrada:", movements[date].entrada);
-        console.log("Saída:", movements[date].saida);
-
-        movements[date].entrada.forEach((movement, index) => {
-            console.log(`Entrada ${index + 1}:`);
-            console.log("ID:", movement.id);
-            console.log("Descrição:", movement.descricao);
-            console.log("Valor:", movement.valor);
-            console.log("Pagamentos:", movement.pagamentos);
-        });
-
-        movements[date].saida.forEach((movement, index) => {
-            console.log(`Saída ${index + 1}:`);
-            console.log("ID:", movement.id);
-            console.log("Descrição:", movement.descricao);
-            console.log("Valor:", movement.valor);
-            console.log("Pagamentos:", movement.pagamentos);
-        });
-    });
 
     // Converte todos os valores para números antes de processar
     Object.keys(movements).forEach(date => {
@@ -72,7 +48,6 @@ router.post('/gerar-pdf', (req, res) => {
         doc.fontSize(16).text(`Data: ${date}`, { underline: true });
         doc.moveDown(0.5);
 
-        // Início da tabela
         let yPosition = doc.y;
 
         // Renderizar cabeçalhos
@@ -95,27 +70,10 @@ router.post('/gerar-pdf', (req, res) => {
             yPosition += 20;
             total += movement.valor;
 
-            // Renderizar os detalhes dos pagamentos abaixo da descrição
+            // Renderizar os detalhes dos pagamentos em 2x2
             if (movement.pagamentos && movement.pagamentos.length > 0) {
-                yPosition += 5;  // Ajusta a distância para os pagamentos
-                movement.pagamentos.forEach((payment, paymentIndex) => {
-                    // Log detalhado para cada pagamento
-                    console.log(`Detalhes do pagamento ${paymentIndex + 1}:`);
-                    console.log("Tipo de pagamento:", payment.tipo_pagamento);
-                    console.log("Valor do pagamento:", payment.valor_pago); // Correção aqui para acessar valor_pago
-
-                    // Converte payment.valor_pago para número
-                    const paymentValue = Number(payment.valor_pago); // Corrigido aqui para usar valor_pago
-                    if (!isNaN(paymentValue)) {
-                        const xPosition = pageMargin + (colWidths[0] + colWidths[1] + colWidths[2]) / 2 - 100; // Centralizando
-                        const paymentText = `Forma: ${payment.tipo_pagamento} | Valor: R$ ${paymentValue.toFixed(2)}`;
-                        doc.fontSize(8).text(paymentText, xPosition, yPosition, { width: 200, align: 'center' });
-                    } else {
-                        const paymentText = `Forma: ${payment.tipo_pagamento} | Valor: R$ inválido`;
-                        doc.fontSize(8).text(paymentText, pageMargin + colWidths[0] + colWidths[1], yPosition + paymentIndex * 12, { width: colWidths[2], align: 'center' });
-                    }
-                });
-                yPosition += Math.ceil(movement.pagamentos.length / 2) * 15;  // Ajustar o espaço para os pagamentos
+                renderPagamento2x2(doc, movement.pagamentos, pageMargin, yPosition);
+                yPosition += Math.ceil(movement.pagamentos.length / 2) * 15;  // Ajusta o espaço para os pagamentos
             }
         });
 
@@ -125,27 +83,10 @@ router.post('/gerar-pdf', (req, res) => {
             yPosition += 20;
             total -= movement.valor;
 
-            // Renderizar os detalhes dos pagamentos
+            // Renderizar os detalhes dos pagamentos em 2x2
             if (movement.pagamentos && movement.pagamentos.length > 0) {
-                yPosition += 5;  // Ajusta a distância para os pagamentos
-                movement.pagamentos.forEach((payment, paymentIndex) => {
-                    // Log detalhado para cada pagamento
-                    console.log(`Detalhes do pagamento ${paymentIndex + 1}:`);
-                    console.log("Tipo de pagamento:", payment.tipo_pagamento);
-                    console.log("Valor do pagamento:", payment.valor_pago); // Correção aqui para acessar valor_pago
-
-                    // Converte payment.valor_pago para número
-                    const paymentValue = Number(payment.valor_pago); // Corrigido aqui para usar valor_pago
-                    if (!isNaN(paymentValue)) {
-                        const xPosition = pageMargin + (colWidths[0] + colWidths[1] + colWidths[2]) / 2 - 100; // Centralizando
-                        const paymentText = `Forma: ${payment.tipo_pagamento} | Valor: R$ ${paymentValue.toFixed(2)}`;
-                        doc.fontSize(8).text(paymentText, xPosition, yPosition, { width: 200, align: 'center' });
-                    } else {
-                        const paymentText = `Forma: ${payment.tipo_pagamento} | Valor: R$ inválido`;
-                        doc.fontSize(8).text(paymentText, pageMargin + colWidths[0] + colWidths[1], yPosition + paymentIndex * 12, { width: colWidths[2], align: 'center' });
-                    }
-                });
-                yPosition += Math.ceil(movement.pagamentos.length / 2) * 15;  // Ajustar o espaço para os pagamentos
+                renderPagamento2x2(doc, movement.pagamentos, pageMargin, yPosition);
+                yPosition += Math.ceil(movement.pagamentos.length / 2) * 15;  // Ajusta o espaço para os pagamentos
             }
         });
 
@@ -175,11 +116,33 @@ function renderRow(doc, movement, tipo, colWidths, yPosition, pageMargin, isSaid
         `${isSaida ? '-' : '+'} R$ ${movement.valor.toFixed(2)}`,
     ];
 
-    doc.fontSize(9).text(movement.descricao, pageMargin + colWidths[0] + colWidths[1], yPosition, { width: colWidths[2], align: 'left' }); // Diminuindo a fonte da descrição
-
     values.forEach((value, i) => {
         const xPosition = pageMargin + colWidths.slice(0, i).reduce((a, b) => a + b, 0);
         doc.fontSize(10).text(value, xPosition, yPosition, { width: colWidths[i], align: i === 3 ? 'right' : 'center' });
+    });
+}
+
+// Função para renderizar os detalhes dos pagamentos em 2x2
+function renderPagamento2x2(doc, pagamentos, pageMargin, yPosition) {
+    const colWidths = [0.4 * (doc.page.width - 2 * pageMargin), 0.4 * (doc.page.width - 2 * pageMargin)];
+    let row = 0;
+    let col = 0;
+
+    pagamentos.forEach((payment, index) => {
+        const xPosition = pageMargin + col * colWidths[0];
+        const yOffset = yPosition + row * 15;
+        
+        const paymentValue = Number(payment.valor_pago);
+        const paymentText = `Forma: ${payment.tipo_pagamento} | Valor: R$ ${isNaN(paymentValue) ? 'inválido' : paymentValue.toFixed(2)}`;
+
+        doc.fontSize(8).text(paymentText, xPosition, yOffset, { width: colWidths[0], align: 'left' });
+
+        // Alterna entre as colunas e linhas
+        col++;
+        if (col === 2) {
+            col = 0;
+            row++;
+        }
     });
 }
 
