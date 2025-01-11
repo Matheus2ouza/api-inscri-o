@@ -25,7 +25,7 @@ registerRoutes.get("/movimentacao", async (req, res) => {
     const movimentacoesComPagamentos = await Promise.all(
       movimentacoes.rows.map(async (movimentacao) => {
         // Verifica se a descrição contém o ID da inscrição
-        const match = movimentacao.descricao.match(/id: (\d+), nome responsavel:/);
+        const match = movimentacao.descricao.match(/id:(\d+), nome responsavel:/);
         
         if (match) {
           const inscricaoId = match[1]; // Extrai o ID da inscrição da descrição
@@ -63,6 +63,7 @@ registerRoutes.get("/movimentacao", async (req, res) => {
     });
   }
 });
+
 
 // Rota para criar uma entrada ou saída no caixa
 registerRoutes.post(
