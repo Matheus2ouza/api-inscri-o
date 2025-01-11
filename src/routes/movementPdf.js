@@ -48,13 +48,13 @@ router.post('/gerar-pdf', (req, res) => {
         });
     });
 
-    const doc = new PDFDocument({ size: 'A4', margin: 50 });
+    const doc = new PDFDocument({ size: 'A4', margin: 40 });  // Reduzindo a margem para aproveitar mais a página
     const pageWidth = doc.page.width;
-    const pageMargin = 50;
+    const pageMargin = 40;
 
     // Largura da tabela e das colunas
     const tableWidth = pageWidth - 2 * pageMargin;
-    const colWidths = [0.1 * tableWidth, 0.2 * tableWidth, 0.5 * tableWidth, 0.2 * tableWidth];
+    const colWidths = [0.1 * tableWidth, 0.2 * tableWidth, 0.6 * tableWidth, 0.1 * tableWidth]; // Ajustando a largura da coluna de descrição
 
     // Cabeçalhos da tabela
     const headers = ['ID', 'Tipo', 'Descrição', 'Valor'];
@@ -95,7 +95,7 @@ router.post('/gerar-pdf', (req, res) => {
             yPosition += 20;
             total += movement.valor;
 
-            // Renderizar os detalhes dos pagamentos
+            // Renderizar os detalhes dos pagamentos abaixo da descrição
             if (movement.pagamentos && movement.pagamentos.length > 0) {
                 movement.pagamentos.forEach((payment, paymentIndex) => {
                     // Log detalhado para cada pagamento
@@ -106,18 +106,12 @@ router.post('/gerar-pdf', (req, res) => {
                     // Converte payment.valor_pago para número
                     const paymentValue = Number(payment.valor_pago); // Corrigido aqui para usar valor_pago
                     if (!isNaN(paymentValue)) {
-                        // Formato 2x2 para os detalhes dos pagamentos
-                        const col = paymentIndex % 2;  // Alterna entre as colunas 0 e 1
-                        const row = Math.floor(paymentIndex / 2);  // Alterna entre as linhas 0 e 1
-
-                        const xPosition = pageMargin + col * (colWidths[0] + colWidths[1]);  // Alterna as colunas
-                        const yOffset = yPosition + row * 15;  // Desloca para a linha abaixo
-
+                        const xPosition = pageMargin + (colWidths[0] + colWidths[1] + colWidths[2]) / 2 - 100; // Centralizando
                         const paymentText = `Forma: ${payment.tipo_pagamento} | Valor: R$ ${paymentValue.toFixed(2)}`;
-                        doc.fontSize(8).text(paymentText, xPosition, yOffset, { width: colWidths[0] + colWidths[1], align: 'left' });
+                        doc.fontSize(8).text(paymentText, xPosition, yPosition, { width: 200, align: 'center' });
                     } else {
                         const paymentText = `Forma: ${payment.tipo_pagamento} | Valor: R$ inválido`;
-                        doc.fontSize(8).text(paymentText, pageMargin + colWidths[0] + colWidths[1], yPosition + paymentIndex * 12, { width: colWidths[2], align: 'left' });
+                        doc.fontSize(8).text(paymentText, pageMargin + colWidths[0] + colWidths[1], yPosition + paymentIndex * 12, { width: colWidths[2], align: 'center' });
                     }
                 });
                 yPosition += Math.ceil(movement.pagamentos.length / 2) * 15;  // Ajustar o espaço para os pagamentos
@@ -141,18 +135,12 @@ router.post('/gerar-pdf', (req, res) => {
                     // Converte payment.valor_pago para número
                     const paymentValue = Number(payment.valor_pago); // Corrigido aqui para usar valor_pago
                     if (!isNaN(paymentValue)) {
-                        // Formato 2x2 para os detalhes dos pagamentos
-                        const col = paymentIndex % 2;  // Alterna entre as colunas 0 e 1
-                        const row = Math.floor(paymentIndex / 2);  // Alterna entre as linhas 0 e 1
-
-                        const xPosition = pageMargin + col * (colWidths[0] + colWidths[1]);  // Alterna as colunas
-                        const yOffset = yPosition + row * 15;  // Desloca para a linha abaixo
-
+                        const xPosition = pageMargin + (colWidths[0] + colWidths[1] + colWidths[2]) / 2 - 100; // Centralizando
                         const paymentText = `Forma: ${payment.tipo_pagamento} | Valor: R$ ${paymentValue.toFixed(2)}`;
-                        doc.fontSize(8).text(paymentText, xPosition, yOffset, { width: colWidths[0] + colWidths[1], align: 'left' });
+                        doc.fontSize(8).text(paymentText, xPosition, yPosition, { width: 200, align: 'center' });
                     } else {
                         const paymentText = `Forma: ${payment.tipo_pagamento} | Valor: R$ inválido`;
-                        doc.fontSize(8).text(paymentText, pageMargin + colWidths[0] + colWidths[1], yPosition + paymentIndex * 12, { width: colWidths[2], align: 'left' });
+                        doc.fontSize(8).text(paymentText, pageMargin + colWidths[0] + colWidths[1], yPosition + paymentIndex * 12, { width: colWidths[2], align: 'center' });
                     }
                 });
                 yPosition += Math.ceil(movement.pagamentos.length / 2) * 15;  // Ajustar o espaço para os pagamentos
@@ -184,6 +172,8 @@ function renderRow(doc, movement, tipo, colWidths, yPosition, pageMargin, isSaid
         movement.descricao,
         `${isSaida ? '-' : '+'} R$ ${movement.valor.toFixed(2)}`,
     ];
+
+    doc.fontSize(9).text(movement.descricao, pageMargin + colWidths[0] + colWidths[1], yPosition, { width: colWidths[2], align: 'left' }); // Diminuindo a fonte da descrição
 
     values.forEach((value, i) => {
         const xPosition = pageMargin + colWidths.slice(0, i).reduce((a, b) => a + b, 0);
