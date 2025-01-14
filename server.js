@@ -5,7 +5,7 @@ const cors = require('cors');
 const { checkDatabaseConnection } = require('./src/db/dbConnection.js');
 
 // Importações de Rotas
-const locationsRoutes = require('./src/routes/locations.js');
+const basicData = require('./src/routes/locations.js');
 const register = require('./src/routes/register.js');
 const registerServico = require('./src/routes/registerServ.js');
 const paymentRoutes = require('./src/routes/payment.js');
@@ -44,7 +44,7 @@ app.get('/', (req, res) => {
     res.send('Bem-vindo à minha API! ❤️');
 });
 
-app.use('/localidades', locationsRoutes);
+app.use('/localidades', basicData);
 app.use('/registro', register);
 app.use('/registroServ', registerServico);
 app.use('/pagamento', paymentRoutes);
