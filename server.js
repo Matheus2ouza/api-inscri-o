@@ -44,7 +44,7 @@ app.get('/', (req, res) => {
     res.send('Bem-vindo à minha API! ❤️');
 });
 
-app.use('/localidades', basicData);
+app.use('/dados', basicData);
 app.use('/registro', register);
 app.use('/registroServ', registerServico);
 app.use('/pagamento', paymentRoutes);
