@@ -68,7 +68,7 @@ const registerServico = [
             if (totalSubscribers > 0) {
                 const subscribers = await pool.query(
                     "INSERT INTO inscricao_10_acima(inscricao_geral_id, tipo_inscricao_id, qtd_masculino, qtd_feminino) VALUES ($1, $2, $3, $4) RETURNING tipo_inscricao_id",
-                    [enrollmentId, 8, masculine, feminine]
+                    [enrollmentId, 9, masculine, feminine]
                 );
 
                 if (subscribers.rowsCount === 0) {
