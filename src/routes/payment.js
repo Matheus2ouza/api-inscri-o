@@ -10,7 +10,7 @@ const upload = multer({ storage });
 // Rota para registrar o pagamento
 router.post('/', upload.single('comprovante_pagamento'), async (req, res) => {
     const { valor_pago, cidade } = req.body;
-    const comprovante_pagamento = req.file ? req.file.buffer.toString('base64') : null;
+    const comprovante_pagamento = req.file ? req.file.buffer : null; // Não precisa mais converter para base64
 
     // Verifica se o comprovante foi carregado
     if (!comprovante_pagamento) {
