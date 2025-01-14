@@ -11,11 +11,17 @@ const upload = multer({ storage });
 router.post('/', upload.single('comprovante_pagamento'), async (req, res) => {
     const { valor_pago, cidade } = req.body;
     const comprovante_pagamento = req.file ? req.file.buffer : null; // Não precisa mais converter para base64
+    const tipo_arquivo = req.file ? req.file.mimetype : null; // Tipo do arquivo
 
     // Verifica se o comprovante foi carregado
     if (!comprovante_pagamento) {
         console.warn('Comprovante de pagamento não fornecido.');
         return res.status(400).json({ message: 'Comprovante de pagamento é obrigatório.' });
+    }
+
+    if (!tipo_arquivo) {
+        console.warn('Tipo de arquivo não fornecido.');
+        return res.status(400).json({ message: 'Tipo de arquivo é obrigatório.' });
     }
 
     try {
@@ -48,12 +54,12 @@ router.post('/', upload.single('comprovante_pagamento'), async (req, res) => {
 
         // Insere o pagamento
         const result = await pool.query(
-            'INSERT INTO Pagamento (valor_pago, comprovante_imagem, localidade_id) VALUES ($1, $2, $3) RETURNING id',
-            [valor_pago, comprovante_pagamento, localidade_id]
+            'INSERT INTO comprovantes (localidade_id, comprovante_imagem, tipo_arquivo, valor_pago) VALUES ($1, $2, $3, $4) RETURNING id',
+            [localidade_id, comprovante_pagamento, tipo_arquivo, valor_pago]
         );
 
-        const paymentId = result.rows[0].id;
-        console.info(`Pagamento registrado com sucesso, ID: ${paymentId}`);
+        const comprovanteId = result.rows[0].id;
+        console.info(`Pagamento registrado com sucesso, ID: ${comprovanteId}`);
 
         // Registra a movimentação financeira
         await pool.query(
@@ -69,7 +75,7 @@ router.post('/', upload.single('comprovante_pagamento'), async (req, res) => {
 
         console.info(`Saldo da localidade atualizado após o pagamento, nova entrada: ${valor_pago}`);
 
-        return res.status(201).json({ message: 'Pagamento registrado com sucesso!', paymentId });
+        return res.status(201).json({ message: 'Pagamento registrado com sucesso!', comprovanteId });
         
     } catch (err) {
         console.error(`Erro ao registrar pagamento: ${err}`);
