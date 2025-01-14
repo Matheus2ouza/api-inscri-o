@@ -8,6 +8,7 @@ const { checkDatabaseConnection } = require('./src/db/dbConnection.js');
 const basicData = require('./src/routes/locations.js');
 const register = require('./src/routes/register.js');
 const registerServico = require('./src/routes/registerServ.js');
+const registerJovem = require('./src/routes/registerJovem.js');
 const paymentRoutes = require('./src/routes/payment.js');
 const hospedagemRoutes = require('./src/routes/hospedagem.js');
 const dashboardRoutes = require('./src/routes/dashboard.js');
@@ -47,6 +48,7 @@ app.get('/', (req, res) => {
 app.use('/dados', basicData);
 app.use('/registro', register);
 app.use('/registroServ', registerServico);
+app.use('/registroJovem', registerJovem);
 app.use('/pagamento', paymentRoutes);
 app.use('/hospedagem', hospedagemRoutes);
 app.use('/dashboard', dashboardRoutes);
