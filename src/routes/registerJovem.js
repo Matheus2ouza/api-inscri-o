@@ -49,7 +49,7 @@ const registerJovem = [
             const totalSubscribers = Number(feminine) + Number(masculine);
 
             // Obtém os tipos de inscrição
-            const tipoInscricaoIds = [8]; // IDs que você precisa buscar
+            const tipoInscricaoIds = [9]; // IDs que você precisa buscar
             const tiposInscricaoResult = await pool.query(
                 "SELECT id, valor FROM tipo_inscricao WHERE id = ANY($1)",
                 [tipoInscricaoIds]
