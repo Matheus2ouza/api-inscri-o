@@ -10,12 +10,7 @@ const registerServico = [
             return res.status(400).json({ errors: errors.array() });
         }
         
-        const referer = req.get('Referer');
-        let evento_id = null;
-
-        if (referer && referer.includes('inscriptionJovem.html')) {
-            evento_id = 3; // Evento 1 para inscrição tipo 1
-        }
+        let evento_id = 3;
 
         const { localidade, nomeResponsavel, totalInscritos, inscritos } = req.body;
 
