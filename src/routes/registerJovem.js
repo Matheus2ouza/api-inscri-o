@@ -2,7 +2,7 @@ const express = require("express");
 const { body, validationResult } = require("express-validator");
 const { pool } = require("../db/dbConnection");
 
-const registerServico = [
+const registerJovem = [
     async (req, res) => {
         const errors = validationResult(req);
         if (!errors.isEmpty()) {
@@ -79,6 +79,9 @@ const registerServico = [
                 const tipoInscricaoId = subscribers.rows[0].tipo_inscricao_id;
                 const valorTipoInscricao = tiposInscricaoMap[tipoInscricaoId];
 
+                console.log(tipoInscricaoId);
+                console.log(valorTipoInscricao);
+
                 // Calcula o total geral
                 const totalAge = totalSubscribers;
                 totalGeral = totalAge * valorTipoInscricao;
@@ -111,4 +114,4 @@ const registerServico = [
     }
 ];
 
-module.exports = registerServico;
+module.exports = registerJovem;
