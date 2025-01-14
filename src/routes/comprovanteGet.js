@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 const { pool } = require('../db/dbConnection');
 
-// Rota para recuperar todos os comprovantes de pagamento
+// Rota para recuperar todos os comprovantes de pagamento com a imagem
 router.get('/', async (req, res) => {
     try {
         // Consulta o banco de dados para obter todos os comprovantes
@@ -13,14 +13,21 @@ router.get('/', async (req, res) => {
             return res.status(404).json({ message: 'Nenhum comprovante encontrado.' });
         }
 
-        // Para cada comprovante, configurar o tipo de arquivo
+        // Para cada comprovante, configurar o tipo de arquivo e retornar os dados
         const comprovantes = result.rows.map(comprovante => {
-            const { id, localidade_id, tipo_arquivo, valor_pago } = comprovante;
+            const { id, localidade_id, tipo_arquivo, valor_pago, comprovante_imagem } = comprovante;
+            
+            // Converte a imagem em base64 (somente se for uma imagem)
+            const imagem_base64 = tipo_arquivo && tipo_arquivo.startsWith('image') 
+                ? `data:${tipo_arquivo};base64,${comprovante_imagem.toString('base64')}`
+                : null;
+
             return {
                 id,
                 localidade_id,
                 tipo_arquivo,
-                valor_pago
+                valor_pago,
+                imagem_base64
             };
         });
 
