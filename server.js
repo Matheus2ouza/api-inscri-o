@@ -35,6 +35,10 @@ const corsOptions = {
 
 app.use(cors(corsOptions));
 
+// Middleware para evitar erro de favicon.ico
+app.get('/favicon.ico', (req, res) => res.status(204).end());
+
+// Middleware de logs de requisição
 app.use((req, res, next) => {
     console.info(`Request: ${req.method} ${req.url}`);
     next();
@@ -45,6 +49,7 @@ app.get('/', (req, res) => {
     res.send('Bem-vindo à minha API! ❤️');
 });
 
+// Suas rotas
 app.use('/dados', basicData);
 app.use('/registro', register);
 app.use('/registroServ', registerServico);
