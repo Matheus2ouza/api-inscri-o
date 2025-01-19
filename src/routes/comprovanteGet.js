@@ -24,7 +24,7 @@ router.get('/', async (req, res) => {
 
         // Para cada comprovante, configurar o tipo de arquivo e retornar os dados
         const comprovantes = result.rows.map(comprovante => {
-            const { id, localidade_id, tipo_arquivo, valor_pago, comprovante_imagem } = comprovante;
+            const { id, localidade_id, tipo_arquivo, valor_pago, comprovante_imagem, localidade_nome } = comprovante;
             
             // Converte a imagem em base64 (somente se for uma imagem)
             const imagem_base64 = tipo_arquivo && tipo_arquivo.startsWith('image') 
