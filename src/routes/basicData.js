@@ -88,7 +88,7 @@ router.get('/inscricaoData', async(req, res) =>{
             res.status(401).json({message: 'Nenhuma inscrição encontrada'});
         } else {
             console.warn('Busca de inscrições feita com sucesso...');
-            res.status(401).json(result);
+            res.status(201).json(result);
         }
     }catch (err){
         console.error(`Erro ao buscar os inscrições: ${err}`);
