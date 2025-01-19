@@ -5,7 +5,7 @@ const cors = require('cors');
 const { checkDatabaseConnection } = require('./src/db/dbConnection.js');
 
 // Importações de Rotas
-const basicData = require('./src/routes/locations.js');
+const basicData = require('./src/routes/basicData.js');
 const register = require('./src/routes/register.js');
 const registerServico = require('./src/routes/registerServ.js');
 const registerJovem = require('./src/routes/registerJovem.js');
