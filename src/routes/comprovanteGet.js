@@ -6,7 +6,16 @@ const { pool } = require('../db/dbConnection');
 router.get('/', async (req, res) => {
     try {
         // Consulta o banco de dados para obter todos os comprovantes
-        const result = await pool.query('SELECT * FROM comprovantes');
+        const result = await pool.query(`SELECT 
+            c.*,
+            l.nome AS localidade_nome
+        FROM 
+            comprovantes c
+        JOIN 
+            localidades l
+        ON 
+            c.localidade_id = l.id;
+    `);
 
         // Verifica se há comprovantes encontrados
         if (result.rows.length === 0) {
@@ -27,7 +36,8 @@ router.get('/', async (req, res) => {
                 localidade_id,
                 tipo_arquivo,
                 valor_pago,
-                imagem_base64
+                imagem_base64,
+                localidade_nome
             };
         });
 
