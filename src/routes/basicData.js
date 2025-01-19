@@ -79,9 +79,20 @@ router.get('/inscricaoData', async(req, res) =>{
             inscricao_servico iser ON iser.inscricao_geral_id = ig.id
         ORDER BY 
             l.nome, ig.id;
-            `)
-    }catch (err){
+            `);
 
+        const result = inscricaoData.rows
+
+        if(result.length === 0) {
+            console.warn('Nenhuma inscrição encontrada');
+            res.status(401).json({message: 'Nenhuma inscrição encontrada'});
+        } else {
+            console.warn('Busca de inscrições feita com sucesso...');
+            res.status(401).json(result);
+        }
+    }catch (err){
+        console.error(`Erro ao buscar os inscrições: ${err}`);
+        res.status(500).json({ error: `Erro na busca de inscrições ${err}`});
     }
 })
 module.exports = router;
