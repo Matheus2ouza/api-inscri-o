@@ -9,12 +9,19 @@ const transporter = nodemailer.createTransport({
 });
 
 async function sendNotification(email, message) {
-  await transporter.sendMail({
-    from: 'matheusfurtadogg@gmail.com',
-    to: email,
-    subject: 'Nova Inscrição/Pagamento',
-    text: message
-  });
+  try {
+    console.log('Enviando email para:', email);
+    console.log('Mensagem:', message);
+    const info = await transporter.sendMail({
+      from: 'matheusfurtadogg@gmail.com',
+      to: email,
+      subject: 'Nova Inscrição/Pagamento',
+      text: message
+    });
+    console.log('E-mail enviado com sucesso:', info.response);
+  } catch (error) {
+    console.error('Erro ao enviar e-mail:', error);
+  }
 }
 
 module.exports = { sendNotification };
