@@ -158,7 +158,7 @@ async function sendNotificationPayment(message) {
       attachments: attachments
     });
 
-    console.log('E-mail enviado com sucesso:', info.response);
+    console.log('E-mail enviado com sucesso:', info.response );
   } catch (error) {
     console.error('Erro ao enviar e-mail:', error);
   }
