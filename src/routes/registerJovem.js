@@ -101,21 +101,18 @@ const registerJovem = [
                     return res.status(500).json({ error: `Falha ao tentar atualizar o saldo devedor da localidade: ${localidade}` });
                 }
 
-                    // **Aqui é onde estamos verificando se há inscritos na faixa 10+ antes de enviar o e-mail**
-                if (inscritos["10+"] && (inscritos["10+"].masculino > 0 || inscritos["10+"].feminino > 0)) {
-                    // Mensagem do e-mail com as informações de inscrição para a faixa etária 10+
-                    const emailMessage = `Nova inscrição realizada com sucesso!\n\nDetalhes:\nLocalidade: ${localidade}\nResponsável: ${nomeResponsavel}\nTotal Inscritos: ${totalInscritos}\nFaixa etária 10+: ${inscritos["10+"].masculino + inscritos["10+"].feminino}`;
+                // Mensagem do e-mail com as informações de inscrição para a faixa etária 10+
+                const emailMessage = `Nova inscrição realizada com sucesso!\n\nDetalhes:\nLocalidade: ${localidade}\nResponsável: ${nomeResponsavel}\nTotal Inscritos: ${totalInscritos}\nFaixa etária 10+: ${inscritos["10+"].masculino + inscritos["10+"].feminino}`;
 
-                    // Adicionando logs detalhados
-                    console.info("Enviando notificação por e-mail...");
-                    console.info("Corpo da mensagem do e-mail: ", emailMessage);
+                // Adicionando logs detalhados
+                console.info("Enviando notificação por e-mail...");
+                console.info("Corpo da mensagem do e-mail: ", emailMessage);
 
-                    // Envia a notificação por e-mail
-                    await sendNotification(emailMessage);
+                // Envia a notificação por e-mail
+                await sendNotification(emailMessage);
 
-                    // Log após o envio da notificação
-                    console.info("Notificação enviada com sucesso!");
-                }
+                // Log após o envio da notificação
+                console.info("Notificação enviada com sucesso!");
 
                 // Se todas as inserções forem bem-sucedidas, envia uma resposta de sucesso
                 return res.status(201).json({
