@@ -1,7 +1,7 @@
 const express = require("express");
 const { body, validationResult } = require("express-validator");
 const { pool } = require("../db/dbConnection");
-const sendNotification = require("../routes/notification");  // Supondo que o sendNotification esteja em utils/sendNotification.js
+const { sendNotification } = require("../routes/notification")
 
 const registerServico = [
     async (req, res) => {
@@ -96,10 +96,8 @@ const registerServico = [
                     return res.status(500).json({ error: `Falha ao tentar atualizar o saldo devedor da localidade: ${localidade}` });
                 }
 
-                // **Aqui é onde estamos verificando se há inscritos na faixa 10+ antes de enviar o e-mail**
-                if (inscritos["10+"] && (inscritos["10+"].masculino > 0 || inscritos["10+"].feminino > 0)) {
-                    // Mensagem do e-mail com as informações de inscrição para a faixa etária 10+
-                    const emailMessage = `Nova inscrição realizada com sucesso!\n\nDetalhes:\nLocalidade: ${localidade}\nResponsável: ${nomeResponsavel}\nTotal Inscritos: ${totalInscritos}\nFaixa etária 10+: ${inscritos["10+"].masculino + inscritos["10+"].feminino}`;
+                    // Mensagem do e-mail com as informações de inscrição
+                    const emailMessage = `Nova inscrição realizada com sucesso!\n\nDetalhes:\nLocalidade: ${localidade}\nResponsável: ${nomeResponsavel}\nTotal Inscritos: ${totalInscritos}\nFaixa etária 0-6: ${inscritos["0-6"].masculino + inscritos["0-6"].feminino}\nFaixa etária 7-10: ${inscritos["7-10"].masculino + inscritos["7-10"].feminino}\nFaixa etária 10+: ${inscritos["10+"].masculino + inscritos["10+"].feminino}`;
 
                     // Adicionando logs detalhados
                     console.info("Enviando notificação por e-mail...");
@@ -110,7 +108,6 @@ const registerServico = [
 
                     // Log após o envio da notificação
                     console.info("Notificação enviada com sucesso!");
-                }
 
                 // Se todas as inserções forem bem-sucedidas, envia uma resposta de sucesso
                 return res.status(201).json({
