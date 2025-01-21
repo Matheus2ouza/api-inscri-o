@@ -1,12 +1,13 @@
 const nodemailer = require('nodemailer');
 
+// Configuração do transporte de e-mail
 const transport = nodemailer.createTransport({
-  host: process.env.SERVER_SMTP, // Corrigido o nome do host para o correto.
+  host: process.env.SERVER_SMTP,
   port: process.env.PORT_SMTP,
-  secure: false,
+  secure: true,
   auth: {
     user: process.env.USER_EMAIL,
-    pass: process.env.PASSWORD_EMAIL  // Considere usar variáveis de ambiente para armazenar senhas, em vez de deixá-las no código
+    pass: process.env.PASSWORD_EMAIL
   }
 });
 
