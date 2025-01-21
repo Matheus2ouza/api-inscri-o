@@ -102,7 +102,7 @@ const registerJovem = [
                 }
 
                 // Mensagem do e-mail com as informações de inscrição para a faixa etária 10+
-                const emailMessage = `Nova inscrição realizada com sucesso!\n\nDetalhes:\nLocalidade: ${localidade}\nResponsável: ${nomeResponsavel}\nTotal Inscritos: ${totalAge}\nFaixa etária 10+: ${totalAge}`;
+                const emailMessage = `Nova inscrição realizada com sucesso!\n\nDetalhes:\nLocalidade: ${localidade}\nResponsável: ${nomeResponsavel}\nTotal Inscritos: ${totalAge} \n Masculino: ${masculine}\nFeminino:${feminine}}`;
 
                 // Adicionando logs detalhados
                 console.info("Enviando notificação por e-mail...");
