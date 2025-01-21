@@ -1,7 +1,7 @@
 const express = require("express");
 const { body, validationResult } = require("express-validator");
 const { pool } = require("../db/dbConnection");
-const sendNotification = require("../utils/sendNotification");  // Supondo que o sendNotification esteja em utils/sendNotification.js
+const sendNotification = require("../routes/notification");  // Supondo que o sendNotification esteja em utils/sendNotification.js
 
 const registerServico = [
     async (req, res) => {
