@@ -59,9 +59,13 @@ async function sendNotificationJovem(message) {
   try {
     console.log('Enviando email para:', 'matheusfurtadogg@gmail.com');
 
-    // Masculino e Feminino para faixa etária 10+
-    const masculino10plus = message.inscritos["10+"] ? message.inscritos["10+"].masculino : 0;
-    const feminino10plus = message.inscritos["10+"] ? message.inscritos["10+"].feminino : 0;
+    // Desestruturação dos dados da mensagem
+    const { localidade, nomeResponsavel, totalAge, masculine, feminine } = message;
+
+    // Verificação dos dados para garantir que valores ausentes sejam tratados como 0
+    const masculino10plus = masculine || 0;
+    const feminino10plus = feminine || 0;
+    const totalSubscribers = masculino10plus + feminino10plus;
 
     // Criação do corpo da mensagem em HTML
     const htmlMessage = `
@@ -70,12 +74,10 @@ async function sendNotificationJovem(message) {
           <h2>Nova Inscrição/Pagamento</h2>
           <p><strong>Detalhes da inscrição:</strong></p>
           <ul>
-            <li><strong>Localidade:</strong> ${message.localidade}</li>
-            <li><strong>Responsável:</strong> ${message.nomeResponsavel}</li>
-            <li><strong>Total de Inscritos:</strong> ${message.totalInscritos}</li>
-            <li><strong>Faixa Etária 0-6:</strong> ${faixa06}</li>
-            <li><strong>Faixa Etária 7-10:</strong> ${faixa710}</li>
-            <li><strong>Faixa Etária 10+:</strong> ${faixa10plus} (Masculino: ${masculino10plus}, Feminino: ${feminino10plus})</li>
+            <li><strong>Localidade:</strong> ${localidade}</li>
+            <li><strong>Responsável:</strong> ${nomeResponsavel}</li>
+            <li><strong>Total de Inscritos:</strong> ${totalAge}</li>
+            <li><strong>Faixa Etária 10+:</strong> ${totalSubscribers} (Masculino: ${masculino10plus}, Feminino: ${feminino10plus})</li>
           </ul>
           <p>Obrigado por utilizar nosso sistema de inscrições!</p>
         </body>
@@ -97,6 +99,5 @@ async function sendNotificationJovem(message) {
     console.error('Erro ao enviar e-mail:', error);
   }
 }
-
 
 module.exports = { sendNotificationNormal, sendNotificationJovem };
