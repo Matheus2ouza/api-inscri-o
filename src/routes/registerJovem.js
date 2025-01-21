@@ -1,7 +1,7 @@
 const express = require("express");
 const { body, validationResult } = require("express-validator");
 const { pool } = require("../db/dbConnection");
-const { sendNotification } = require("../routes/notification")
+const { sendNotificationJovem } = require("../routes/notification")
 
 const registerJovem = [
     async (req, res) => {
@@ -109,7 +109,7 @@ const registerJovem = [
                 console.info("Corpo da mensagem do e-mail: ", emailMessage);
 
                 // Envia a notificação por e-mail
-                await sendNotification(emailMessage);
+                await sendNotificationJovem(emailMessage);
 
                 // Log após o envio da notificação
                 console.info("Notificação enviada com sucesso!");
