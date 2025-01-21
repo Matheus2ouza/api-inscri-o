@@ -205,7 +205,7 @@ const register = [
 		console.info("Corpo da mensagem do e-mail: ", emailMessage);
 
 		// Envia a notificação por e-mail
-		await sendNotification("seuemaildestino@gmail.com", emailMessage);
+		await sendNotification( emailMessage);
 
 		// Log após o envio da notificação
 		console.info("Notificação enviada com sucesso!");
