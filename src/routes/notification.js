@@ -59,11 +59,6 @@ async function sendNotificationJovem(message) {
   try {
     console.log('Enviando email para:', 'matheusfurtadogg@gmail.com');
 
-    // Verificação dos dados para garantir que valores ausentes sejam tratados como 0
-    const faixa06 = message.inscritos["0-6"] ? message.inscritos["0-6"].masculino + message.inscritos["0-6"].feminino : 0;
-    const faixa710 = message.inscritos["7-10"] ? message.inscritos["7-10"].masculino + message.inscritos["7-10"].feminino : 0;
-    const faixa10plus = message.inscritos["10+"] ? message.inscritos["10+"].masculino + message.inscritos["10+"].feminino : 0;
-
     // Masculino e Feminino para faixa etária 10+
     const masculino10plus = message.inscritos["10+"] ? message.inscritos["10+"].masculino : 0;
     const feminino10plus = message.inscritos["10+"] ? message.inscritos["10+"].feminino : 0;
