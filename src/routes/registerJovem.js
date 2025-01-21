@@ -101,8 +101,14 @@ const registerJovem = [
                     return res.status(500).json({ error: `Falha ao tentar atualizar o saldo devedor da localidade: ${localidade}` });
                 }
 
-                // Mensagem do e-mail com as informações de inscrição para a faixa etária 10+
-                const emailMessage = `Nova inscrição realizada com sucesso!\n\nDetalhes:\nLocalidade: ${localidade}\nResponsável: ${nomeResponsavel}\nTotal Inscritos: ${totalAge} \n Masculino: ${masculine}\nFeminino:${feminine}}`;
+                // Criar o objeto com as informações necessárias
+                const emailMessage = {
+                    localidade: localidade,
+                    nomeResponsavel: nomeResponsavel,
+                    totalAge: totalAge,  // Total de inscritos
+                    masculine: masculine,  // Inscritos masculinos
+                    feminine: feminine     // Inscritos femininos
+                };
 
                 // Adicionando logs detalhados
                 console.info("Enviando notificação por e-mail...");
