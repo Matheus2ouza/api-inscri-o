@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const { pool } = require('../db/dbConnection');
 const multer = require('multer');
+const { sendNotificationPayment } = require("../routes/notification")
 
 // Configuração do multer para processar o upload de arquivos como buffer
 const storage = multer.memoryStorage();
@@ -74,6 +75,21 @@ router.post('/', upload.single('comprovante_pagamento'), async (req, res) => {
         );
 
         console.info(`Saldo da localidade atualizado após o pagamento, nova entrada: ${valor_pago}`);
+
+        const emailMessage = {
+            cidade: cidade,
+            valor_pago: valor_pago,
+            comprovante_pagamento: comprovante_pagamento
+        };
+
+        // Adicionando logs detalhados
+        console.info("Enviando notificação por e-mail...");
+        console.info("Corpo da mensagem do e-mail: ", emailMessage);
+
+        await sendNotificationPayment(emailMessage);
+
+        // Log após o envio da notificação
+        console.info("Notificação enviada com sucesso!");
 
         return res.status(201).json({ message: 'Pagamento registrado com sucesso!', comprovanteId });
         
