@@ -1,12 +1,12 @@
 const nodemailer = require('nodemailer');
 
-const smtp = nodemailer.createTransport({
-  host: 'smtp.gmail.com', // Corrigido o nome do host para o correto.
-  port: 587,
-  secure: true,
+const transport = nodemailer.createTransport({
+  host: process.env.SERVER_SMTP, // Corrigido o nome do host para o correto.
+  port: process.env.PORT_SMTP,
+  secure: false,
   auth: {
-    user: 'matifurtado0@gmail.com',
-    pass: 'bigtank155'  // Considere usar variáveis de ambiente para armazenar senhas, em vez de deixá-las no código
+    user: process.env.USER_EMAIL,
+    pass: process.env.PASSWORD_EMAIL  // Considere usar variáveis de ambiente para armazenar senhas, em vez de deixá-las no código
   }
 });
 
@@ -37,7 +37,7 @@ async function sendNotification(message) {
     console.log('Mensagem HTML:', htmlMessage);
 
     const info = await smtp.sendMail({
-      from: 'matifurtado0@gmail.com',
+      from: `Sistema de Inscrição ${process.env.USER_EMAIL}`,
       to: 'matheusfurtadogg@gmail.com',
       subject: 'Nova Inscrição/Pagamento',
       html: htmlMessage 
