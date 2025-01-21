@@ -15,6 +15,11 @@ async function sendNotification(message) {
   try {
     console.log('Enviando email para:', 'matheusfurtadogg@gmail.com');
 
+    // Verificação dos dados para garantir que valores ausentes sejam tratados como 0
+    const faixa06 = message.inscritos["0-6"] ? message.inscritos["0-6"].masculino + message.inscritos["0-6"].feminino : 0;
+    const faixa710 = message.inscritos["7-10"] ? message.inscritos["7-10"].masculino + message.inscritos["7-10"].feminino : 0;
+    const faixa10plus = message.inscritos["10+"] ? message.inscritos["10+"].masculino + message.inscritos["10+"].feminino : 0;
+
     // Criação do corpo da mensagem em HTML
     const htmlMessage = `
       <html>
@@ -25,9 +30,9 @@ async function sendNotification(message) {
             <li><strong>Localidade:</strong> ${message.localidade}</li>
             <li><strong>Responsável:</strong> ${message.nomeResponsavel}</li>
             <li><strong>Total de Inscritos:</strong> ${message.totalInscritos}</li>
-            <li><strong>Faixa Etária 0-6:</strong> ${message.inscritos["0-6"].masculino + message.inscritos["0-6"].feminino}</li>
-            <li><strong>Faixa Etária 7-10:</strong> ${message.inscritos["7-10"].masculino + message.inscritos["7-10"].feminino}</li>
-            <li><strong>Faixa Etária 10+:</strong> ${message.inscritos["10+"].masculino + message.inscritos["10+"].feminino}</li>
+            <li><strong>Faixa Etária 0-6:</strong> ${faixa06}</li>
+            <li><strong>Faixa Etária 7-10:</strong> ${faixa710}</li>
+            <li><strong>Faixa Etária 10+:</strong> ${faixa10plus}</li>
           </ul>
           <p>Obrigado por utilizar nosso sistema de inscrições!</p>
         </body>
@@ -37,7 +42,7 @@ async function sendNotification(message) {
     // Log da mensagem HTML para depuração
     console.log('Mensagem HTML:', htmlMessage);
 
-    const info = await smtp.sendMail({
+    const info = await transport.sendMail({
       from: `Sistema de Inscrição ${process.env.USER_EMAIL}`,
       to: 'matheusfurtadogg@gmail.com',
       subject: 'Nova Inscrição/Pagamento',
