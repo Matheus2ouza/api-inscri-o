@@ -139,15 +139,6 @@ async function sendNotificationPayment(message) {
       </html>
     `;
 
-    // Configuração do transporte (substitua com suas credenciais)
-    const transport = nodemailer.createTransport({
-      service: 'gmail',
-      auth: {
-        user: process.env.USER_EMAIL,
-        pass: process.env.USER_PASSWORD
-      }
-    });
-
     // Definição do anexo com o comprovante de pagamento
     const attachments = [
       {
