@@ -2,8 +2,27 @@ const express = require('express');
 const router = express.Router();
 const { pool } = require('../db/dbConnection');
 
+router.get('/event', async(req, res) =>{
+    try {
+        const event = pool.query(`SELECT * FROM eventos`);
+        const result = event.rows;
+        
+        if (result.length === 0) {
+            console.log(`Nenhum evento encontrado`);
+            res.status(404).json({message: `Nenhum evento encontrado`});
+        } else {
+            console.log(`Consulta feita com sucesso: ${result.length}`);
+            res.status(201).json(result)
+        };
+
+    } catch (err) {
+        console.error(`Erro ao obter dados do dashboard: ${err}`);
+        return res.status(500).json({ error: 'Erro ao obter dados do dashboard.' });
+    }
+});
+
 // Rota para obter dados do dashboard
-router.get('/', async (req, res) => {
+router.get('/datageneralData', async (req, res) => {
     try {
         // Consulta dados das diferentes tabelas
         const localidades = await pool.query('SELECT id, nome, saldo_devedor FROM public.localidades');
