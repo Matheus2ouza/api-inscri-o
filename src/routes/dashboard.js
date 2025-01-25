@@ -4,7 +4,7 @@ const { pool } = require('../db/dbConnection');
 
 router.get('/event', async(req, res) =>{
     try {
-        const event = pool.query(`SELECT * FROM eventos`);
+        const event = await pool.query(`SELECT * FROM eventos`);
         const result = event.rows;
         
         if (result.length === 0) {
