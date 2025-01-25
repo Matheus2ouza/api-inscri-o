@@ -16,8 +16,8 @@ router.get('/event', async(req, res) =>{
         };
 
     } catch (err) {
-        console.error(`Erro ao obter dados do dashboard: ${err}`);
-        return res.status(500).json({ error: 'Erro ao obter dados do dashboard.' });
+        console.error(`Erro ao obter dados do dos eventos: ${err}`);
+        return res.status(500).json({ error: 'Erro ao obter dados dos eventos.' });
     }
 });
 
