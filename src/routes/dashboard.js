@@ -45,7 +45,7 @@ router.post('/datageneralData', async (req, res) => {
             console.info(`Dados de Incrição Geral recebidos: ${resultInscricaoGeral.length}`);
         };
 
-        const inscricoesGeralIds = inscricaoGeral.map(row => row.id);
+        const inscricoesGeralIds = resultInscricaoGeral.map(row => row.id);
 
         // Consulta da faixa 0_6 considerando apenas os IDs obtidos
         const inscricoes0_6 = await pool.query(`SELECT lc.nome, SUM(insc.qtd_masculino) AS qtd_masculino, SUM(insc.qtd_feminino) AS qtd_feminino  
