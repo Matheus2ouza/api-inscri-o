@@ -22,82 +22,135 @@ router.get('/event', async(req, res) =>{
 });
 
 // Rota para obter dados do dashboard
-router.get('/datageneralData', async (req, res) => {
+router.post('/datageneralData', async (req, res) => {
+
+    const { eventoId } = req.body
+    console.log(`eventoId selecionado: ${eventoId}`);
+
     try {
-        // Consulta dados das diferentes tabelas
+        // Dados da localidades
         const localidades = await pool.query('SELECT id, nome, saldo_devedor FROM public.localidades');
-        const eventos = await pool.query('SELECT id, descricao, data_limite FROM public.eventos');
-        const hospedagem = await pool.query(`
-            SELECT h.id, h.nome, ig.nome_responsavel, l.nome AS localidade
-            FROM public.hospedagem h
-            JOIN public.inscricao_geral ig ON h.id_inscricao = ig.id
-            JOIN public.localidades l ON ig.localidade_id = l.id
-            order by l.nome
-        `);
-        const inscricoes0_6 = await pool.query(`SELECT lc.nome, sum(insc.qtd_masculino) as qtd_masculino, sum(insc.qtd_feminino) as qtd_feminino  FROM public.inscricao_0_6 as insc
-                                                inner join inscricao_geral as ig on insc.inscricao_geral_id = ig.id
-                                                inner join localidades as lc on ig.localidade_id = lc.id
-                                                GROUP BY lc.nome`);
-        const inscricoes7_10 = await pool.query(
-            `SELECT lc.nome, sum(insc.qtd_masculino) as qtd_masculino, sum(insc.qtd_feminino) as qtd_feminino  FROM public.inscricao_7_10 as insc
-                                                inner join inscricao_geral as ig on insc.inscricao_geral_id = ig.id
-                                                inner join localidades as lc on ig.localidade_id = lc.id
-                                                GROUP BY lc.nome`
-        );
-        const inscricoes10_acima = await pool.query(
-            `SELECT lc.nome, sum(insc.qtd_masculino) as qtd_masculino, sum(insc.qtd_feminino) as qtd_feminino  FROM public.inscricao_10_acima as insc
-                                                inner join inscricao_geral as ig on insc.inscricao_geral_id = ig.id
-                                                inner join localidades as lc on ig.localidade_id = lc.id
-                                                GROUP BY lc.nome`
-        );
-        const inscricaoGeral = await pool.query(`
-                                                SELECT ig.id, ig.nome_responsavel, ig.qtd_geral, l.nome AS localidade
-                                                FROM public.inscricao_geral ig
-                                                LEFT JOIN public.localidades l ON ig.localidade_id = l.id
-        `);
-        const inscricao_servico = await pool.query(
-            `SELECT lc.nome, sum(insc.qtd_masculino) as qtd_masculino, sum(insc.qtd_feminino) as qtd_feminino  FROM public.inscricao_servico as insc
-                                                inner join inscricao_geral as ig on insc.inscricao_geral_id = ig.id
-                                                inner join localidades as lc on ig.localidade_id = lc.id
-                                                GROUP BY lc.nome`
-        );
-        const inscricao_tx_participacao = await pool.query(
-            `SELECT lc.nome, sum(insc.qtd_masculino) as qtd_masculino, sum(insc.qtd_feminino) as qtd_feminino  FROM public.inscricao_tx_participacao as insc
-                                                inner join inscricao_geral as ig on insc.inscricao_geral_id = ig.id
-                                                inner join localidades as lc on ig.localidade_id = lc.id
-                                                GROUP BY lc.nome`
-        );
-        const movimentacaoFinanceira = await pool.query(`
-                                                            SELECT 
-                                                                mf.id,
-                                                                CONCAT('Pagamento referente à localidade: ', loc.nome) AS descricao,
-                                                                mf.valor
-                                                            FROM 
-                                                                public.movimentacao_financeira mf
-                                                            LEFT JOIN 
-                                                                public.localidades loc 
-                                                                ON CAST(SUBSTRING(mf.descricao FROM 'ID: (\\d+)') AS INT) = loc.id
-                                                        `);
 
-        const pagamento = await pool.query(`
-            SELECT p.id, p.valor_pago, l.nome AS localidade
-            FROM public.pagamento p
-            LEFT JOIN public.localidades l ON p.localidade_id = l.id
-        `);
-        const inscricaoAvulsa = await pool.query(`
-            select 
-                localidade,qtd_geral_06, qtd_geral_7_10, qtd_geral_normal, qtd_geral_servico,qtd_geral_visitante, qtd_geral_participacao ,
-                    (qtd_geral_06 + qtd_geral_7_10 + qtd_geral_normal + qtd_geral_servico + qtd_geral_visitante + qtd_geral_participacao) as qtd_geral, vl_total, forma_pagamento 
-                    from inscricao_avulsa ORDER BY 1  
+        const eventGeral = await pool.query('SELECT * FROM eventos')
+
+        //Dados da inscrição Geral
+        const inscricaoGeral = await pool.query(`SELECT ig.id, ig.nome_responsavel, ig.qtd_geral, l.nome AS localidade
+                                                FROM public.inscricao_geral ig LEFT JOIN public.localidades l 
+                                                ON ig.localidade_id = l.id WHERE ig.evento_id = $1;
+        `, [eventoId]);
+        const resultInscricaoGeral = inscricaoGeral.rows
+        if (resultInscricaoGeral.length === 0) {
+            console.warn(`Dados da inscrição não encontrados ${resultInscricaoGeral.length}`);
+        } else {
+            console.info(`Dados de Incrição Geral recebidos: ${resultInscricaoGeral.length}`);
+        };
+
+        const inscricoesGeralIds = inscricaoGeral.map(row => row.id);
+
+        // Consulta da faixa 0_6 considerando apenas os IDs obtidos
+        const inscricoes0_6 = await pool.query(`SELECT lc.nome, SUM(insc.qtd_masculino) AS qtd_masculino, SUM(insc.qtd_feminino) AS qtd_feminino  
+                                                FROM public.inscricao_0_6 AS insc INNER JOIN public.inscricao_geral AS ig ON insc.inscricao_geral_id = ig.id
+                                                INNER JOIN public.localidades AS lc ON ig.localidade_id = lc.id WHERE insc.inscricao_geral_id = ANY($1)
+                                                GROUP BY lc.nome
+        `, [inscricoesGeralIds]);
+    
+        const resultinscricoes0_6 = inscricoes0_6.rows;
+        if (resultinscricoes0_6.length === 0) {
+            console.warn(`Dados da Inscrição 0_6 não encontrados: ${resultinscricoes0_6.length}`);
+        } else {
+            console.info(`Dados da Inscrição 0_6 encontrados: ${resultinscricoes0_6.length}`);
+        }
+    
+        // Consulta da faixa 7_10 considerando os IDs filtrados
+        const inscricoes7_10 = await pool.query(`SELECT lc.nome, SUM(insc.qtd_masculino) AS qtd_masculino, SUM(insc.qtd_feminino) AS qtd_feminino  
+                                                FROM public.inscricao_7_10 AS insc INNER JOIN public.inscricao_geral AS ig ON insc.inscricao_geral_id = ig.id
+                                                INNER JOIN public.localidades AS lc ON ig.localidade_id = lc.id WHERE insc.inscricao_geral_id = ANY($1)
+                                                GROUP BY lc.nome
+        `, [inscricoesGeralIds]);
+
+        const resultinscricoes7_10 = inscricoes7_10.rows;
+        if (resultinscricoes7_10.length === 0) {
+            console.warn(`Dados da Inscrição 7_10 não encontrados: ${resultinscricoes7_10.length}`);
+        } else {
+            console.info(`Dados da Inscrição 7_10 encontrados: ${resultinscricoes7_10.length}`);
+        }
+    
+        // Consulta da faixa 10_acima considerando os IDs filtrados
+        const inscricoes10_acima = await pool.query(`SELECT lc.nome, SUM(insc.qtd_masculino) AS qtd_masculino, SUM(insc.qtd_feminino) AS qtd_feminino  
+                                                    FROM public.inscricao_10_acima AS insc INNER JOIN public.inscricao_geral AS ig ON insc.inscricao_geral_id = ig.id
+                                                    INNER JOIN public.localidades AS lc ON ig.localidade_id = lc.id WHERE insc.inscricao_geral_id = ANY($1)
+                                                GROUP BY lc.nome
+        `, [inscricoesGeralIds]);
+
+        const resultinscricoes10_acima = inscricoes10_acima.rows;
+        if (resultinscricoes10_acima.length === 0) {
+            console.warn(`Dados da Inscrição 10_acima não encontrados: ${resultinscricoes10_acima.length}`);
+        } else {
+            console.info(`Dados da Inscrição 10_acima encontrados: ${resultinscricoes10_acima.length}`);
+        }
+
+        const inscricao_servico = await pool.query(`SELECT lc.nome, SUM(insc.qtd_masculino) AS qtd_masculino, SUM(insc.qtd_feminino) AS qtd_feminino  
+                                                    FROM public.inscricao_servico AS insc INNER JOIN inscricao_geral AS ig ON insc.inscricao_geral_id = ig.id
+                                                    INNER JOIN localidades AS lc ON ig.localidade_id = lc.id
+                                                    WHERE insc.inscricao_geral_id = ANY($1)
+                                                    GROUP BY lc.nome
+        `, [inscricoesGeralIds]);
+
+        const resultInscricao_servico = inscricao_servico.rows
+
+        if (resultInscricao_servico.length === 0) {
+            console.warn(`Dados da inscricao de serviço encontrados: ${resultInscricao_servico.length}`)
+        } else {
+            console.info(`Dados da inscricao de servico encontrados: ${resultInscricao_servico.length}`)
+        };
+
+        const inscricao_tx_participacao = await pool.query(`SELECT lc.nome, SUM(insc.qtd_masculino) AS qtd_masculino, SUM(insc.qtd_feminino) AS qtd_feminino  
+                                                            FROM public.inscricao_tx_participacao AS insc INNER JOIN inscricao_geral AS ig ON insc.inscricao_geral_id = ig.id
+                                                            INNER JOIN localidades AS lc ON ig.localidade_id = lc.id WHERE insc.inscricao_geral_id = ANY($1)
+                                                            GROUP BY lc.nome
+        `, [inscricoesGeralIds]);
+
+        const resultinscricao_tx_participacao = inscricao_tx_participacao.rows
+
+        if (resultinscricao_tx_participacao.length === 0) {
+            console.warn(`Dados da inscricao de serviço encontrados: ${resultinscricao_tx_participacao.length}`)
+        } else {
+            console.info(`Dados da inscricao de servico encontrados: ${resultinscricao_tx_participacao.length}`)
+        };
+        
+        const movimentacaoFinanceira = await pool.query(`SELECT 
+                                                        mf.id,
+                                                        CONCAT('Pagamento referente à localidade: ', loc.nome) AS descricao,
+                                                        mf.valor
+                                                    FROM 
+                                                        public.movimentacao_financeira mf
+                                                    LEFT JOIN 
+                                                        public.localidades loc 
+                                                        ON CAST(SUBSTRING(mf.descricao FROM 'ID: ([0-9]+)') AS INT) = loc.id;
         `);
 
-        const venda_alimentacao = await pool.query(`
-            SELECT tipo_refeicao, quantidade, valor_unitario, valor_total as valor, data, forma_pagamento 
-            FROM venda_alimentacao 
-        `);
-        const saida_financeiro = await pool.query(`
-            SELECT descricao, responsavel, valor, tipomovimento, data FROM caixa
-        `);
+        const hospedagem = await pool.query(`SELECT 
+                                                h.id, 
+                                                h.nome AS hospedagem, 
+                                                l.nome AS localidade
+                                            FROM 
+                                                public.hospedagem h
+                                            INNER JOIN 
+                                                public.inscricao_geral ig ON h.id_inscricao = ig.id
+                                            INNER JOIN 
+                                                public.localidades l ON ig.localidade_id = l.id
+                                            WHERE 
+                                                h.id_inscricao = ANY($1);
+        `, [inscricoesGeralIds]);
+
+        const resultHospedagem = hospedagem.rows;
+
+        if(resultHospedagem.length === 0 ) {
+        console.warn(`Dados da hospedagem não encontradas: ${resultHospedagem.length}`);
+        } else {
+        console.log(`Dados da hospedagem encontrados: ${resultHospedagem.length}`)
+        };
+
         const tipoInscricao = await pool.query('SELECT id, descricao, valor FROM public.tipo_inscricao');
 
         // Monta o objeto de resposta para cada tabela
@@ -108,7 +161,7 @@ router.get('/datageneralData', async (req, res) => {
                 message: 'Dados das localidades obtidos com sucesso.'
             },eventos: {
                 success: true,
-                data: eventos.rows,
+                data: eventGeral.rows,
                 message: 'Dados dos eventos obtidos com sucesso.'
             },
             hospedagem: {
@@ -141,35 +194,15 @@ router.get('/datageneralData', async (req, res) => {
                 data: inscricao_tx_participacao.rows,
                 message: 'Dados de inscrições taxa de participação obtidos com sucesso.'
             },
-            inscricaoAvulsa: {
-                success: true,
-                data: inscricaoAvulsa.rows,
-                message: 'Dados de inscrições taxa de participação obtidos com sucesso.'
-            },
             inscricaoGeral: {
                 success: true,
                 data: inscricaoGeral.rows,
                 message: 'Dados das inscrições gerais obtidos com sucesso.'
             },
-            venda_alimentacao: {
-                success: true,
-                data: venda_alimentacao.rows,
-                message: 'Dados das venda de alimentacao obtidos com sucesso.'
-            },
-            saida_financeiro: {
-                success: true,
-                data: saida_financeiro.rows,
-                message: 'Dados da saida financeiro obtidos com sucesso.'
-            },
             movimentacaoFinanceira: {
                 success: true,
                 data: movimentacaoFinanceira.rows,
                 message: 'Dados da movimentação financeira obtidos com sucesso.'
-            },
-            pagamento: {
-                success: true,
-                data: pagamento.rows,
-                message: 'Dados de pagamentos obtidos com sucesso.'
             },
             tipoInscricao: {
                 success: true,
