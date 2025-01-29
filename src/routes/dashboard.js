@@ -151,6 +151,19 @@ router.post('/datageneralData', async (req, res) => {
         console.log(`Dados da hospedagem encontrados: ${resultHospedagem.length}`)
         };
 
+        const devedores = await pool.query(`SELECT nome, saldo_devedor
+                                            FROM localidades
+                                            WHERE saldo_devedor > 0;            
+        `);
+        
+        const resultdevedores = devedores.rows
+
+        if(resultdevedores.length === 0) {
+            console.warn(`Dados dos devedores não encontrados ou nao existem: ${resultdevedores.length}`);
+        } else {
+            console.info(`Dados dos devedores encontrados: ${resultHospedagem.length}`)
+        };
+
         const tipoInscricao = await pool.query('SELECT id, descricao, valor FROM public.tipo_inscricao');
 
         // Monta o objeto de resposta para cada tabela
@@ -208,6 +221,11 @@ router.post('/datageneralData', async (req, res) => {
                 success: true,
                 data: tipoInscricao.rows,
                 message: 'Dados dos tipos de inscrição obtidos com sucesso.'
+            },
+            devedores: {
+                success: true,
+                data: devedores.rows,
+                message: 'Dados dos devedores obtidos com sucesso.'
             }
         };
 
