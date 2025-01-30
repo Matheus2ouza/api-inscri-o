@@ -35,8 +35,8 @@ router.post('/datageneralData', async (req, res) => {
 
         //Dados da inscrição Geral
         const inscricaoGeral = await pool.query(`SELECT ig.id, ig.nome_responsavel, ig.qtd_geral, l.nome AS localidade
-                                                FROM public.inscricao_geral ig LEFT JOIN public.localidades l 
-                                                ON ig.localidade_id = l.id WHERE ig.evento_id = $1;
+                                                FROM public.inscricao_geral ig LEFT JOIN public.localidades l ON ig.localidade_id = l.id
+                                                WHERE ig.evento_id = $1 AND (l.nome IS NULL OR l.nome != 'CEAPE');
         `, [eventoId]);
         const resultInscricaoGeral = inscricaoGeral.rows
         if (resultInscricaoGeral.length === 0) {
