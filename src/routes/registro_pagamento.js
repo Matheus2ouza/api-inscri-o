@@ -136,7 +136,7 @@ registerRoutes.post(
 
     try {
       const venda_alimentacao = await pool.query(
-          `INSERT INTO venda_alimentacao (evento_id, tipo_refeicao, quantidade, valorUnitario, valorTotal) 
+          `INSERT INTO venda_alimentacao (evento_id, tipo_refeicao, quantidade, valor_unitario, valor_total) 
           VALUES ($1, $2, $3, $4, $5) RETURNING id`,
           [3, tipo_refeicao, quantidade, valorUnitario, valorTotal]
       );
