@@ -72,10 +72,9 @@ registerRoutes.post(
     body("descricao").notEmpty().withMessage("Descrição é obrigatória."),
     body("responsavel").notEmpty().withMessage("Responsável é obrigatório."),
     body("valor").isNumeric().withMessage("Valor deve ser numérico."),
-    body("tipomovimento")
-      .isIn(["entrada", "saida"])
+    body("tipo")
+      .isIn(["entrada", "Saida"])
       .withMessage("Tipo de movimento inválido."),
-    body("data").isISO8601().withMessage("Data deve estar no formato ISO."),
   ],
   async (req, res) => {
     const errors = validationResult(req);
@@ -83,13 +82,35 @@ registerRoutes.post(
       return res.status(400).json({ errors: errors.array() });
     }
 
-    const { descricao, responsavel, valor, tipomovimento, data } = req.body;
+    const { descricao, responsavel, valor, tipo } = req.body;
+
+    const data = new Date();
 
     try {
-      const result = await pool.query(
+      const insert_caixa = await pool.query(
         "INSERT INTO caixa (descricao, responsavel, valor, tipomovimento, data) VALUES ($1, $2, $3, $4, $5) RETURNING id",
-        [descricao, responsavel, valor, tipomovimento, data]
+        [descricao, responsavel, valor, tipo, data]
       );
+
+      if(!insert_caixa.rows.length) {
+        const errorMessage = 'Erro ao inserir venda de caixa.';
+        console.error(errorMessage);
+        return res.status(401).json({message:errorMessage});
+      }
+
+      // Inserção na tabela `movimentacao_financeira`
+      const financialMovement = await pool.query(
+        `INSERT INTO movimentacao_financeira (tipo, descricao, valor, data)
+        VALUES($1, $2, $3, $4) RETURNING id`,
+        [tipo, `Movimentação do tipo ${tipo} com responsavel ${responsavel}.`, valor, data]
+      );
+
+      if (!financialMovement.rows || financialMovement.rows.length === 0) {
+        const errorMessage = 'Erro ao registrar movimentação financeira. Não foi possível inserir os dados.';
+        console.error(errorMessage);
+        return res.status(500).json({ message: errorMessage });
+      }
+      
       return res
         .status(201)
         .json({ message: "Movimento registrado no caixa", id: result.rows[0].id });
