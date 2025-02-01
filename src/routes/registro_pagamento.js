@@ -73,7 +73,7 @@ registerRoutes.post(
     body("responsavel").notEmpty().withMessage("Responsável é obrigatório."),
     body("valor").isNumeric().withMessage("Valor deve ser numérico."),
     body("tipo")
-      .isIn(["entrada", "Saida"])
+      .isIn(["Entrada", "Saida"])
       .withMessage("Tipo de movimento inválido."),
   ],
   async (req, res) => {
@@ -113,7 +113,7 @@ registerRoutes.post(
       
       return res
         .status(201)
-        .json({ message: "Movimento registrado no caixa", id: result.rows[0].id });
+        .json({ message: "Movimento registrado no caixa", id: financialMovement.rows[0].id });
     } catch (err) {
       console.error(`Erro ao registrar movimento no caixa: ${err.message}`);
       return res.status(500).json({ error: "Erro ao registrar movimento no caixa." });
