@@ -132,6 +132,8 @@ registerRoutes.post(
 
     const { tipo_refeicao, quantidade, valorUnitario, valorTotal, pagamentos } = req.body;
 
+    let data = new Date();
+
     try {
       const venda_alimentacao = await pool.query(
           `INSERT INTO venda_alimentacao (evento_id, tipo_refeicao, quantidade, valorUnitario, valorTotal) 
@@ -140,7 +142,9 @@ registerRoutes.post(
       );
   
       if (!venda_alimentacao.rows.length) {
-          throw new Error("Erro ao inserir venda de alimentação.");
+          const errorMessage = 'Erro ao inserir venda de alimentação.';
+          console.error(errorMessage);
+          return res.status(401).json({message:errorMessage});
       }
   
       const vendaId = venda_alimentacao.rows[0].id;
@@ -160,7 +164,22 @@ registerRoutes.post(
   
       // Verifica se todos os pagamentos foram inseridos corretamente
       if (pagamentosInseridos !== pagamentos.length) {
-          throw new Error("Nem todos os pagamentos foram inseridos corretamente.");
+          const errorMessage = 'Nem todos os pagamentos foram inseridos corretamente.';
+          console.error(errorMessage);
+          return res.status(401).json({message:errorMessage});
+      }
+
+      // Inserção na tabela `movimentacao_financeira`
+      const financialMovement = await pool.query(
+        `INSERT INTO movimentacao_financeira (tipo, descricao, valor, data)
+        VALUES($1, $2, $3, $4) RETURNING id`,
+        ["Entrada", `Venda de Alimentação, tipo_refeição:${tipo_refeicao}.`, valorTotal, data]
+      );
+
+      if (!financialMovement.rows || financialMovement.rows.length === 0) {
+        const errorMessage = 'Erro ao registrar movimentação financeira. Não foi possível inserir os dados.';
+        console.error(errorMessage);
+        return res.status(500).json({ message: errorMessage });
       }
   
       res.status(201).json({ message: "Venda registrada com sucesso!" });
