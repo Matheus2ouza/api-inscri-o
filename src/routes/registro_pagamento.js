@@ -105,8 +105,24 @@ registerRoutes.post(
   "/venda-alimentacao",
   [
     body("tipo_refeicao").notEmpty().withMessage("Tipo de refeição é obrigatório."),
-    body("quantidade").isInt({ min: 1 }).withMessage("Quantidade deve ser positiva."),
-    body("valortotal").isNumeric().withMessage("Valor total deve ser numérico."),
+    body("quantidade")
+        .isInt({ min: 1 })
+        .withMessage("Quantidade deve ser um número inteiro positivo."),
+    body("valorUnitario")
+        .isNumeric()
+        .withMessage("Valor unitário deve ser numérico."),
+    body("valorTotal")
+        .isNumeric()
+        .withMessage("Valor total deve ser numérico."),
+    body("pagamentos")
+        .isArray({ min: 1 })
+        .withMessage("Deve haver pelo menos um pagamento."),
+    body("pagamentos.*.tipo")
+        .notEmpty()
+        .withMessage("O tipo de pagamento é obrigatório."),
+    body("pagamentos.*.valor")
+        .isNumeric()
+        .withMessage("O valor do pagamento deve ser numérico.")
   ],
   async (req, res) => {
     const errors = validationResult(req);
@@ -114,22 +130,46 @@ registerRoutes.post(
       return res.status(400).json({ errors: errors.array() });
     }
 
-    const { dia, tipo, quantidade, valorUnitario, valorTotal } = req.body;
+    const { tipo_refeicao, quantidade, valorUnitario, valorTotal, pagamentos } = req.body;
 
     try {
-      const venda = await pool.query(
-        "INSERT INTO venda_alimentacao (tipo_refeicao, quantidade, valortotal) VALUES ($1, $2, $3) RETURNING id",
-        [tipo_refeicao, quantidade, valortotal]
+      const venda_alimentacao = await pool.query(
+          `INSERT INTO venda_alimentacao (evento_id, tipo_refeicao, quantidade, valorUnitario, valorTotal) 
+          VALUES ($1, $2, $3, $4, $5) RETURNING id`,
+          [3, tipo_refeicao, quantidade, valorUnitario, valorTotal]
       );
-      const vendaId = venda.rows[0].id;
-
-      return res
-        .status(201)
-        .json({ message: "Venda de alimentação registrada", id: vendaId });
+  
+      if (!venda_alimentacao.rows.length) {
+          throw new Error("Erro ao inserir venda de alimentação.");
+      }
+  
+      const vendaId = venda_alimentacao.rows[0].id;
+      let pagamentosInseridos = 0;
+  
+      for (const pagamento of pagamentos) {
+          const pagamentoInserido = await pool.query(
+              `INSERT INTO pagamento_alimentacao (venda_alimentacao_id, tipo_pagamento, valor) 
+              VALUES ($1, $2, $3) RETURNING id`,
+              [vendaId, pagamento.tipo, pagamento.valor]
+          );
+  
+          if (pagamentoInserido.rows.length) {
+              pagamentosInseridos++;
+          }
+      }
+  
+      // Verifica se todos os pagamentos foram inseridos corretamente
+      if (pagamentosInseridos !== pagamentos.length) {
+          throw new Error("Nem todos os pagamentos foram inseridos corretamente.");
+      }
+  
+      res.status(201).json({ message: "Venda registrada com sucesso!" });
+  
     } catch (err) {
       console.error(`Erro ao registrar venda de alimentação: ${err.message}`);
       return res.status(500).json({ error: "Erro ao registrar venda de alimentação." });
     }
+  
   }
 );
 
