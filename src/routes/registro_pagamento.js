@@ -121,6 +121,29 @@ registerRoutes.post(
   }
 );
 
+registerRoutes.get(
+  "/dadosMovimentacao",
+  async(req, res) =>{
+    try{
+
+      const busca_caixa = await pool.query(`
+        SELECT * from caixa;
+      `);
+
+      if(!busca_caixa.rows.length) {
+        const errorMessage = "Erro na tentativa de consulta";
+        console.log(errorMessage);
+        res.status(401).json({message: errorMessage});
+      }
+
+      res.status(201).json(busca_caixa.rows);
+    }  catch (err) {
+      console.error(`Erro ao fazer a busca pelo caixa: ${err.message}`);
+      return res.status(500).json({ error: "Erro ao fazer a busca pelo caixa." });
+    }
+  }
+);
+
 // Rota para registrar venda de alimentação
 registerRoutes.post(
   "/venda-alimentacao",
