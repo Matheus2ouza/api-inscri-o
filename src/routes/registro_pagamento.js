@@ -192,6 +192,37 @@ registerRoutes.post(
   }
 );
 
+registerRoutes.get("/DadosRefeicao", async (req, res) => {
+  try {
+      // Executa a consulta no banco de dados
+      const query = `
+          SELECT
+              SPLIT_PART(venda.tipo_refeicao, '_', 2) AS refeicao,
+              SPLIT_PART(venda.tipo_refeicao, '_', 1) AS dia,
+              venda.quantidade,
+              venda.valor_total
+          FROM
+              venda_alimentacao venda
+          WHERE
+              venda.tipo_refeicao LIKE 'sexta_%';
+      `;
+
+      const result = await pool.query(query); // Executa a consulta usando o pool de conexões do PostgreSQL
+
+      if (result.rows.length > 0) {
+          // Envia os dados retornados como resposta
+          res.status(200).json(result.rows);
+      } else {
+          res.status(404).json({ message: "Nenhuma refeição encontrada." });
+      }
+
+  } catch (error) {
+      console.error('Erro ao buscar dados de refeição:', error);
+      res.status(500).json({ error: "Erro interno ao buscar dados de refeição." });
+  }
+});
+
+
 registerRoutes.post(
   "/inscricao-avulsa",
   [
