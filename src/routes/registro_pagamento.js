@@ -246,9 +246,7 @@ registerRoutes.get("/DadosRefeicao", async (req, res) => {
               venda.quantidade,
               venda.valor_total
           FROM
-              venda_alimentacao venda
-          WHERE
-              venda.tipo_refeicao LIKE 'sexta_%';
+              venda_alimentacao venda;
       `;
 
       const result = await pool.query(query); // Executa a consulta usando o pool de conexões do PostgreSQL
