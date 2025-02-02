@@ -369,7 +369,7 @@ registerRoutes.post(
       const financialMovement = await pool.query(
         `INSERT INTO movimentacao_financeira (tipo, descricao, valor, data)
         VALUES($1, $2, $3, $4) RETURNING id`,
-        ["Entrada", `Inscrição avulsa, id:${city}, nome responsavel: ${nomeResponsavel}`, valorTotal, data]
+        ["Entrada", `Inscrição avulsa, id:${city.id}, nome responsavel: ${nomeResponsavel}`, valorTotal, data]
       );
 
       if (!financialMovement.rows || financialMovement.rows.length === 0) {
