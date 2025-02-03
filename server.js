@@ -19,6 +19,7 @@ const generatePdf = require('./src/routes/listPdf.js');
 const getcomprovante = require('./src/routes/comprovanteGet.js');
 const RegistroPagamento = require('./src/routes/registro_pagamento.js');
 const movementPdf = require('./src/routes/movementPdf.js');
+const createPdfRouter = require('./src/routes/createPdf.js');
 
 app.use(express.json());
 
@@ -62,6 +63,7 @@ app.use('/generatePdf', generatePdf);
 app.use('/buscarComporvante', getcomprovante);
 app.use('/RegistroPagamento', RegistroPagamento);
 app.use('/movementPdf', movementPdf);
+app.use('/pdf', createPdfRouter);
 
 // Middleware para capturar erros 404 (rota não encontrada)
 app.use((req, res, next) => {
