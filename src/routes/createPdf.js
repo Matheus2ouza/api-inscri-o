@@ -3,50 +3,32 @@ const PDFDocument = require('pdfkit');
 const { pool } = require("../db/dbConnection"); // Certifique-se de que a conexão está correta
 const createPdfRouter = express.Router();
 
+// Mapeamento dos tipos para suas respectivas queries
+const tipoQueries = {
+    geral: "SELECT * FROM movimentacao_financeira;",
+    inscricao: "SELECT * FROM movimentacao_financeira WHERE descricao LIKE 'Pagamento referente%';",
+    conferencia: `
+        SELECT * FROM movimentacao_financeira
+        WHERE descricao LIKE 'Venda de Alimentação%' 
+        OR descricao LIKE 'Pagamento referente%' 
+        OR descricao LIKE 'Movimentação%';`,
+    inscricao_avulsa: "SELECT * FROM movimentacao_financeira WHERE descricao LIKE 'Inscrição avulsa%';",
+    ticket: "SELECT * FROM movimentacao_financeira WHERE descricao LIKE 'Venda de Alimentação%';",
+    movimentacao: "SELECT * FROM movimentacao_financeira WHERE descricao LIKE 'Movimentação%';"
+};
+
 // Rota para gerar PDF dinamicamente
 createPdfRouter.post("/createPdf", async (req, res) => {
-    
     const tipo = req.body.tipo;
     console.log(tipo);
 
-    if (!tipo) {
-        return res.status(400).json({ error: "Tipo é obrigatório!" });
+    if (!tipo || !tipoQueries[tipo]) {
+        return res.status(400).json({ error: "Tipo inválido ou não fornecido!" });
     }
 
-    let query = "";
-
-    switch (tipo) {
-        case 'geral':
-            query = "SELECT * FROM movimentacao_financeira;";
-            break;
-        case 'inscricao':
-            query = `SELECT * FROM movimentacao_financeira WHERE descricao LIKE 'Pagamento referente%';`;
-            break;
-        case 'conferencia':
-            query = `SELECT * FROM movimentacao_financeira
-                     WHERE descricao LIKE 'Venda de Alimentação%' 
-                     OR descricao LIKE 'Pagamento referente%' 
-                     OR descricao LIKE 'Movimentação%';`;
-            break;
-        case 'inscricao_avulsa':
-            query = `SELECT * FROM movimentacao_financeira 
-                     WHERE descricao LIKE 'Inscrição avulsa%';`;
-            break;
-        case 'ticket':
-            query = `SELECT * FROM movimentacao_financeira
-                     WHERE descricao LIKE 'Venda de Alimentação%';`;
-            break;
-        case 'movimentacao':
-            query = `SELECT * FROM movimentacao_financeira
-                     WHERE descricao LIKE 'Movimentação%';`;
-            break;
-        default:
-            console.warn(`Tipo inválido!`);
-            return res.status(405).json({ error: "Tipo inválido!" });
-    }
+    const query = tipoQueries[tipo];
 
     try {
-        console.info(rows);
         // Executa a consulta usando o pool
         const [rows] = await pool.execute(query);
 
