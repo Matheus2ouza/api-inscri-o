@@ -44,7 +44,7 @@ createPdfRouter.post("/createPdf", async (req, res) => {
     }
 
     try {
-        console.info    (rows);
+        console.info(rows);
         // Executa a consulta usando o pool
         const [rows] = await pool.execute(query);
 
