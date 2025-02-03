@@ -6,7 +6,7 @@ const createPdfRouter = express.Router();
 // Rota para gerar PDF dinamicamente
 createPdfRouter.post("/createPdf", async (req, res) => {
     
-    const tipo = req.body;
+    const tipo = req.body.tipo;
     console.log(tipo);
 
     if (!tipo) {
