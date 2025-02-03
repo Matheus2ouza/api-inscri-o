@@ -5,8 +5,10 @@ const createPdfRouter = express.Router();
 
 // Rota para gerar PDF dinamicamente
 createPdfRouter.post("/createPdf", async (req, res) => {
+    
     const tipo = req.body;
     console.log(tipo);
+
     if (!tipo) {
         return res.status(400).json({ error: "Tipo é obrigatório!" });
     }
