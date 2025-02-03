@@ -19,7 +19,7 @@ const tipoQueries = {
 
 // Rota para gerar PDF dinamicamente
 createPdfRouter.post("/createPdf", async (req, res) => {
-    const tipo = req.body.tipo;
+    const tipo = req.body;
     console.log(tipo);
 
     if (!tipo || !tipoQueries[tipo]) {
