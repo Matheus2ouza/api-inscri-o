@@ -7,11 +7,7 @@ const createPdfRouter = express.Router();
 const tipoQueries = {
     geral: "SELECT * FROM movimentacao_financeira;",
     inscricao: "SELECT * FROM movimentacao_financeira WHERE descricao LIKE 'Pagamento referente%';",
-    conferencia: `
-        SELECT * FROM movimentacao_financeira
-        WHERE descricao LIKE 'Venda de Alimentação%' 
-        OR descricao LIKE 'Pagamento referente%' 
-        OR descricao LIKE 'Movimentação%';`,
+    conferencia: `SELECT * FROM movimentacao_financeira WHERE descricao LIKE 'Venda de Alimentação%' OR descricao LIKE 'Pagamento referente%' OR descricao LIKE 'Movimentação%';`,
     inscricao_avulsa: "SELECT * FROM movimentacao_financeira WHERE descricao LIKE 'Inscrição avulsa%';",
     ticket: "SELECT * FROM movimentacao_financeira WHERE descricao LIKE 'Venda de Alimentação%';",
     movimentacao: "SELECT * FROM movimentacao_financeira WHERE descricao LIKE 'Movimentação%';"
@@ -19,16 +15,13 @@ const tipoQueries = {
 
 // Rota para gerar PDF dinamicamente
 createPdfRouter.post("/createPdf", async (req, res) => {
-    // Garantir que req.body.tipo seja uma string válida
     let tipo = req.body.tipo;
 
-    // Normalizando e validando o tipo
     if (typeof tipo !== 'string' || !tipo.trim()) {
         return res.status(400).json({ error: "Tipo inválido ou não fornecido! O tipo deve ser uma string válida." });
     }
-    tipo = tipo.trim().toLowerCase();  // Remove espaços extras e converte para minúsculas
+    tipo = tipo.trim().toLowerCase(); // Normalizando o tipo
 
-    // Verificar se o tipo é válido com base no mapeamento
     if (!tipoQueries[tipo]) {
         return res.status(400).json({ error: `Tipo '${tipo}' não encontrado! Escolha um tipo válido.` });
     }
@@ -36,8 +29,8 @@ createPdfRouter.post("/createPdf", async (req, res) => {
     const query = tipoQueries[tipo];
 
     try {
-        // Executa a consulta usando o pool
-        const [rows] = await pool.execute(query);
+        // Usando o método query do pool para executar a consulta
+        const { rows } = await pool.query(query);
 
         if (rows.length === 0) {
             return res.status(404).json({ error: "Nenhum dado encontrado para o tipo especificado!" });
