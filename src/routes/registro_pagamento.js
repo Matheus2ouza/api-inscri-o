@@ -321,7 +321,7 @@ registerRoutes.post(
           nome_responsavel
         ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING id`,
         [
-          2, // evento_id
+          3, // evento_id
           city.id, // localidade_id
           faixasPorIdade['0-6'] || 0, // qtd_0_6
           faixasPorIdade['7-10'] || 0, // qtd_7_10
