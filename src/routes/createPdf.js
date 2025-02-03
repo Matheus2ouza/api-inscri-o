@@ -39,10 +39,12 @@ createPdfRouter.post("/createPdf", async (req, res) => {
                      WHERE descricao LIKE 'Movimentação%';`;
             break;
         default:
-            return res.status(400).json({ error: "Tipo inválido!" });
+            console.warn(`Tipo inválido!`);
+            return res.status(405).json({ error: "Tipo inválido!" });
     }
 
     try {
+        console.info    (rows);
         // Executa a consulta usando o pool
         const [rows] = await pool.execute(query);
 
