@@ -14,27 +14,27 @@ createPdfRouter.post("/createPdf", async (req, res) => {
     let query = "";
 
     switch (tipo) {
-        case "geral":
+        case 'geral':
             query = "SELECT * FROM movimentacao_financeira;";
             break;
-        case "inscricao":
+        case 'inscricao':
             query = `SELECT * FROM movimentacao_financeira WHERE descricao LIKE 'Pagamento referente%';`;
             break;
-        case "conferencia":
+        case 'conferencia':
             query = `SELECT * FROM movimentacao_financeira
                      WHERE descricao LIKE 'Venda de Alimentação%' 
                      OR descricao LIKE 'Pagamento referente%' 
                      OR descricao LIKE 'Movimentação%';`;
             break;
-        case "inscricao_avulsa":
+        case 'inscricao_avulsa':
             query = `SELECT * FROM movimentacao_financeira 
                      WHERE descricao LIKE 'Inscrição avulsa%';`;
             break;
-        case "ticket":
+        case 'ticket':
             query = `SELECT * FROM movimentacao_financeira
                      WHERE descricao LIKE 'Venda de Alimentação%';`;
             break;
-        case "movimentacao":
+        case 'movimentacao':
             query = `SELECT * FROM movimentacao_financeira
                      WHERE descricao LIKE 'Movimentação%';`;
             break;
