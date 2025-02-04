@@ -1,55 +1,67 @@
 const express = require('express');
 const PDFDocument = require('pdfkit');
-const { pool } = require("../db/dbConnection"); // Certifique-se de que a conexão está correta
+const path = require('path');
 const createPdfRouter = express.Router();
 
-// Mapeamento dos tipos para suas respectivas queries
-const tipoQueries = {
-    geral: "SELECT * FROM movimentacao_financeira;",
-    inscricao: "SELECT * FROM movimentacao_financeira WHERE descricao LIKE 'Pagamento referente%';",
-    conferencia: `SELECT * FROM movimentacao_financeira WHERE descricao LIKE 'Venda de Alimentação%' OR descricao LIKE 'Pagamento referente%' OR descricao LIKE 'Movimentação%';`,
-    inscricao_avulsa: "SELECT * FROM movimentacao_financeira WHERE descricao LIKE 'Inscrição avulsa%';",
-    ticket: "SELECT * FROM movimentacao_financeira WHERE descricao LIKE 'Venda de Alimentação%';",
-    movimentacao: "SELECT * FROM movimentacao_financeira WHERE descricao LIKE 'Movimentação%';"
-};
-
-// Rota para gerar PDF dinamicamente
+// Rota para gerar PDF
 createPdfRouter.post("/createPdf", async (req, res) => {
-    let tipo = req.body.tipo;
+    const { tipo, dataInscricao, dataInscricaoAvulsa, dataTicket, dataMovimentacao, ...totals } = req.body;
 
-    if (typeof tipo !== 'string' || !tipo.trim()) {
-        return res.status(400).json({ error: "Tipo inválido ou não fornecido! O tipo deve ser uma string válida." });
+    if (!tipo || typeof tipo !== 'string') {
+        return res.status(400).json({ error: "Tipo inválido ou não fornecido!" });
     }
-    tipo = tipo.trim().toLowerCase(); // Normalizando o tipo
-
-    if (!tipoQueries[tipo]) {
-        return res.status(400).json({ error: `Tipo '${tipo}' não encontrado! Escolha um tipo válido.` });
-    }
-
-    const query = tipoQueries[tipo];
 
     try {
-        // Usando o método query do pool para executar a consulta
-        const { rows } = await pool.query(query);
-
-        if (rows.length === 0) {
-            return res.status(404).json({ error: "Nenhum dado encontrado para o tipo especificado!" });
-        }
-
-        // Criando o PDF diretamente na resposta HTTP
-        const doc = new PDFDocument();
+        const doc = new PDFDocument({ margin: 50 });
         res.setHeader("Content-Disposition", `attachment; filename=${tipo}.pdf`);
         res.setHeader("Content-Type", "application/pdf");
 
         doc.pipe(res);
 
-        doc.fontSize(18).text(`Relatório: ${tipo}`, { align: "center" });
-        doc.moveDown();
-        doc.fontSize(12).text("ID | Descrição | Valor | Tipo");
-        doc.text("-------------------------------------------");
+        // Adicionando imagem no canto superior direito
+        const imagePath = path.join(__dirname, '../public/images/logo.png');
+        doc.image(imagePath, 400, 30, { width: 150 });
 
-        rows.forEach((item) => {
-            doc.text(`${item.id} | ${item.descricao} | R$ ${item.valor} | ${item.tipo}`);
+        // Título alinhado à esquerda
+        doc.fontSize(18).text(`Relatório: ${tipo.toUpperCase()}`, 50, 30);
+        doc.moveDown(2);
+
+        // Exibir totais no PDF
+        doc.font("Helvetica-Bold").fontSize(14).text("Totais:", { underline: true });
+        Object.entries(totals).forEach(([key, value]) => {
+            doc.font("Helvetica").fontSize(12).text(`${key.replace("total", "Total")}: R$ ${value}`);
+        });
+        doc.moveDown(2);
+
+        // Criar tabelas com os dados recebidos
+        const dataMap = {
+            "Inscrição": dataInscricao,
+            "Inscrição Avulsa": dataInscricaoAvulsa,
+            "Ticket": dataTicket,
+            "Movimentação": dataMovimentacao
+        };
+
+        Object.entries(dataMap).forEach(([title, data]) => {
+            if (Object.keys(data).length > 0) {
+                doc.font("Helvetica-Bold").fontSize(14).text(title, { underline: true });
+                doc.moveDown(1);
+
+                doc.font("Courier-Bold").fontSize(12);
+                doc.text("ID".padEnd(10) + "Descrição".padEnd(40) + "Valor".padEnd(15) + "Tipo", { underline: true });
+                doc.text("-".repeat(80));
+
+                doc.font("Courier").fontSize(10);
+                data.forEach((item) => {
+                    doc.text(
+                        item.id.toString().padEnd(10) +
+                        item.descricao.padEnd(40) +
+                        `R$ ${item.valor.toFixed(2)}`.padEnd(15) +
+                        item.tipo
+                    );
+                });
+
+                doc.moveDown(2);
+            }
         });
 
         doc.end();
