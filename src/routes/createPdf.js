@@ -1,4 +1,5 @@
-const fs = require('fs'); // Importa o módulo de filesystem
+const express = require('express');
+const fs = require('fs'); 
 const path = require('path');
 const PDFDocument = require('pdfkit');
 const createPdfRouter = express.Router();
