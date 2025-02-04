@@ -1,6 +1,6 @@
-const express = require('express');
-const PDFDocument = require('pdfkit');
+const fs = require('fs'); // Importa o módulo de filesystem
 const path = require('path');
+const PDFDocument = require('pdfkit');
 const createPdfRouter = express.Router();
 
 createPdfRouter.post("/createPdf", async (req, res) => {
@@ -8,9 +8,8 @@ createPdfRouter.post("/createPdf", async (req, res) => {
 
     let { tipo, dataInscricao, dataInscricaoAvulsa, dataTicket, dataMovimentacao, ...totals } = req.body;
 
-    // Corrigir o tipo se vier como objeto
     if (typeof tipo === 'object' && tipo !== null) {
-        tipo = tipo.tipo; // Extraindo a string correta
+        tipo = tipo.tipo; // Corrige o tipo se vier como objeto
     }
 
     console.log(`Tipo recebido corrigido: ${tipo}`);
@@ -24,24 +23,31 @@ createPdfRouter.post("/createPdf", async (req, res) => {
         res.setHeader("Content-Disposition", `attachment; filename=${tipo}.pdf`);
         res.setHeader("Content-Type", "application/pdf");
 
-        doc.pipe(res);
+        doc.pipe(res).on('finish', () => {
+            console.log("✅ PDF gerado com sucesso!");
+            res.end();
+        });
 
-        // Adicionando imagem no canto superior direito
+        // Verifica se a imagem existe antes de tentar adicioná-la
         const imagePath = path.join(__dirname, '../upload/logo_conf_Tropas_e_Capitães.png');
-        doc.image(imagePath, 400, 30, { width: 150 });
+        if (fs.existsSync(imagePath)) {
+            doc.image(imagePath, 400, 30, { width: 150 });
+        } else {
+            console.warn(`⚠️  Arquivo de imagem não encontrado: ${imagePath}`);
+        }
 
-        // Título alinhado à esquerda
+        // Título do relatório
         doc.fontSize(18).text(`Relatório: ${tipo.toUpperCase()}`, 50, 30);
         doc.moveDown(2);
 
-        // Exibir totais no PDF
+        // Exibir totais
         doc.font("Helvetica-Bold").fontSize(14).text("Totais:", { underline: true });
         Object.entries(totals).forEach(([key, value]) => {
             doc.font("Helvetica").fontSize(12).text(`${key.replace("total", "Total")}: R$ ${value}`);
         });
         doc.moveDown(2);
 
-        // Criar tabelas com os dados recebidos
+        // Criar tabelas
         const dataMap = {
             "Inscrição": dataInscricao,
             "Inscrição Avulsa": dataInscricaoAvulsa,
@@ -60,7 +66,6 @@ createPdfRouter.post("/createPdf", async (req, res) => {
 
                 doc.font("Courier").fontSize(10);
 
-                // Corrigindo para iterar corretamente sobre os objetos indexados por ID
                 Object.values(data).forEach((item) => {
                     doc.text(
                         item.id.toString().padEnd(10) +
