@@ -54,6 +54,8 @@ createPdfRouter.post("/createPdf", async (req, res) => {
             "Movimentação": dataMovimentacao
         };
 
+        console.log(dataMap);
+
         Object.entries(dataMap).forEach(([titulo, dados]) => {
             if (dados && Object.keys(dados).length > 0) {
                 doc.fontSize(14).font("Helvetica-Bold").text(titulo, { underline: true });
