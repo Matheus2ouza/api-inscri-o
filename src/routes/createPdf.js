@@ -3,15 +3,17 @@ const PDFDocument = require('pdfkit');
 const path = require('path');
 const createPdfRouter = express.Router();
 
-// Rota para gerar PDF
 createPdfRouter.post("/createPdf", async (req, res) => {
-    console.log(`Dados recebidos pela API: ${JSON.stringify(req.body, null, 2)}`)
+    console.log(`Dados recebidos pela API: ${JSON.stringify(req.body, null, 2)}`);
 
-    const { tipo, dataInscricao, dataInscricaoAvulsa, dataTicket, dataMovimentacao, ...totals } = req.body;
+    let { tipo, dataInscricao, dataInscricaoAvulsa, dataTicket, dataMovimentacao, ...totals } = req.body;
 
-    console.log(`Tipo recebido: ${tipo}`)
-    
-    console.log(tipo);
+    // Corrigir o tipo se vier como objeto
+    if (typeof tipo === 'object' && tipo !== null) {
+        tipo = tipo.tipo; // Extraindo a string correta
+    }
+
+    console.log(`Tipo recebido corrigido: ${tipo}`);
 
     if (!tipo || typeof tipo !== 'string') {
         return res.status(400).json({ error: "Tipo inválido ou não fornecido!" });
