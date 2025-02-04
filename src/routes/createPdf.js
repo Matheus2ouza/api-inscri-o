@@ -6,6 +6,8 @@ const createPdfRouter = express.Router();
 // Rota para gerar PDF
 createPdfRouter.post("/createPdf", async (req, res) => {
     const { tipo, dataInscricao, dataInscricaoAvulsa, dataTicket, dataMovimentacao, ...totals } = req.body;
+    
+    console.log(tipo);
 
     if (!tipo || typeof tipo !== 'string') {
         return res.status(400).json({ error: "Tipo inválido ou não fornecido!" });
