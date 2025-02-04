@@ -5,18 +5,16 @@ const PDFDocument = require('pdfkit');
 const createPdfRouter = express.Router();
 
 createPdfRouter.post("/createPdf", async (req, res) => {
-    console.log(`Dados recebidos pela API: ${JSON.stringify(req.body, null, 2)}`);
+    console.log(`📩 Dados recebidos: ${JSON.stringify(req.body, null, 2)}`);
 
     let { tipo, dataInscricao, dataInscricaoAvulsa, dataTicket, dataMovimentacao, ...totals } = req.body;
 
     if (typeof tipo === 'object' && tipo !== null) {
-        tipo = tipo.tipo; // Corrige o tipo se vier como objeto
+        tipo = tipo.tipo;
     }
 
-    console.log(`Tipo recebido corrigido: ${tipo}`);
-
     if (!tipo || typeof tipo !== 'string') {
-        return res.status(400).json({ error: "Tipo inválido ou não fornecido!" });
+        return res.status(400).json({ error: "❌ Tipo inválido ou não fornecido!" });
     }
 
     try {
@@ -29,7 +27,7 @@ createPdfRouter.post("/createPdf", async (req, res) => {
             res.end();
         });
 
-        // Verifica se a imagem existe antes de tentar adicioná-la
+        // 📌 Verifica se a imagem existe antes de adicioná-la
         const imagePath = path.join(__dirname, '../upload/logo_conf_Tropas_e_Capitães.png');
         if (fs.existsSync(imagePath)) {
             doc.image(imagePath, 400, 30, { width: 150 });
@@ -37,43 +35,43 @@ createPdfRouter.post("/createPdf", async (req, res) => {
             console.warn(`⚠️  Arquivo de imagem não encontrado: ${imagePath}`);
         }
 
-        // Título do relatório
-        doc.fontSize(18).text(`Relatório: ${tipo.toUpperCase()}`, 50, 30);
+        // 📌 Título do relatório
+        doc.fontSize(18).font("Helvetica-Bold").text(`Relatório: ${tipo.toUpperCase()}`, { align: "center" });
         doc.moveDown(2);
 
-        // Exibir totais
-        doc.font("Helvetica-Bold").fontSize(14).text("Totais:", { underline: true });
+        // 📌 Exibir totais
+        doc.fontSize(14).font("Helvetica-Bold").text("Resumo Financeiro:", { underline: true });
         Object.entries(totals).forEach(([key, value]) => {
-            doc.font("Helvetica").fontSize(12).text(`${key.replace("total", "Total")}: R$ ${value}`);
+            doc.font("Helvetica").fontSize(12).text(`${formatarChave(key)}: R$ ${formatarValor(value)}`);
         });
         doc.moveDown(2);
 
-        // Criar tabelas
+        // 📌 Seções do relatório
         const dataMap = {
             "Inscrição": dataInscricao,
             "Inscrição Avulsa": dataInscricaoAvulsa,
-            "Ticket": dataTicket,
+            "Tickets": dataTicket,
             "Movimentação": dataMovimentacao
         };
 
-        Object.entries(dataMap).forEach(([title, data]) => {
-            if (data && Object.keys(data).length > 0) {
-                doc.font("Helvetica-Bold").fontSize(14).text(title, { underline: true });
+        Object.entries(dataMap).forEach(([titulo, dados]) => {
+            if (dados && Object.keys(dados).length > 0) {
+                doc.fontSize(14).font("Helvetica-Bold").text(titulo, { underline: true });
                 doc.moveDown(1);
 
-                doc.font("Courier-Bold").fontSize(12);
-                doc.text("ID".padEnd(10) + "Descrição".padEnd(50) + "Valor".padEnd(15) + "Tipo", { underline: true });
-                doc.text("-".repeat(90));
+                // 📌 Cabeçalho da tabela
+                doc.font("Helvetica-Bold").fontSize(10);
+                doc.text("ID".padEnd(6) + "Descrição".padEnd(50) + "Valor".padEnd(12) + "Tipo".padEnd(10), { underline: true });
+                doc.text("-".repeat(85));
 
-                doc.font("Courier").fontSize(10);
+                doc.font("Helvetica").fontSize(10);
+                Object.values(dados).forEach((item) => {
+                    const id = item.id.toString().padEnd(6);
+                    const descricao = formatarDescricao(item.descricao, 50);
+                    const valor = `R$ ${formatarValor(item.valor)}`.padEnd(12);
+                    const tipo = item.tipo.padEnd(10);
 
-                Object.values(data).forEach((item) => {
-                    doc.text(
-                        item.id.toString().padEnd(10) +
-                        item.descricao.padEnd(50) +
-                        `R$ ${parseFloat(item.valor).toFixed(2)}`.padEnd(15) +
-                        item.tipo
-                    );
+                    doc.text(`${id}${descricao}${valor}${tipo}`);
                 });
 
                 doc.moveDown(2);
@@ -82,9 +80,30 @@ createPdfRouter.post("/createPdf", async (req, res) => {
 
         doc.end();
     } catch (error) {
-        console.error(`Erro ao gerar PDF: ${error.message}`);
+        console.error(`❌ Erro ao gerar PDF: ${error.message}`);
         res.status(500).json({ error: `Erro ao gerar PDF: ${error.message}` });
     }
 });
+
+/**
+ * 🔹 Formata os valores numéricos para exibição correta
+ */
+function formatarValor(valor) {
+    return parseFloat(valor).toFixed(2).replace(".", ",");
+}
+
+/**
+ * 🔹 Converte as chaves do objeto para uma versão mais legível
+ */
+function formatarChave(chave) {
+    return chave.replace("total", "Total").replace(/([A-Z])/g, " $1").trim();
+}
+
+/**
+ * 🔹 Ajusta descrições muito longas para evitar quebra na tabela
+ */
+function formatarDescricao(descricao, tamanhoMax) {
+    return descricao.length > tamanhoMax ? descricao.substring(0, tamanhoMax - 3) + "..." : descricao.padEnd(tamanhoMax);
+}
 
 module.exports = createPdfRouter;
