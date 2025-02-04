@@ -42,20 +42,22 @@ createPdfRouter.post("/createPdf", async (req, res) => {
         };
 
         Object.entries(dataMap).forEach(([title, data]) => {
-            if (Object.keys(data).length > 0) {
+            if (data && Object.keys(data).length > 0) {
                 doc.font("Helvetica-Bold").fontSize(14).text(title, { underline: true });
                 doc.moveDown(1);
 
                 doc.font("Courier-Bold").fontSize(12);
-                doc.text("ID".padEnd(10) + "Descrição".padEnd(40) + "Valor".padEnd(15) + "Tipo", { underline: true });
-                doc.text("-".repeat(80));
+                doc.text("ID".padEnd(10) + "Descrição".padEnd(50) + "Valor".padEnd(15) + "Tipo", { underline: true });
+                doc.text("-".repeat(90));
 
                 doc.font("Courier").fontSize(10);
-                data.forEach((item) => {
+
+                // Corrigindo para iterar corretamente sobre os objetos indexados por ID
+                Object.values(data).forEach((item) => {
                     doc.text(
                         item.id.toString().padEnd(10) +
-                        item.descricao.padEnd(40) +
-                        `R$ ${item.valor.toFixed(2)}`.padEnd(15) +
+                        item.descricao.padEnd(50) +
+                        `R$ ${parseFloat(item.valor).toFixed(2)}`.padEnd(15) +
                         item.tipo
                     );
                 });
