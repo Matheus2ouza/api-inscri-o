@@ -5,7 +5,11 @@ const createPdfRouter = express.Router();
 
 // Rota para gerar PDF
 createPdfRouter.post("/createPdf", async (req, res) => {
+    console.log(`Dados recebidos pela API: ${JSON.stringify(req.body, null, 2)}`)
+
     const { tipo, dataInscricao, dataInscricaoAvulsa, dataTicket, dataMovimentacao, ...totals } = req.body;
+
+    console.log(`Tipo recebido: ${tipo}`)
     
     console.log(tipo);
 
