@@ -19,7 +19,7 @@ createPdfRouter.post("/createPdf", async (req, res) => {
         doc.pipe(res);
 
         // Adicionando imagem no canto superior direito
-        const imagePath = path.join(__dirname, '../public/images/logo.png');
+        const imagePath = path.join(__dirname, '../upload/logo_conf_Tropas_e_Capitães.png');
         doc.image(imagePath, 400, 30, { width: 150 });
 
         // Título alinhado à esquerda
