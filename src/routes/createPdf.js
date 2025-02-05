@@ -54,16 +54,19 @@ createPdfRouter.post("/createPdf", async (req, res) => {
         const marginRight = 500;  // Margem direita para o valor (ajustar conforme necessário)
 
         Object.entries(totals).forEach(([key, value]) => {
+            const currentY = doc.y; // Pega a posição Y atual para garantir alinhamento
+
             // Exibir chave alinhada à esquerda
-            doc.font("Helvetica").fontSize(12).text(formatarChave(key), marginLeft, doc.y);
+            doc.font("Helvetica").fontSize(12).text(formatarChave(key), marginLeft, currentY);
             
             // Exibir valor alinhado à direita
-            doc.text(`R$ ${formatarValor(value)}`, marginRight, doc.y, { align: 'right' });
+            doc.text(`R$ ${formatarValor(value)}`, marginRight, currentY, { align: 'right' });
             
             doc.moveDown(0.5);  // Adiciona um pequeno espaço entre as linhas
         });
 
         doc.moveDown(2);  // Espaço após os totais
+
     
         // 📌 Seções do relatório
         const dataMap = {
