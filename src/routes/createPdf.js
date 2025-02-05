@@ -27,7 +27,7 @@ createPdfRouter.post("/createPdf", async (req, res) => {
         });
     
         // 📌 Verifica se a imagem existe antes de adicioná-la
-        const imagePath = 'https://api-inscri-o.vercel.app/img/logo_conf_Tropas_e_Capitães.png';
+        const imagePath = path.join(__dirname, '../public/img/logo_conf_Tropas_e_Capitães.png');
         console.log(`🖼️ Tentando carregar a imagem em: ${imagePath}`);
 
         if (fs.existsSync(imagePath)) {
