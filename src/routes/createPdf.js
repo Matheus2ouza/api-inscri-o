@@ -5,7 +5,6 @@ const PDFDocument = require('pdfkit');
 const createPdfRouter = express.Router();
 
 createPdfRouter.post("/createPdf", async (req, res) => {
-    console.log(`📩 Dados recebidos: ${JSON.stringify(req.body, null, 2)}`);
 
     let { tipo, dataInscricao, dataInscricaoAvulsa, dataTicket, dataMovimentacao, ...totals } = req.body;
 
@@ -28,8 +27,7 @@ createPdfRouter.post("/createPdf", async (req, res) => {
         });
     
         // 📌 Verifica se a imagem existe antes de adicioná-la
-        const imagePath = path.resolve(__dirname, '..', 'upload', 'logo_conf_Tropas_e_Capitães.png');
-
+        const imagePath = path.join(__dirname, 'upload/logo_conf_Tropas_e_Capitães.png');
         if (fs.existsSync(imagePath)) {
             doc.image(imagePath, 400, 30, { width: 150 }); // Imagem no canto superior direito
         } else {
@@ -54,8 +52,6 @@ createPdfRouter.post("/createPdf", async (req, res) => {
             "Tickets": dataTicket,
             "Movimentação": dataMovimentacao
         };
-    
-        console.log(dataMap);
     
         Object.entries(dataMap).forEach(([titulo, dados]) => {
             if (dados && Object.keys(dados).length > 0) {
