@@ -47,10 +47,23 @@ createPdfRouter.post("/createPdf", async (req, res) => {
     
         // 📌 Exibir totais
         doc.fontSize(14).font("Helvetica-Bold").text("Resumo Financeiro:", { underline: true });
+        doc.moveDown(1);
+
+        // Definir uma posição inicial para a chave
+        const marginLeft = 50;  // Margem esquerda para a chave
+        const marginRight = 550;  // Margem direita para o valor (ajustar conforme necessário)
+
         Object.entries(totals).forEach(([key, value]) => {
-            doc.font("Helvetica").fontSize(12).text(`${formatarChave(key)}: R$ ${formatarValor(value)}`);
+            // Exibir chave alinhada à esquerda
+            doc.font("Helvetica").fontSize(12).text(formatarChave(key), marginLeft, doc.y);
+            
+            // Exibir valor alinhado à direita
+            doc.text(`R$ ${formatarValor(value)}`, marginRight, doc.y, { align: 'right' });
+            
+            doc.moveDown(0.5);  // Adiciona um pequeno espaço entre as linhas
         });
-        doc.moveDown(2);
+
+        doc.moveDown(2);  // Espaço após os totais
     
         // 📌 Seções do relatório
         const dataMap = {
