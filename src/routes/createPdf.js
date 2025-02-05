@@ -27,7 +27,7 @@ createPdfRouter.post("/createPdf", async (req, res) => {
         });
     
         // 📌 Verifica se a imagem existe antes de adicioná-la
-        const imagePath = path.join(__dirname, 'img/logo_conf_Tropas_e_Capitães.png');
+        const imagePath = path.join(__dirname, '../../img/logo_conf_Tropas_e_Capitães.png');
         if (fs.existsSync(imagePath)) {
             doc.image(imagePath, 400, 30, { width: 150 }); // Imagem no canto superior direito
         } else {
