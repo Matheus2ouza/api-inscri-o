@@ -21,31 +21,31 @@ createPdfRouter.post("/createPdf", async (req, res) => {
         const doc = new PDFDocument({ margin: 50 });
         res.setHeader("Content-Disposition", `attachment; filename=${tipo}.pdf`);
         res.setHeader("Content-Type", "application/pdf");
-
+    
         doc.pipe(res).on('finish', () => {
             console.log("✅ PDF gerado com sucesso!");
             res.end();
         });
-
+    
         // 📌 Verifica se a imagem existe antes de adicioná-la
-        const imagePath = path.join(__dirname, '../upload/logo_conf_Tropas_e_Capitães.png');
+        const imagePath = path.join(__dirname, '../src/upload/logo_conf_Tropas_e_Capitães.png');
         if (fs.existsSync(imagePath)) {
-            doc.image(imagePath, 400, 30, { width: 150 });
+            doc.image(imagePath, 400, 30, { width: 150 }); // Imagem no canto superior direito
         } else {
             console.warn(`⚠️  Arquivo de imagem não encontrado: ${imagePath}`);
         }
-
-        // 📌 Título do relatório
-        doc.fontSize(18).font("Helvetica-Bold").text(`Relatório: ${tipo.toUpperCase()}`, { align: "center" });
+    
+        // 📌 Título do relatório alinhado à esquerda
+        doc.fontSize(18).font("Helvetica-Bold").text(`Relatório: ${tipo.toUpperCase()}`, 50, 30, { align: "left" });
         doc.moveDown(2);
-
+    
         // 📌 Exibir totais
         doc.fontSize(14).font("Helvetica-Bold").text("Resumo Financeiro:", { underline: true });
         Object.entries(totals).forEach(([key, value]) => {
             doc.font("Helvetica").fontSize(12).text(`${formatarChave(key)}: R$ ${formatarValor(value)}`);
         });
         doc.moveDown(2);
-
+    
         // 📌 Seções do relatório
         const dataMap = {
             "Inscrição": dataInscricao,
@@ -53,38 +53,39 @@ createPdfRouter.post("/createPdf", async (req, res) => {
             "Tickets": dataTicket,
             "Movimentação": dataMovimentacao
         };
-
+    
         console.log(dataMap);
-
+    
         Object.entries(dataMap).forEach(([titulo, dados]) => {
             if (dados && Object.keys(dados).length > 0) {
                 doc.fontSize(14).font("Helvetica-Bold").text(titulo, { underline: true });
                 doc.moveDown(1);
-
+    
                 // 📌 Cabeçalho da tabela
                 doc.font("Helvetica-Bold").fontSize(10);
                 doc.text("ID".padEnd(6) + "Descrição".padEnd(50) + "Valor".padEnd(12) + "Tipo".padEnd(10), { underline: true });
                 doc.text("-".repeat(85));
-
+    
                 doc.font("Helvetica").fontSize(10);
                 Object.values(dados).forEach((item) => {
                     const id = item.id.toString().padEnd(6);
                     const descricao = formatarDescricao(item.descricao, 50);
                     const valor = `R$ ${formatarValor(item.valor)}`.padEnd(12);
                     const tipo = item.tipo.padEnd(10);
-
+    
                     doc.text(`${id}${descricao}${valor}${tipo}`);
                 });
-
+    
                 doc.moveDown(2);
             }
         });
-
+    
         doc.end();
     } catch (error) {
         console.error(`❌ Erro ao gerar PDF: ${error.message}`);
         res.status(500).json({ error: `Erro ao gerar PDF: ${error.message}` });
     }
+    
 });
 
 /**
