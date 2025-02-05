@@ -36,7 +36,7 @@ createPdfRouter.post("/createPdf", async (req, res) => {
         console.log(`🖼️ Tentando carregar a imagem em: ${imagePath}`);        
     
         if (fs.existsSync(imagePath)) {
-            doc.image(imagePath, 400, 30, { width: 80 });
+            doc.image(imagePath, 430, 25, { width: 100 });
         } else {
             console.warn(`⚠️ Arquivo de imagem não encontrado: ${imagePath}`);
         }
