@@ -11,9 +11,13 @@
     }
   ],
   "routes": [
+    { "src": "/img/(.*)", "dest": "/img/$1" }, 
     { "src": "/(.*)", "dest": "server.js" }
   ],
   "env": {
     "PYTHON_VERSION": "3.9"
+  },
+  "static": {
+    "directory": "img"
   }
 }
