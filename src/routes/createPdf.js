@@ -51,7 +51,7 @@ createPdfRouter.post("/createPdf", async (req, res) => {
 
         // Definir uma posição inicial para a chave
         const marginLeft = 50;  // Margem esquerda para a chave
-        const marginRight = 550;  // Margem direita para o valor (ajustar conforme necessário)
+        const marginRight = 500;  // Margem direita para o valor (ajustar conforme necessário)
 
         Object.entries(totals).forEach(([key, value]) => {
             // Exibir chave alinhada à esquerda
