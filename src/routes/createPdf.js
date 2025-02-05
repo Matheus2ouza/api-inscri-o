@@ -17,7 +17,12 @@ createPdfRouter.post("/createPdf", async (req, res) => {
     }
 
     try {
-        const doc = new PDFDocument({ margin: 50 });
+        // Configura o tamanho da página com largura e altura personalizadas
+        const doc = new PDFDocument({
+            size: [620, 820], // Largura de 600px e altura de 800px
+            margin: 50
+        });
+    
         res.setHeader("Content-Disposition", `attachment; filename=${tipo}.pdf`);
         res.setHeader("Content-Type", "application/pdf");
     
@@ -29,9 +34,9 @@ createPdfRouter.post("/createPdf", async (req, res) => {
         // 📌 Verifica se a imagem existe antes de adicioná-la
         const imagePath = path.join(__dirname, '..', 'public', 'img', 'logo_conf_Tropas_e_Capitães.png');
         console.log(`🖼️ Tentando carregar a imagem em: ${imagePath}`);        
-
+    
         if (fs.existsSync(imagePath)) {
-            doc.image(imagePath, 400, 30, { width: 150 });
+            doc.image(imagePath, 400, 30, { width: 80 });
         } else {
             console.warn(`⚠️ Arquivo de imagem não encontrado: ${imagePath}`);
         }
@@ -84,6 +89,7 @@ createPdfRouter.post("/createPdf", async (req, res) => {
         console.error(`❌ Erro ao gerar PDF: ${error.message}`);
         res.status(500).json({ error: `Erro ao gerar PDF: ${error.message}` });
     }
+    
     
 });
 
