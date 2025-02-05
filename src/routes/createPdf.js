@@ -42,7 +42,7 @@ createPdfRouter.post("/createPdf", async (req, res) => {
         }
     
         // 📌 Título do relatório alinhado à esquerda
-        doc.fontSize(18).font("Helvetica-Bold").text(`Relatório: ${tipo.toUpperCase()}`, 50, 30, { align: "left" });
+        doc.fontSize(18).font("Helvetica-Bold").text(`Relatório ${tipo.toUpperCase()}`, 100, 30, { align: "left" });
         doc.moveDown(2);
     
         // 📌 Exibir totais
