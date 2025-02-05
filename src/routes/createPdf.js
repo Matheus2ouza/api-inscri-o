@@ -61,9 +61,9 @@ createPdfRouter.post("/createPdf", async (req, res) => {
             
             // Exibir valor alinhado à direita
             doc.text(`R$ ${formatarValor(value)}`, marginRight, currentY, { align: 'right' });
-            doc.text('_'.repeat(85));
             
             doc.moveDown(0.5);  // Adiciona um pequeno espaço entre as linhas
+            doc.text('_'.repeat(85));
         });
 
         doc.moveDown(2);  // Espaço após os totais
