@@ -27,11 +27,13 @@ createPdfRouter.post("/createPdf", async (req, res) => {
         });
     
         // 📌 Verifica se a imagem existe antes de adicioná-la
-        const imagePath = path.join(__dirname, '../img/logo_conf_Tropas_e_Capitães.png');
+        const imagePath = path.join(__dirname, '../../img/logo_conf_Tropas_e_Capitães.png');
+        console.log(`🖼️ Tentando carregar a imagem em: ${imagePath}`);
+
         if (fs.existsSync(imagePath)) {
-            doc.image(imagePath, 400, 30, { width: 150 }); // Imagem no canto superior direito
+            doc.image(imagePath, 400, 30, { width: 150 });
         } else {
-            console.warn(`⚠️  Arquivo de imagem não encontrado: ${imagePath}`);
+            console.warn(`⚠️ Arquivo de imagem não encontrado: ${imagePath}`);
         }
     
         // 📌 Título do relatório alinhado à esquerda
