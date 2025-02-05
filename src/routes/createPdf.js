@@ -52,6 +52,7 @@ createPdfRouter.post("/createPdf", async (req, res) => {
         // Definir uma posição inicial para a chave
         const marginLeft = 20;  // Margem esquerda para a chave
         const marginRight = 500;  // Margem direita para o valor (ajustar conforme necessário)
+        const pageWidth = doc.page.width; // Largura total da página
 
         Object.entries(totals).forEach(([key, value]) => {
             const currentY = doc.y; // Pega a posição Y atual para garantir alinhamento
@@ -62,15 +63,16 @@ createPdfRouter.post("/createPdf", async (req, res) => {
             // Exibir valor alinhado à direita
             doc.text(`R$ ${formatarValor(value)}`, marginRight, currentY, { align: 'right' });
             
-            // Adiciona uma linha abaixo de cada par chave/valor
+            // Adiciona uma linha abaixo de cada par chave/valor, indo até o final da página
             doc.moveTo(marginLeft, doc.y)  // Início da linha no começo da chave
-            .lineTo(marginRight, doc.y) // Fim da linha no final do valor
+            .lineTo(pageWidth - 40, doc.y) // Fim da linha no final da página (considerando uma margem de 40px)
             .stroke();  // Desenha a linha
             
             doc.moveDown(0.5);  // Adiciona um pequeno espaço entre as linhas
         });
 
         doc.moveDown(2);  // Espaço após os totais
+
     
         // 📌 Seções do relatório
         const dataMap = {
