@@ -81,46 +81,32 @@ createPdfRouter.post("/createPdf", async (req, res) => {
             "Tickets": dataTicket,
             "Movimentação": dataMovimentacao
         };
-
+    
         Object.entries(dataMap).forEach(([titulo, dados]) => {
             if (dados && Object.keys(dados).length > 0) {
                 doc.fontSize(14).font("Helvetica-Bold").text(titulo, { underline: true });
                 doc.moveDown(1);
-
-                // 📌 Cabeçalho da tabela - Define posições fixas para cada coluna
-                const startX = 20;  // Margem esquerda
-                const colId = startX;
-                const colDescricao = colId + 50;  // Ajuste conforme o tamanho da ID
-                const colValor = colDescricao + 250;  // Ajuste conforme necessário
-                const colTipo = colValor + 80;  // Ajuste conforme necessário
-
+    
+                // 📌 Cabeçalho da tabela
                 doc.font("Helvetica-Bold").fontSize(10);
-                doc.text("ID", colId, doc.y);
-                doc.text("Descrição", colDescricao, doc.y);
-                doc.text("Valor", colValor, doc.y);
-                doc.text("Tipo", colTipo, doc.y);
-                doc.moveDown(0.5);
-
-                // Linha divisória
-                doc.moveTo(startX, doc.y).lineTo(580, doc.y).stroke();
-                doc.moveDown(0.5);
-
-                // 📌 Corpo da tabela
+                doc.text("ID".padEnd(6) + "Descrição".padEnd(50) + "Valor".padEnd(12) + "Tipo".padEnd(10), { underline: true });
+                doc.text("-".repeat(85));
+    
                 doc.font("Helvetica").fontSize(10);
                 Object.values(dados).forEach((item) => {
-                    const currentY = doc.y; // Posição atual para manter alinhamento correto
-
-                    doc.text(item.id.toString(), colId, currentY);
-                    doc.text(formatarDescricao(item.descricao, 50), colDescricao, currentY, { width: 200, ellipsis: true });
-                    doc.text(`R$ ${formatarValor(item.valor)}`, colValor, currentY);
-                    doc.text(item.tipo, colTipo, currentY);
-
-                    doc.moveDown(0.5); // Espaçamento entre as linhas
+                    const id = item.id.toString().padEnd(6);
+                    const descricao = formatarDescricao(item.descricao, 50);
+                    const valor = `R$ ${formatarValor(item.valor)}`.padEnd(12);
+                    const tipo = item.tipo.padEnd(10);
+    
+                    doc.text(`${id}${descricao}${valor}${tipo}`);
                 });
-
-                doc.moveDown(1); // Espaço entre seções
+    
+                doc.moveDown(2);
             }
         });
+    
+        doc.end();
     } catch (error) {
         console.error(`❌ Erro ao gerar PDF: ${error.message}`);
         res.status(500).json({ error: `Erro ao gerar PDF: ${error.message}` });
