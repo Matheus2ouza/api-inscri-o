@@ -21,38 +21,49 @@ registerRoutes.get("/movimentacao", async (req, res) => {
 
     const movimentacoes = await pool.query(sqlQuery);
 
-    // Processando cada movimentação para buscar pagamentos associados
     const movimentacoesComPagamentos = await Promise.all(
       movimentacoes.rows.map(async (movimentacao) => {
-        // Verifica se a descrição contém o ID da inscrição
-        const match = movimentacao.descricao.match(/id_inscricao:\s*(\d+)/);
-        
-        if (match) {
-          const inscricaoId = match[1]; // Extrai o ID da inscrição da descrição
-          console.log(`Buscando pagamentos para inscrição ID: ${inscricaoId}`);
-
-          // Busca pagamentos associados ao ID da inscrição
-          const pagamentos = await pool.query(
+        let pagamentos = [];
+    
+        // 🔍 Buscar pagamentos por ID da inscrição
+        const matchInscricao = movimentacao.descricao.match(/id_inscricao:\s*(\d+)/);
+        if (matchInscricao) {
+          const inscricaoId = matchInscricao[1];
+          console.log(`🔎 Buscando pagamentos para inscrição ID: ${inscricaoId}`);
+    
+          const result = await pool.query(
             `SELECT * 
              FROM pagamento_avulso 
              WHERE inscricao_avulsa2_id = $1`,
             [inscricaoId]
           );
-
-          return {
-            ...movimentacao,
-            pagamentos: pagamentos.rows, // Adiciona os pagamentos associados
-          };
-        } else {
-          // Caso não haja ID de inscrição, lista de pagamentos é vazia
-          return {
-            ...movimentacao,
-            pagamentos: [],
-          };
+    
+          pagamentos = [...pagamentos, ...result.rows]; // Adiciona os pagamentos encontrados
         }
+    
+        // 🔍 Buscar pagamentos por ID de alimentação
+        const matchAlimentacao = movimentacao.descricao.match(/id:\s*(\d+)/);
+        if (matchAlimentacao && movimentacao.descricao.includes("Venda de Alimentação")) {
+          const alimentacaoId = matchAlimentacao[1];
+          console.log(`🔎 Buscando pagamentos para alimentação ID: ${alimentacaoId}`);
+    
+          const result = await pool.query(
+            `SELECT * 
+             FROM pagamento_alimentacao 
+             WHERE alimentacao_id = $1`,
+            [alimentacaoId]
+          );
+    
+          pagamentos = [...pagamentos, ...result.rows]; // Adiciona os pagamentos encontrados
+        }
+    
+        return {
+          ...movimentacao,
+          pagamentos, // Lista completa de pagamentos (inscrição + alimentação)
+        };
       })
     );
-
+    
     // Retorna a resposta com todas as movimentações e pagamentos associados
     return res.status(200).json(movimentacoesComPagamentos);
   } catch (error) {
@@ -217,7 +228,7 @@ registerRoutes.post(
       const financialMovement = await pool.query(
         `INSERT INTO movimentacao_financeira (tipo, descricao, valor, data)
         VALUES($1, $2, $3, $4) RETURNING id`,
-        ["Entrada", `Venda de Alimentação, tipo_refeição:${tipo_refeicao}.`, valorTotal, data]
+        ["Entrada", `Venda de Alimentação, tipo_refeição:${tipo_refeicao}, id:${vendaId}.`, valorTotal, data]
       );
 
       if (!financialMovement.rows || financialMovement.rows.length === 0) {
@@ -369,7 +380,7 @@ registerRoutes.post(
       const financialMovement = await pool.query(
         `INSERT INTO movimentacao_financeira (tipo, descricao, valor, data)
         VALUES($1, $2, $3, $4) RETURNING id`,
-        ["Entrada", `Inscrição avulsa, id:${city.id}, nome responsavel: ${nomeResponsavel}`, valorTotal, data]
+        ["Entrada", `Inscrição avulsa, id:${city.id}, nome responsavel: ${nomeResponsavel}, id_inscricao: ${inscricao.rows[0].id}`, valorTotal, data]
       );
 
       if (!financialMovement.rows || financialMovement.rows.length === 0) {
