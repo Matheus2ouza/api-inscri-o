@@ -50,7 +50,7 @@ registerRoutes.get("/movimentacao", async (req, res) => {
           const result = await pool.query(
             `SELECT * 
              FROM pagamento_alimentacao 
-             WHERE alimentacao_id = $1`,
+             WHERE venda_alimentacao_id = $1`,
             [alimentacaoId]
           );
     
