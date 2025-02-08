@@ -82,8 +82,10 @@ createPdfRouter.post("/createPdf", async (req, res) => {
             "Inscrição": dataInscricao,
             "Inscrição Avulsa": dataInscricaoAvulsa,
             "Tickets": dataTicket,
+            "Pagamentos": pagamentos,
             "Movimentação": dataMovimentacao
         };
+        console.log(dataMap);
         
         Object.entries(dataMap).forEach(([titulo, dados]) => {
             console.log(`📌 Processando seção: ${titulo}`);
