@@ -20,16 +20,16 @@ createPdfRouter.post("/createPdf", async (req, res) => {
     try {
         // Configura o tamanho da página com largura e altura personalizadas
         const doc = new PDFDocument({
-            size: [620, 820], // Largura de 620px e altura de 820px
+            size: [620, 820], // Largura de 600px e altura de 800px
             margin: 50
         });
     
         res.setHeader("Content-Disposition", `attachment; filename=${tipo}.pdf`);
         res.setHeader("Content-Type", "application/pdf");
     
-        // Pipe para a resposta. Note que não chamamos res.end() manualmente.
         doc.pipe(res).on('finish', () => {
             console.log("✅ PDF gerado com sucesso!");
+            res.end();
         });
     
         // 📌 Verifica se a imagem existe antes de adicioná-la
@@ -43,38 +43,37 @@ createPdfRouter.post("/createPdf", async (req, res) => {
         }
     
         // 📌 Título do relatório alinhado à esquerda
-        doc.fontSize(18)
-           .font("Helvetica-Bold")
-           .text(`Relatório ${tipo.toUpperCase()}`, 40, 75, { align: "left" });
+        doc.fontSize(18).font("Helvetica-Bold").text(`Relatório ${tipo.toUpperCase()}`, 40, 75, { align: "left" });
         doc.moveDown(2);
 
         // 📌 Exibir totais
-        doc.fontSize(14)
-           .font("Helvetica-Bold")
-           .text("Resumo Financeiro:", { underline: true });
+        doc.fontSize(14).font("Helvetica-Bold").text("Resumo Financeiro:", { underline: true });
         doc.moveDown(1);
 
-        // Posições para exibir os totais
-        const marginLeft = 20;   // Margem esquerda para a chave
-        const marginRight = 500; // Margem para o valor (ajustar conforme necessário)
-        const pageWidth = doc.page.width;
+        // Definir uma posição inicial para a chave
+        const marginLeft = 20;  // Margem esquerda para a chave
+        const marginRight = 500;  // Margem direita para o valor (ajustar conforme necessário)
+        const pageWidth = doc.page.width; // Largura total da página
 
         Object.entries(totals).forEach(([key, value]) => {
-            const currentY = doc.y;
+            const currentY = doc.y; // Pega a posição Y atual para garantir alinhamento
+
+            // Exibir chave alinhada à esquerda
+            doc.font("Helvetica").fontSize(12).text(formatarChave(key), marginLeft, currentY);
             
-            // Exibe a chave formatada e o valor formatado
-            doc.font("Helvetica").fontSize(12)
-               .text(formatarChave(key), marginLeft, currentY);
+            // Exibir valor alinhado à direita
             doc.text(`R$ ${formatarValor(value)}`, marginRight, currentY, { align: 'right' });
             
-            // Linha divisória abaixo do par chave/valor
-            doc.moveTo(marginLeft, doc.y)
-               .lineTo(pageWidth - 40, doc.y)
-               .stroke();
-            doc.moveDown(0.5);
+            // Adiciona uma linha abaixo de cada par chave/valor, indo até o final da página
+            doc.moveTo(marginLeft, doc.y)  // Início da linha no começo da chave
+            .lineTo(pageWidth - 40, doc.y) // Fim da linha no final da página (considerando uma margem de 40px)
+            .stroke();  // Desenha a linha
+            
+            doc.moveDown(0.5);  // Adiciona um pequeno espaço entre as linhas
         });
 
-        doc.moveDown(2);
+        doc.moveDown(2);  // Espaço após os totais
+
     
         console.log("📌 Iniciando geração do PDF...");
 
@@ -85,78 +84,57 @@ createPdfRouter.post("/createPdf", async (req, res) => {
             "Tickets": dataTicket,
             "Movimentação": dataMovimentacao
         };
-
+        
         Object.entries(dataMap).forEach(([titulo, dados]) => {
             console.log(`📌 Processando seção: ${titulo}`);
-
+        
             if (dados && Object.keys(dados).length > 0) {
-                doc.fontSize(14)
-                   .font("Helvetica-Bold")
-                   .text(titulo, { underline: true });
+                doc.fontSize(14).font("Helvetica-Bold").text(titulo, { underline: true });
                 doc.moveDown(1);
-
+        
                 // 📌 Cabeçalho da tabela - Define posições fixas para cada coluna
                 const startX = 20;  // Margem esquerda
                 const colId = startX;
-                const colDescricao = colId + 50;  // Coluna para a descrição
-                const colPagamentos = colDescricao + 250;  // Coluna para pagamentos
-                const colValor = colPagamentos + 200;  // Coluna para o valor
-                const colTipo = colValor + 80;  // Coluna para o tipo
-
+                const colDescricao = colId + 50;  // Ajuste conforme o tamanho da ID
+                const colValor = colDescricao + 250;  // Ajuste conforme necessário
+                const colTipo = colValor + 80;  // Ajuste conforme necessário
+        
                 doc.font("Helvetica-Bold").fontSize(10);
                 doc.text("ID", colId, doc.y);
                 doc.text("Descrição", colDescricao, doc.y);
-                doc.text("Pagamentos", colPagamentos, doc.y);
                 doc.text("Valor", colValor, doc.y);
                 doc.text("Tipo", colTipo, doc.y);
                 doc.moveDown(0.5);
-
+        
                 console.log(`✅ Cabeçalho da seção '${titulo}' criado`);
-
+        
                 // Linha divisória
                 doc.moveTo(startX, doc.y).lineTo(580, doc.y).stroke();
                 doc.moveDown(0.5);
-
+        
                 // 📌 Corpo da tabela
                 doc.font("Helvetica").fontSize(10);
                 Object.values(dados).forEach((item, index) => {
-                    const currentY = doc.y;
+                    const currentY = doc.y; // Posição atual para manter alinhamento correto
+        
                     console.log(`🔹 Processando item ${index + 1}:`, item);
-
-                    // Coluna ID
+        
                     doc.text(item.id.toString(), colId, currentY);
-
-                    // Coluna Descrição
-                    doc.text(formatarDescricao(item.descricao, 50), colDescricao, currentY, {
-                        width: 200,
-                        ellipsis: true
-                    });
-
-                    // Coluna Pagamentos:
-                    // Se o array de pagamentos estiver vazio, exibe "N/A".
-                    const pagamentosStr = (item.pagamentos && Array.isArray(item.pagamentos) && item.pagamentos.length > 0)
-                        ? item.pagamentos
-                              .map(pag => `${pag.tipo_pagamento} (R$ ${formatarValor(pag.valor)})`)
-                              .join("\n")
-                        : "N/A";
-                    doc.text(pagamentosStr, colPagamentos, currentY, { width: 180 });
-
-                    // Coluna Valor
+                    doc.text(formatarDescricao(item.descricao, 50), colDescricao, currentY, { width: 200, ellipsis: true });
                     doc.text(`R$ ${formatarValor(item.valor)}`, colValor, currentY);
-
-                    // Coluna Tipo
                     doc.text(item.tipo, colTipo, currentY);
-
-                    doc.moveDown(0.5);
+        
+                    doc.moveDown(0.5); // Espaçamento entre as linhas
                 });
-
+        
                 console.log(`✅ Finalizada seção '${titulo}' com ${Object.keys(dados).length} registros`);
-                doc.moveDown(1);
+        
+                doc.moveDown(1); // Espaço entre seções
             } else {
                 console.log(`⚠️ Seção '${titulo}' está vazia e foi ignorada.`);
             }
         });
-
+        
         console.log("✅ Finalizando e encerrando o documento PDF...");
         doc.end();
         console.log("🎉 PDF gerado com sucesso!");
@@ -165,6 +143,7 @@ createPdfRouter.post("/createPdf", async (req, res) => {
         console.error(`❌ Erro ao gerar PDF: ${error.message}`);
         res.status(500).json({ error: `Erro ao gerar PDF: ${error.message}` });
     }
+    
     
 });
 
@@ -186,9 +165,7 @@ function formatarChave(chave) {
  * 🔹 Ajusta descrições muito longas para evitar quebra na tabela
  */
 function formatarDescricao(descricao, tamanhoMax) {
-    return descricao.length > tamanhoMax
-        ? descricao.substring(0, tamanhoMax - 3) + "..."
-        : descricao.padEnd(tamanhoMax);
+    return descricao.length > tamanhoMax ? descricao.substring(0, tamanhoMax - 3) + "..." : descricao.padEnd(tamanhoMax);
 }
 
 module.exports = createPdfRouter;
