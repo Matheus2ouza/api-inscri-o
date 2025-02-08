@@ -13,6 +13,7 @@ createPdfRouter.post("/createPdf", async (req, res) => {
     }
 
     if (!tipo || typeof tipo !== 'string') {
+        console.log(tipo);
         return res.status(400).json({ error: "❌ Tipo inválido ou não fornecido!" });
     }
 
