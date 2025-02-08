@@ -63,15 +63,14 @@ createPdfRouter.post("/createPdf", async (req, res) => {
             "Movimentação": dataMovimentacao
         };
         
-        Object.entries(dataMap).forEach(([titulo, dados], index) => {
+        Object.entries(dataMap).forEach(([titulo, dados]) => {
             if (dados && Object.keys(dados).length > 0) {
                 if (index > 0) {
-                    doc.addPage(); // Adiciona uma nova página para cada nova seção, exceto a primeira
+                    doc.addPage();
                 }
         
                 doc.fontSize(14).font("Helvetica-Bold").text(titulo, { underline: true });
                 doc.moveDown(1);
-        
         
                 const startX = 20;
                 const colId = startX;
@@ -88,6 +87,7 @@ createPdfRouter.post("/createPdf", async (req, res) => {
         
                 doc.moveTo(startX, doc.y).lineTo(580, doc.y).stroke();
                 doc.moveDown(0.5);
+        
         
                 doc.font("Helvetica").fontSize(10);
                 Object.values(dados).forEach((item) => {
