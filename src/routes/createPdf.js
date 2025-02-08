@@ -78,64 +78,88 @@ createPdfRouter.post("/createPdf", async (req, res) => {
         console.log("📌 Iniciando geração do PDF...");
 
         // 📌 Seções do relatório
+        // Mapeamento dos dados por seção
         const dataMap = {
             "Inscrição": dataInscricao,
             "Inscrição Avulsa": dataInscricaoAvulsa,
             "Tickets": dataTicket,
             "Movimentação": dataMovimentacao
         };
-        console.log(dataMap);
         
         Object.entries(dataMap).forEach(([titulo, dados]) => {
-            console.log(`📌 Processando seção: ${titulo}`);
-        
-            if (dados && Object.keys(dados).length > 0) {
-                doc.fontSize(14).font("Helvetica-Bold").text(titulo, { underline: true });
-                doc.moveDown(1);
-        
-                // 📌 Cabeçalho da tabela - Define posições fixas para cada coluna
-                const startX = 20;  // Margem esquerda
-                const colId = startX;
-                const colDescricao = colId + 50;  // Ajuste conforme o tamanho da ID
-                const colValor = colDescricao + 250;  // Ajuste conforme necessário
-                const colTipo = colValor + 80;  // Ajuste conforme necessário
-        
-                doc.font("Helvetica-Bold").fontSize(10);
-                doc.text("ID", colId, doc.y);
-                doc.text("Descrição", colDescricao, doc.y);
-                doc.text("Valor", colValor, doc.y);
-                doc.text("Tipo", colTipo, doc.y);
-                doc.moveDown(0.5);
-        
-                console.log(`✅ Cabeçalho da seção '${titulo}' criado`);
-        
-                // Linha divisória
-                doc.moveTo(startX, doc.y).lineTo(580, doc.y).stroke();
-                doc.moveDown(0.5);
-        
-                // 📌 Corpo da tabela
-                doc.font("Helvetica").fontSize(10);
-                Object.values(dados).forEach((item, index) => {
-                    const currentY = doc.y; // Posição atual para manter alinhamento correto
-        
-                    console.log(`🔹 Processando item ${index + 1}:`, item);
-        
-                    doc.text(item.id.toString(), colId, currentY);
-                    doc.text(formatarDescricao(item.descricao, 50), colDescricao, currentY, { width: 200, ellipsis: true });
-                    doc.text(`R$ ${formatarValor(item.valor)}`, colValor, currentY);
-                    doc.text(item.tipo, colTipo, currentY);
-        
-                    doc.moveDown(0.5); // Espaçamento entre as linhas
-                });
-        
-                console.log(`✅ Finalizada seção '${titulo}' com ${Object.keys(dados).length} registros`);
-        
-                doc.moveDown(1); // Espaço entre seções
-            } else {
-                console.log(`⚠️ Seção '${titulo}' está vazia e foi ignorada.`);
+        console.log(`📌 Processando seção: ${titulo}`);
+
+        if (dados && Object.keys(dados).length > 0) {
+            doc.fontSize(14).font("Helvetica-Bold").text(titulo, { underline: true });
+            doc.moveDown(1);
+
+            // 📌 Definição das posições das colunas (ajuste conforme necessário)
+            const startX = 20;                  // Margem esquerda
+            const colId = startX;
+            const colDescricao = colId + 50;      // Coluna para a descrição
+            const colPagamentos = colDescricao + 250; // Nova coluna para pagamentos
+            const colValor = colPagamentos + 200;     // Ajuste a distância conforme o tamanho desejado
+            const colTipo = colValor + 80;        // Coluna para o tipo
+
+            // Cabeçalho da tabela
+            doc.font("Helvetica-Bold").fontSize(10);
+            doc.text("ID", colId, doc.y);
+            doc.text("Descrição", colDescricao, doc.y);
+            doc.text("Pagamentos", colPagamentos, doc.y); // Cabeçalho para pagamentos
+            doc.text("Valor", colValor, doc.y);
+            doc.text("Tipo", colTipo, doc.y);
+            doc.moveDown(0.5);
+
+            console.log(`✅ Cabeçalho da seção '${titulo}' criado`);
+
+            // Linha divisória
+            doc.moveTo(startX, doc.y).lineTo(580, doc.y).stroke();
+            doc.moveDown(0.5);
+
+            // Corpo da tabela
+            doc.font("Helvetica").fontSize(10);
+            Object.values(dados).forEach((item, index) => {
+            const currentY = doc.y; // Posição atual para manter alinhamento
+
+            console.log(`🔹 Processando item ${index + 1}:`, item);
+
+            // Coluna ID
+            doc.text(item.id.toString(), colId, currentY);
+
+            // Coluna Descrição (pode usar uma função auxiliar para formatar, se desejar)
+            doc.text(formatarDescricao(item.descricao, 50), colDescricao, currentY, {
+                width: 200,
+                ellipsis: true
+            });
+
+            // Coluna Pagamentos: formata e exibe os pagamentos, se existirem
+            let pagamentosStr = "";
+            if (item.pagamentos && Array.isArray(item.pagamentos) && item.pagamentos.length > 0) {
+                // Exemplo: "ID: 42 - Credito (R$ 80)"
+                pagamentosStr = item.pagamentos
+                .map(pag => `ID: ${pag.id} - ${pag.tipo_pagamento} (R$ ${pag.valor})`)
+                .join("\n"); // \n quebra a linha para cada pagamento, se preferir, pode usar outra separação
             }
+            doc.text(pagamentosStr, colPagamentos, currentY, {
+                width: 180
+            });
+
+            // Coluna Valor (utiliza função auxiliar para formatação, se existir)
+            doc.text(`R$ ${formatarValor(item.valor)}`, colValor, currentY);
+
+            // Coluna Tipo
+            doc.text(item.tipo, colTipo, currentY);
+
+            doc.moveDown(0.5); // Espaçamento entre as linhas
+            });
+
+            console.log(`✅ Finalizada seção '${titulo}' com ${Object.keys(dados).length} registros`);
+            doc.moveDown(1); // Espaço entre seções
+        } else {
+            console.log(`⚠️ Seção '${titulo}' está vazia e foi ignorada.`);
+        }
         });
-        
+          
         console.log("✅ Finalizando e encerrando o documento PDF...");
         doc.end();
         console.log("🎉 PDF gerado com sucesso!");
