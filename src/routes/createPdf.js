@@ -27,10 +27,9 @@ createPdfRouter.post("/createPdf", async (req, res) => {
         res.setHeader("Content-Disposition", `attachment; filename=${tipo}.pdf`);
         res.setHeader("Content-Type", "application/pdf");
     
-        // Pipe para a resposta (não é necessário chamar res.end() manualmente)
+        // Pipe para a resposta. Note que não chamamos res.end() manualmente.
         doc.pipe(res).on('finish', () => {
             console.log("✅ PDF gerado com sucesso!");
-            // Removido o res.end() aqui para evitar fechar o stream duas vezes
         });
     
         // 📌 Verifica se a imagem existe antes de adicioná-la
@@ -55,16 +54,20 @@ createPdfRouter.post("/createPdf", async (req, res) => {
            .text("Resumo Financeiro:", { underline: true });
         doc.moveDown(1);
 
-        // Definir uma posição inicial para a chave
-        const marginLeft = 20;  
-        const marginRight = 500;  
-        const pageWidth = doc.page.width; 
+        // Posições para exibir os totais
+        const marginLeft = 20;   // Margem esquerda para a chave
+        const marginRight = 500; // Margem para o valor (ajustar conforme necessário)
+        const pageWidth = doc.page.width;
 
         Object.entries(totals).forEach(([key, value]) => {
             const currentY = doc.y;
+            
+            // Exibe a chave formatada e o valor formatado
             doc.font("Helvetica").fontSize(12)
                .text(formatarChave(key), marginLeft, currentY);
             doc.text(`R$ ${formatarValor(value)}`, marginRight, currentY, { align: 'right' });
+            
+            // Linha divisória abaixo do par chave/valor
             doc.moveTo(marginLeft, doc.y)
                .lineTo(pageWidth - 40, doc.y)
                .stroke();
@@ -72,7 +75,7 @@ createPdfRouter.post("/createPdf", async (req, res) => {
         });
 
         doc.moveDown(2);
-
+    
         console.log("📌 Iniciando geração do PDF...");
 
         // 📌 Seções do relatório
@@ -93,12 +96,12 @@ createPdfRouter.post("/createPdf", async (req, res) => {
                 doc.moveDown(1);
 
                 // 📌 Cabeçalho da tabela - Define posições fixas para cada coluna
-                const startX = 20;  
+                const startX = 20;  // Margem esquerda
                 const colId = startX;
-                const colDescricao = colId + 50;
-                const colPagamentos = colDescricao + 250;
-                const colValor = colPagamentos + 200;
-                const colTipo = colValor + 80;
+                const colDescricao = colId + 50;  // Coluna para a descrição
+                const colPagamentos = colDescricao + 250;  // Coluna para pagamentos
+                const colValor = colPagamentos + 200;  // Coluna para o valor
+                const colTipo = colValor + 80;  // Coluna para o tipo
 
                 doc.font("Helvetica-Bold").fontSize(10);
                 doc.text("ID", colId, doc.y);
@@ -129,13 +132,13 @@ createPdfRouter.post("/createPdf", async (req, res) => {
                         ellipsis: true
                     });
 
-                    // Coluna Pagamentos: exibe apenas o tipo de pagamento e o valor
-                    let pagamentosStr = "";
-                    if (item.pagamentos && Array.isArray(item.pagamentos) && item.pagamentos.length > 0) {
-                        pagamentosStr = item.pagamentos
-                            .map(pag => `${pag.tipo_pagamento} (R$ ${formatarValor(pag.valor)})`)
-                            .join("\n");
-                    }
+                    // Coluna Pagamentos:
+                    // Se o array de pagamentos estiver vazio, exibe "N/A".
+                    const pagamentosStr = (item.pagamentos && Array.isArray(item.pagamentos) && item.pagamentos.length > 0)
+                        ? item.pagamentos
+                              .map(pag => `${pag.tipo_pagamento} (R$ ${formatarValor(pag.valor)})`)
+                              .join("\n")
+                        : "N/A";
                     doc.text(pagamentosStr, colPagamentos, currentY, { width: 180 });
 
                     // Coluna Valor
@@ -162,6 +165,7 @@ createPdfRouter.post("/createPdf", async (req, res) => {
         console.error(`❌ Erro ao gerar PDF: ${error.message}`);
         res.status(500).json({ error: `Erro ao gerar PDF: ${error.message}` });
     }
+    
 });
 
 /**
