@@ -81,7 +81,7 @@ createPdfRouter.post("/createPdf", async (req, res) => {
             "Inscrição": dataInscricao,
             "Inscrição Avulsa": dataInscricaoAvulsa,
             "Tickets": dataTicket,
-            "Pagamentos": Pagamentos,
+            "Pagamentos": pagamentos,
             "Movimentação": dataMovimentacao
         };
         
