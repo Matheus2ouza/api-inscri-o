@@ -75,11 +75,11 @@ createPdfRouter.post("/createPdf", async (req, res) => {
         
                 // Definição das colunas com uma largura total maior
                 const startX = 40; // Margem inicial
-                const colWidths = { id: 70, descricao: 220, valor: 120, tipo: 120 }; // Larguras aumentadas
+                const colWidths = { id: 30, descricao: 220, valor: 120, tipo: 120 }; // Larguras aumentadas
 
                 const colId = startX;
                 const colDescricao = colId + colWidths.id + 20; // Adicionei 20px de espaço extra
-                const colValor = colDescricao + colWidths.descricao + 30; // Mais espaço antes do "Valor"
+                const colValor = colDescricao + colWidths.descricao + 35; // Mais espaço antes do "Valor"
                 const colTipo = colValor + colWidths.valor + 25; // Mais espaço antes do "Tipo"
 
                 // Cabeçalho alinhado corretamente
