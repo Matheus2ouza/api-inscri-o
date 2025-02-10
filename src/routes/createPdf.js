@@ -65,7 +65,7 @@ createPdfRouter.post("/createPdf", async (req, res) => {
         
         Object.entries(dataMap).forEach(([titulo, dados]) => {
             if (dados && Object.keys(dados).length > 0) {
-                doc.addPage(); // 🟢 Garantindo que cada nova seção começa em uma página nova
+                doc.addPage(); // 🟢 Apenas as tabelas começam em uma nova página
         
                 // Título da seção
                 doc.fontSize(14).font("Helvetica-Bold").text(titulo, 40, doc.y, { underline: true });
@@ -94,7 +94,7 @@ createPdfRouter.post("/createPdf", async (req, res) => {
                     doc.moveDown(1);
                 }
         
-                // Desenha o cabeçalho da primeira página
+                // Desenha o cabeçalho da primeira página da tabela
                 desenharCabecalho();
         
                 // Itera sobre os dados
