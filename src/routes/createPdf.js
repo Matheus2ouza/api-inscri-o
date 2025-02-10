@@ -73,14 +73,15 @@ createPdfRouter.post("/createPdf", async (req, res) => {
                 doc.fontSize(14).font("Helvetica-Bold").text(titulo, 40, doc.y, { underline: true });
                 doc.moveDown(1.5); // Aumentando espaçamento abaixo do título
         
-                // Definição das colunas com larguras fixas
+                // Definição das colunas com uma largura total maior
                 const startX = 40; // Margem inicial
-                const colWidths = { id: 50, descricao: 250, valor: 100, tipo: 100 }; // Ajustei largura do "Valor"
+                const colWidths = { id: 70, descricao: 350, valor: 120, tipo: 120 }; // Larguras aumentadas
+
                 const colId = startX;
-                const colDescricao = colId + colWidths.id;
-                const colValor = colDescricao + colWidths.descricao + 20; // Aumentando espaço antes do "Valor"
-                const colTipo = colValor + colWidths.valor;
-        
+                const colDescricao = colId + colWidths.id + 20; // Adicionei 20px de espaço extra
+                const colValor = colDescricao + colWidths.descricao + 30; // Mais espaço antes do "Valor"
+                const colTipo = colValor + colWidths.valor + 20; // Mais espaço antes do "Tipo"
+
                 // Cabeçalho alinhado corretamente
                 let headerY = doc.y;
                 doc.font("Helvetica-Bold").fontSize(10);
@@ -88,13 +89,13 @@ createPdfRouter.post("/createPdf", async (req, res) => {
                 doc.text("Descrição", colDescricao, headerY, { width: colWidths.descricao, align: "left" });
                 doc.text("Valor", colValor, headerY, { width: colWidths.valor, align: "right" });
                 doc.text("Tipo", colTipo, headerY, { width: colWidths.tipo, align: "left" });
-        
+
                 doc.moveDown(1); // Aumentando espaço entre cabeçalho e dados
-        
-                // Linha separadora
-                doc.moveTo(startX, doc.y).lineTo(580, doc.y).stroke();
+
+                // Linha separadora ajustada para cobrir toda a nova largura da tabela
+                doc.moveTo(startX, doc.y).lineTo(colTipo + colWidths.tipo, doc.y).stroke();
                 doc.moveDown(1);
-        
+
                 // Itera sobre os dados e alinha corretamente cada linha
                 doc.font("Helvetica").fontSize(10);
                 Object.values(dados).forEach((item) => {
@@ -126,8 +127,7 @@ createPdfRouter.post("/createPdf", async (req, res) => {
             }
         });
         
-        doc.end();
-        
+        doc.end();    
         
     } catch (error) {
         console.error(`❌ Erro ao gerar PDF: ${error.message}`);
