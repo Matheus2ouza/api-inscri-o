@@ -97,14 +97,18 @@ createPdfRouter.post("/createPdf", async (req, res) => {
                 doc.moveDown(1);
 
                 // Itera sobre os dados e alinha corretamente cada linha
-                doc.font("Helvetica").fontSize(9); // Reduzindo o tamanho da fonte
+                doc.font("Helvetica"); // Reduzindo o tamanho da fonte
                 Object.values(dados).forEach((item) => {
                     let currentY = doc.y; // Posição atual da linha
 
                     // Alinhamento correto das colunas
-                    doc.text(item.id.toString(), colId, currentY, { width: colWidths.id, align: "left" });
-                    doc.text(item.descricao, colDescricao, currentY, { width: colWidths.descricao, align: "left" }); // Removida formatação
-                    doc.text(`R$ ${formatarValor(item.valor)}`, colValor, currentY, { width: colWidths.valor, align: "right" });
+                    doc.font("Helvetica").fontSize(9).text(item.id.toString(), colId, currentY, { width: colWidths.id, align: "left" });
+
+                    // Reduzindo apenas a fonte da descrição
+                    doc.font("Helvetica").fontSize(8).text(item.descricao, colDescricao, currentY, { width: colWidths.descricao, align: "left" });
+
+                    // Voltando para fonte padrão para as demais colunas
+                    doc.font("Helvetica").fontSize(9).text(`R$ ${formatarValor(item.valor)}`, colValor, currentY, { width: colWidths.valor, align: "right" });
                     doc.text(item.tipo, colTipo, currentY, { width: colWidths.tipo, align: "left" });
 
                     doc.moveDown(0.8); // Reduzindo espaçamento entre linhas de dados
@@ -125,6 +129,7 @@ createPdfRouter.post("/createPdf", async (req, res) => {
                         doc.moveDown(1);
                     }
                 });
+
 
             }
         });
