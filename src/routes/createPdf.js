@@ -69,70 +69,77 @@ createPdfRouter.post("/createPdf", async (req, res) => {
                     doc.addPage(); // Nova página para cada seção, exceto a primeira
                 }
         
-                // Título alinhado à esquerda
+                // Título da seção
                 doc.fontSize(14).font("Helvetica-Bold").text(titulo, 40, doc.y, { underline: true });
-                doc.moveDown(1.5); // Aumentando espaçamento abaixo do título
+                doc.moveDown(1.5);
         
-                // Definição das colunas com uma largura total maior
+                // Definição das colunas
                 const startX = 40; // Margem inicial
-                const colWidths = { id: 20, descricao: 280, valor: 90, tipo: 120 }; // Larguras aumentadas
-
+                const colWidths = { id: 20, descricao: 280, valor: 90, tipo: 120 };
+        
                 const colId = startX;
-                const colDescricao = colId + colWidths.id + 20; // Adicionei 20px de espaço extra
-                const colValor = colDescricao + colWidths.descricao + 40; // Mais espaço antes do "Valor"
-                const colTipo = colValor + colWidths.valor + 25; // Mais espaço antes do "Tipo"
-
-                // Cabeçalho alinhado corretamente
-                let headerY = doc.y;
-                doc.font("Helvetica-Bold").fontSize(10);
-                doc.text("ID", colId, headerY, { width: colWidths.id, align: "left" });
-                doc.text("Descrição", colDescricao, headerY, { width: colWidths.descricao, align: "left" });
-                doc.text("Valor", colValor, headerY, { width: colWidths.valor, align: "right" });
-                doc.text("Tipo", colTipo, headerY, { width: colWidths.tipo, align: "left" });
-
-                doc.moveDown(1); // Aumentando espaço entre cabeçalho e dados
-
-                // Linha separadora ajustada para cobrir toda a nova largura da tabela
-                doc.moveTo(startX, doc.y).lineTo(colTipo + colWidths.tipo, doc.y).stroke();
-                doc.moveDown(1);
-
-                // Itera sobre os dados e alinha corretamente cada linha
-                doc.font("Helvetica"); // Reduzindo o tamanho da fonte
+                const colDescricao = colId + colWidths.id + 20;
+                const colValor = colDescricao + colWidths.descricao + 40;
+                const colTipo = colValor + colWidths.valor + 25;
+        
+                // Função para desenhar cabeçalho sempre que mudar de página
+                function desenharCabecalho() {
+                    let headerY = doc.y;
+                    doc.font("Helvetica-Bold").fontSize(10);
+                    doc.text("ID", colId, headerY, { width: colWidths.id, align: "left" });
+                    doc.text("Descrição", colDescricao, headerY, { width: colWidths.descricao, align: "left" });
+                    doc.text("Valor", colValor, headerY, { width: colWidths.valor, align: "right" });
+                    doc.text("Tipo", colTipo, headerY, { width: colWidths.tipo, align: "left" });
+        
+                    doc.moveDown(1);
+                    doc.moveTo(startX, doc.y).lineTo(colTipo + colWidths.tipo, doc.y).stroke();
+                    doc.moveDown(1);
+                }
+        
+                // Desenhar o cabeçalho da primeira página
+                desenharCabecalho();
+        
+                // Iterar sobre os dados
                 Object.values(dados).forEach((item) => {
-                    let currentY = doc.y; // Posição atual da linha
-
-                    // Alinhamento correto das colunas
+                    // Verificar se há espaço suficiente na página antes de adicionar uma nova linha
+                    if (doc.y + 20 > 750) {  // Se passar da margem de segurança, criar nova página
+                        doc.addPage();
+                        desenharCabecalho();
+                    }
+        
+                    let currentY = doc.y;
+        
+                    // Adicionar os dados
                     doc.font("Helvetica").fontSize(10).text(item.id.toString(), colId, currentY, { width: colWidths.id, align: "left" });
-
-                    // Reduzindo apenas a fonte da descrição
                     doc.font("Helvetica").fontSize(9).text(item.descricao, colDescricao, currentY, { width: colWidths.descricao, align: "left" });
-
-                    // Voltando para fonte padrão para as demais colunas
                     doc.font("Helvetica").fontSize(10).text(`R$ ${formatarValor(item.valor)}`, colValor, currentY, { width: colWidths.valor, align: "right" });
                     doc.text(item.tipo, colTipo, currentY, { width: colWidths.tipo, align: "left" });
-
-                    doc.moveDown(0.8); // Reduzindo espaçamento entre linhas de dados
-
+        
+                    doc.moveDown(0.8);
+        
                     // Exibir pagamentos abaixo da linha principal
                     if (item.pagamentos && item.pagamentos.length > 0) {
                         doc.font("Helvetica-Bold").text("Pagamentos:", colDescricao, doc.y, { underline: true });
                         doc.moveDown(0.5);
-
+        
                         item.pagamentos.forEach((pag) => {
+                            if (doc.y + 15 > 750) {  
+                                doc.addPage();
+                                desenharCabecalho();
+                            }
+        
                             doc.font("Helvetica").fontSize(9).text(
                                 `- ${pag.tipo_pagamento}: R$ ${formatarValor(pag.valor)}`, 
                                 colDescricao, doc.y, { width: colWidths.descricao, align: "left" }
                             );
                             doc.moveDown(0.5);
                         });
-
+        
                         doc.moveDown(1);
                     }
                 });
-
-
             }
-        });
+        });        
         
         doc.end();    
         
