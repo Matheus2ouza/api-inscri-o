@@ -69,18 +69,19 @@ createPdfRouter.post("/createPdf", async (req, res) => {
                     doc.addPage(); // Nova página para cada seção, exceto a primeira
                 }
         
-                doc.fontSize(14).font("Helvetica-Bold").text(titulo, { underline: true });
-                doc.moveDown(1);
+                // Título alinhado à esquerda
+                doc.fontSize(14).font("Helvetica-Bold").text(titulo, 40, doc.y, { underline: true });
+                doc.moveDown(1.5); // Aumentando espaçamento abaixo do título
         
                 // Definição das colunas com larguras fixas
-                const startX = 40; // Margem inicial para alinhamento melhor
-                const colWidths = { id: 50, descricao: 250, valor: 80, tipo: 100 };
+                const startX = 40; // Margem inicial
+                const colWidths = { id: 50, descricao: 250, valor: 100, tipo: 100 }; // Ajustei largura do "Valor"
                 const colId = startX;
                 const colDescricao = colId + colWidths.id;
-                const colValor = colDescricao + colWidths.descricao;
+                const colValor = colDescricao + colWidths.descricao + 20; // Aumentando espaço antes do "Valor"
                 const colTipo = colValor + colWidths.valor;
         
-                // Alinha todos os textos do cabeçalho na mesma linha (y)
+                // Cabeçalho alinhado corretamente
                 let headerY = doc.y;
                 doc.font("Helvetica-Bold").fontSize(10);
                 doc.text("ID", colId, headerY, { width: colWidths.id, align: "left" });
@@ -88,36 +89,36 @@ createPdfRouter.post("/createPdf", async (req, res) => {
                 doc.text("Valor", colValor, headerY, { width: colWidths.valor, align: "right" });
                 doc.text("Tipo", colTipo, headerY, { width: colWidths.tipo, align: "left" });
         
-                doc.moveDown(0.5);
+                doc.moveDown(1); // Aumentando espaço entre cabeçalho e dados
         
                 // Linha separadora
                 doc.moveTo(startX, doc.y).lineTo(580, doc.y).stroke();
-                doc.moveDown(0.5);
+                doc.moveDown(1);
         
                 // Itera sobre os dados e alinha corretamente cada linha
                 doc.font("Helvetica").fontSize(10);
                 Object.values(dados).forEach((item) => {
-                    let currentY = doc.y; // Pega a posição atual da linha
+                    let currentY = doc.y; // Posição atual da linha
         
-                    // Alinha os valores corretamente
+                    // Alinhamento correto das colunas
                     doc.text(item.id.toString(), colId, currentY, { width: colWidths.id, align: "left" });
                     doc.text(formatarDescricao(item.descricao, 50), colDescricao, currentY, { width: colWidths.descricao, align: "left" });
                     doc.text(`R$ ${formatarValor(item.valor)}`, colValor, currentY, { width: colWidths.valor, align: "right" });
                     doc.text(item.tipo, colTipo, currentY, { width: colWidths.tipo, align: "left" });
         
-                    doc.moveDown(0.5);
+                    doc.moveDown(1); // Aumentando espaçamento entre linhas de dados
         
                     // Exibir pagamentos abaixo da linha principal
                     if (item.pagamentos && item.pagamentos.length > 0) {
                         doc.font("Helvetica-Bold").text("Pagamentos:", colDescricao, doc.y, { underline: true });
-                        doc.moveDown(0.3);
+                        doc.moveDown(0.5);
         
                         item.pagamentos.forEach((pag) => {
                             doc.font("Helvetica").text(`- ${pag.tipo_pagamento}: R$ ${formatarValor(pag.valor)}`, colDescricao, doc.y, { width: colWidths.descricao, align: "left" });
-                            doc.moveDown(0.3);
+                            doc.moveDown(0.5);
                         });
         
-                        doc.moveDown(0.5);
+                        doc.moveDown(1);
                     }
                 });
         
@@ -125,7 +126,8 @@ createPdfRouter.post("/createPdf", async (req, res) => {
             }
         });
         
-        doc.end();        
+        doc.end();
+        
         
     } catch (error) {
         console.error(`❌ Erro ao gerar PDF: ${error.message}`);
