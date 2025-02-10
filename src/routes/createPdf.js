@@ -102,13 +102,13 @@ createPdfRouter.post("/createPdf", async (req, res) => {
                     let currentY = doc.y; // Posição atual da linha
 
                     // Alinhamento correto das colunas
-                    doc.font("Helvetica").fontSize(9).text(item.id.toString(), colId, currentY, { width: colWidths.id, align: "left" });
+                    doc.font("Helvetica").fontSize(10).text(item.id.toString(), colId, currentY, { width: colWidths.id, align: "left" });
 
                     // Reduzindo apenas a fonte da descrição
-                    doc.font("Helvetica").fontSize(8).text(item.descricao, colDescricao, currentY, { width: colWidths.descricao, align: "left" });
+                    doc.font("Helvetica").fontSize(9).text(item.descricao, colDescricao, currentY, { width: colWidths.descricao, align: "left" });
 
                     // Voltando para fonte padrão para as demais colunas
-                    doc.font("Helvetica").fontSize(9).text(`R$ ${formatarValor(item.valor)}`, colValor, currentY, { width: colWidths.valor, align: "right" });
+                    doc.font("Helvetica").fontSize(10).text(`R$ ${formatarValor(item.valor)}`, colValor, currentY, { width: colWidths.valor, align: "right" });
                     doc.text(item.tipo, colTipo, currentY, { width: colWidths.tipo, align: "left" });
 
                     doc.moveDown(0.8); // Reduzindo espaçamento entre linhas de dados
