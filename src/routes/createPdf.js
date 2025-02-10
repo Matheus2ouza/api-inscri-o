@@ -63,18 +63,16 @@ createPdfRouter.post("/createPdf", async (req, res) => {
             "Movimentação": dataMovimentacao
         };
         
-        Object.entries(dataMap).forEach(([titulo, dados], index) => {
+        Object.entries(dataMap).forEach(([titulo, dados]) => {
             if (dados && Object.keys(dados).length > 0) {
-                if (index > 0) {
-                    doc.addPage(); // Nova página para cada seção, exceto a primeira
-                }
+                doc.addPage(); // 🟢 Garantindo que cada nova seção começa em uma página nova
         
                 // Título da seção
                 doc.fontSize(14).font("Helvetica-Bold").text(titulo, 40, doc.y, { underline: true });
                 doc.moveDown(1.5);
         
                 // Definição das colunas
-                const startX = 40; // Margem inicial
+                const startX = 40;
                 const colWidths = { id: 20, descricao: 280, valor: 90, tipo: 120 };
         
                 const colId = startX;
@@ -82,7 +80,7 @@ createPdfRouter.post("/createPdf", async (req, res) => {
                 const colValor = colDescricao + colWidths.descricao + 40;
                 const colTipo = colValor + colWidths.valor + 25;
         
-                // Função para desenhar cabeçalho sempre que mudar de página
+                // Função para desenhar o cabeçalho da tabela
                 function desenharCabecalho() {
                     let headerY = doc.y;
                     doc.font("Helvetica-Bold").fontSize(10);
@@ -96,20 +94,20 @@ createPdfRouter.post("/createPdf", async (req, res) => {
                     doc.moveDown(1);
                 }
         
-                // Desenhar o cabeçalho da primeira página
+                // Desenha o cabeçalho da primeira página
                 desenharCabecalho();
         
-                // Iterar sobre os dados
+                // Itera sobre os dados
                 Object.values(dados).forEach((item) => {
-                    // Verificar se há espaço suficiente na página antes de adicionar uma nova linha
-                    if (doc.y + 20 > 750) {  // Se passar da margem de segurança, criar nova página
+                    // Se não houver espaço, cria uma nova página e redesenha o cabeçalho
+                    if (doc.y + 20 > 750) {
                         doc.addPage();
                         desenharCabecalho();
                     }
         
                     let currentY = doc.y;
         
-                    // Adicionar os dados
+                    // Adiciona os dados
                     doc.font("Helvetica").fontSize(10).text(item.id.toString(), colId, currentY, { width: colWidths.id, align: "left" });
                     doc.font("Helvetica").fontSize(9).text(item.descricao, colDescricao, currentY, { width: colWidths.descricao, align: "left" });
                     doc.font("Helvetica").fontSize(10).text(`R$ ${formatarValor(item.valor)}`, colValor, currentY, { width: colWidths.valor, align: "right" });
@@ -123,13 +121,13 @@ createPdfRouter.post("/createPdf", async (req, res) => {
                         doc.moveDown(0.5);
         
                         item.pagamentos.forEach((pag) => {
-                            if (doc.y + 15 > 750) {  
+                            if (doc.y + 15 > 750) {
                                 doc.addPage();
                                 desenharCabecalho();
                             }
         
                             doc.font("Helvetica").fontSize(9).text(
-                                `- ${pag.tipo_pagamento}: R$ ${formatarValor(pag.valor)}`, 
+                                `- ${pag.tipo_pagamento}: R$ ${formatarValor(pag.valor)}`,
                                 colDescricao, doc.y, { width: colWidths.descricao, align: "left" }
                             );
                             doc.moveDown(0.5);
@@ -139,7 +137,7 @@ createPdfRouter.post("/createPdf", async (req, res) => {
                     }
                 });
             }
-        });        
+        });                
         
         doc.end();    
         
