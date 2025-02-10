@@ -97,33 +97,35 @@ createPdfRouter.post("/createPdf", async (req, res) => {
                 doc.moveDown(1);
 
                 // Itera sobre os dados e alinha corretamente cada linha
-                doc.font("Helvetica").fontSize(10);
+                doc.font("Helvetica").fontSize(9); // Reduzindo o tamanho da fonte
                 Object.values(dados).forEach((item) => {
                     let currentY = doc.y; // Posição atual da linha
-        
+
                     // Alinhamento correto das colunas
                     doc.text(item.id.toString(), colId, currentY, { width: colWidths.id, align: "left" });
-                    doc.text(formatarDescricao(item.descricao, 50), colDescricao, currentY, { width: colWidths.descricao, align: "left" });
+                    doc.text(item.descricao, colDescricao, currentY, { width: colWidths.descricao, align: "left" }); // Removida formatação
                     doc.text(`R$ ${formatarValor(item.valor)}`, colValor, currentY, { width: colWidths.valor, align: "right" });
                     doc.text(item.tipo, colTipo, currentY, { width: colWidths.tipo, align: "left" });
-        
-                    doc.moveDown(1); // Aumentando espaçamento entre linhas de dados
-        
+
+                    doc.moveDown(0.8); // Reduzindo espaçamento entre linhas de dados
+
                     // Exibir pagamentos abaixo da linha principal
                     if (item.pagamentos && item.pagamentos.length > 0) {
                         doc.font("Helvetica-Bold").text("Pagamentos:", colDescricao, doc.y, { underline: true });
                         doc.moveDown(0.5);
-        
+
                         item.pagamentos.forEach((pag) => {
-                            doc.font("Helvetica").text(`- ${pag.tipo_pagamento}: R$ ${formatarValor(pag.valor)}`, colDescricao, doc.y, { width: colWidths.descricao, align: "left" });
+                            doc.font("Helvetica").fontSize(9).text(
+                                `- ${pag.tipo_pagamento}: R$ ${formatarValor(pag.valor)}`, 
+                                colDescricao, doc.y, { width: colWidths.descricao, align: "left" }
+                            );
                             doc.moveDown(0.5);
                         });
-        
+
                         doc.moveDown(1);
                     }
                 });
-        
-                doc.moveDown(1);
+
             }
         });
         
@@ -148,24 +150,3 @@ function formatarDescricao(descricao, tamanhoMax) {
 }
 
 module.exports = createPdfRouter;
-
-/**
- * 🔹 Formata os valores numéricos para exibição correta
- */
-function formatarValor(valor) {
-    return parseFloat(valor).toFixed(2).replace(".", ",");
-}
-
-/**
- * 🔹 Converte as chaves do objeto para uma versão mais legível
- */
-function formatarChave(chave) {
-    return chave.replace("total", "Total").replace(/([A-Z])/g, " $1").trim();
-}
-
-/**
- * 🔹 Ajusta descrições muito longas para evitar quebra na tabela
- */
-function formatarDescricao(descricao, tamanhoMax) {
-    return descricao.length > tamanhoMax ? descricao.substring(0, tamanhoMax - 3) + "..." : descricao.padEnd(tamanhoMax);
-}
