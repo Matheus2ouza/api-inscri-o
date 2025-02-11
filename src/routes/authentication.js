@@ -27,8 +27,10 @@ registerRoutes.post(
         }
 
         const status = verificationLocality.rows[0].status
-        console.log(`${status}`);
-        res.status(201).json(`O status da localidade; ${locality} é: ${status}`);
+        
+        const stautsMessage = status ? "active" : "inactive"
+        console.log(`${stautsMessage}`);
+        res.status(201).json(`O status da localidade; ${locality} é: ${stautsMessage}`);
     }
 )
 
