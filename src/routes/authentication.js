@@ -5,7 +5,7 @@ const { pool } = require("../db/dbConnection");
 const registerRoutes = express.Router();
 
 registerRoutes.post(
-    "/Login",
+    "/login",
     [
         body("locality").isString().withMessage("User nao encontrado"),
         body("password").isString().withMessage("Password nao encontrado")
@@ -26,7 +26,7 @@ registerRoutes.post(
             res.status(400).json({message: `${locality} não corresponde a nenhuma localidades`});
         }
 
-        const status = verificationLocality.rows.status
+        const status = verificationLocality.rows[0].status
         console.log(`${status}`);
         res.status(201).json(`O status da localidade; ${locality} é: ${status}`);
     }
