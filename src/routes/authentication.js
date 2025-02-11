@@ -21,7 +21,7 @@ registerRoutes.post(
             WHERE nome = $1`,
         [locality]);
 
-        if (!verificationLocality.rows.length === 0) {
+        if (verificationLocality.rows.length === 0) {
             console.log(`${locality} não corresponde a nenhuma localidade existente`)
             res.status(400).json({message: `${locality} não corresponde a nenhuma localidades`});
         }
