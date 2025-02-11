@@ -23,7 +23,7 @@ registerRoutes.post(
 
         if (verificationLocality.rows.length === 0) {
             console.log(`${locality} não corresponde a nenhuma localidade existente`)
-            res.status(400).json({message: `${locality} não corresponde a nenhuma localidades`});
+            res.status(400).json({message: `<strong>${locality}</strong> não corresponde a nenhuma localidades`});
         }
 
         const status = verificationLocality.rows[0].status
