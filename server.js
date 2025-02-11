@@ -5,6 +5,7 @@ const cors = require('cors');
 const { checkDatabaseConnection } = require('./src/db/dbConnection.js');
 
 // Importações de Rotas
+const authentication = require('./src/routes/authentication.js')
 const basicData = require('./src/routes/basicData.js');
 const register = require('./src/routes/register.js');
 const registerServico = require('./src/routes/registerServ.js');
@@ -49,6 +50,7 @@ app.get('/', (req, res) => {
 });
 
 // Suas rotas
+app.use('/user',authentication)
 app.use('/dados', basicData);
 app.use('/registro', register);
 app.use('/registroServ', registerServico);
