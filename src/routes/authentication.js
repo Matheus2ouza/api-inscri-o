@@ -2,7 +2,8 @@ const express = require("express");
 const { body, validationResult } = require("express-validator");
 const { pool } = require("../db/dbConnection");
 const { generateToken } = require("../utils/tokenGenerator");
-const {createHash} = require("../utils/hashCreate")
+const {createHash} = require("../utils/hashCreate");
+const e = require("express");
 
 const registerRoutes = express.Router();
 
@@ -48,6 +49,10 @@ registerRoutes.post(
     async (req, res) => {
         try {
             const { locality, email, password } = req.body;
+
+            console.log(locality);
+            console.log(email);
+            console.log(password);
 
             // Verifica se a localidade existe
             const verificationLocality = await pool.query(`
