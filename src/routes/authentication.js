@@ -39,7 +39,7 @@ registerRoutes.post(
 )
 
 registerRoutes.post(
-    "register",
+    "/register",
     [
         body("locality").isString().withMessage("Localidade não encontrada"),
         body("email").isEmail().withMessage("Email inválido"),
@@ -100,9 +100,8 @@ registerRoutes.post(
     }
 );
 
-
 registerRoutes.post(
-    "verify-email",
+    "/verify-email",
     async(req, res) =>{
         try {
             const { token } = req.body;
