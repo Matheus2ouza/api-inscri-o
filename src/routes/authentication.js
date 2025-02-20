@@ -3,7 +3,7 @@ const { body, validationResult } = require("express-validator");
 const { pool } = require("../db/dbConnection");
 const { generateToken } = require("../utils/tokenGenerator");
 const {createHash} = require("../utils/hashCreate");
-const e = require("express");
+const { sendVerifyEmail } = require("../routes/notification")
 
 const registerRoutes = express.Router();
 
