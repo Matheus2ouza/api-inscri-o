@@ -43,57 +43,84 @@ registerRoutes.post(
     [
         body("locality").isString().withMessage("Localidade não encontrada"),
         body("email").isEmail().withMessage("Email inválido"),
-        body("password").isLength({ min: 6 }).withMessage("A senha deve ter pelo menos 6 caracteres")
+        body("password").isLength({ min: 10 }).withMessage("A senha deve ter pelo menos 10 caracteres")
     ],
-    async(req, res) => {
+    async (req, res) => {
         try {
-            const {
-                locality,
-                email,
-                password
-            } = req.body;
-    
+            const { locality, email, password } = req.body;
+
+            // Verifica se a localidade existe
             const verificationLocality = await pool.query(`
-                SELECT * FROM localidades
-                WHERE nome = $1
-                `,
-            [locality]);
+                SELECT * FROM localidades WHERE nome = $1
+            `, [locality]);
 
             const localityResult = verificationLocality.rows[0];
-    
-            if (verificationEmail.rows.length > 0) {  // Se já existe, retorna erro
+
+            if (!localityResult) {
+                return res.status(400).json({ message: "Localidade não encontrada" });
+            }
+
+            // Verifica se o email já está registrado
+            const verificationEmail = await pool.query(`
+                SELECT * FROM email_verification WHERE email = $1
+            `, [email]);
+
+            if (verificationEmail.rows.length > 0) {  
                 console.log(`${email} já existe no banco de dados`);
                 return res.status(400).json({ message: `${email} já existe no banco de dados` });
-            }            
-    
-            const verificationEmail = await pool.query(`
-                SELECT * FROM email_verification
-                WHERE email = $1`,
-            [email]);
-    
-            if(verificationEmail.rows.length === 0) {
-                console.log(`${email} Já existe no banco de dados`);
-                return res.status(400).json({message: `${email} Já existe no banco de dados`});            
             }
-    
+
+            // Gera um token para verificação de e-mail
             const token = generateToken();
-            const insertDataEmail = await pool.query(`
+
+            // Insere o e-mail e o token no banco de dados
+            await pool.query(`
                 INSERT INTO email_verification(localidade_id, email, token)
                 VALUES ($1, $2, $3)
-                `,
-            [localityResult.id, email, token]);
+            `, [localityResult.id, email, token]);
             
-            const {salt , hash} = createHash(password);
+            // Gera o hash da senha
+            const { salt, hash } = createHash(password);
 
-            const insertDataPassword = await pool.query(`
+            // Insere os dados de autenticação no banco
+            await pool.query(`
                 INSERT INTO autenticacao_localidades(localidade_id, senha_hash, salt, algoritmo, data_atualizacao)
                 VALUES($1, $2, $3, $4, NOW())
-                `,
-            [localityResult.id, hash, salt, 'sha256']);            
+            `, [localityResult.id, hash, salt, 'sha256']);
 
-            res.status(201).json({ message: "Registro realizado com sucesso." });
+            // Envia o e-mail de verificação
+            await sendVerifyEmail(token, email, localityResult.nome);
 
-        }catch (error) {
+            res.status(201).json({ message: "Registro realizado com sucesso. Verifique seu e-mail para confirmar." });
+
+        } catch (error) {
+            console.error("Erro ao registrar:", error);
+            res.status(500).json({ message: "Erro interno do servidor" });
+        }
+    }
+);
+
+
+registerRoutes.post(
+    "verify-email",
+    async(req, res) =>{
+        try {
+            const { token } = req.body;
+
+            if(!token) {
+                return res.status(400).json({message: "Token não fornecido."})
+            }
+
+            const verification = await pool.query(`
+                SELECT * FROM email_verification
+                WHERE token = $1
+            `, [token]);
+
+            if(verification.rows.length === 0) {
+                return res.status(400).json({message: "Token Invalido ou expirado. "});
+            };
+
+        } catch (error) {
             console.error("Erro ao registrar:", error);
             res.status(500).json({ message: "Erro interno do servidor" });
         }

@@ -164,41 +164,62 @@ async function sendNotificationPayment(message) {
   }
 }
 
-async function sendVerifyEmail(token, UserEmail) {
-  const htmlEmail = `
-    <html>
-      <body style="font-family: Arial, sans-serif; background-color: #f4f4f4; padding: 20px;">
-        <div style="max-width: 600px; margin: auto; background-color: #ffffff; padding: 20px; border-radius: 8px; box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);">
-          <h2 style="color: #333; text-align: center;">Verificação de Email</h2>
-          <p style="font-size: 16px; color: #555;">
-            Olá, <strong>usuário</strong>,
-          </p>
-          <p style="font-size: 16px; color: #555;">
-            Para completar seu registro, por favor clique no link abaixo para verificar seu email:
-          </p>
-          <p style="font-size: 16px; text-align: center; margin-top: 20px;">
-            <a href="https://seusite.com/verify-email?token=${token}" style="font-size: 18px; font-weight: bold; color: #fff; background-color: #4CAF50; padding: 10px 20px; border-radius: 5px; text-decoration: none;">Verificar Email</a>
-          </p>
-          <p style="font-size: 16px; color: #555; margin-top: 20px;">
-            Caso você não tenha feito esse registro, por favor, ignore este email.
-          </p>
-          <p style="font-size: 14px; color: #888; text-align: center; margin-top: 40px;">
-            Atenciosamente,<br>
-            Sistema de Inscrição
-          </p>
-        </div>
-      </body>
-    </html>
-  `;
+async function sendVerifyEmail(token, userEmail, locality) {
+  try {
+    const verificationLink = `https://seusite.com/verify-email?token=${token}`;
 
-  const info = await transport.sendMail({
-    from: `Sistema de Inscrição <${process.env.USER_EMAIL}>`,
-    to: `${UserEmail}`,
-    subject: `Verificação de Email`,
-    html: htmlEmail
-  });
+    const htmlEmail = `
+      <html>
+        <body style="font-family: Arial, sans-serif; background-color: #f4f4f4; padding: 20px;">
+          <div style="max-width: 600px; margin: auto; background-color: #ffffff; padding: 20px; border-radius: 8px; box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);">
+            <h2 style="color: #333; text-align: center;">Verificação de Email</h2>
+            <p style="font-size: 16px; color: #555;">
+              Verificação de Email: <strong>${locality}</strong>,
+            </p>
+            <p style="font-size: 16px; color: #555;">
+              Para completar seu registro, clique no botão abaixo para verificar seu email:
+            </p>
+            <p style="text-align: center; margin-top: 20px;">
+              <a href="${verificationLink}" style="font-size: 18px; font-weight: bold; color: #fff; background-color: #4CAF50; padding: 10px 20px; border-radius: 5px; text-decoration: none;">
+                Verificar Email
+              </a>
+            </p>
+            <p style="font-size: 16px; color: #555; margin-top: 20px;">
+              Se você não se registrou, ignore este email.
+            </p>
+            <p style="font-size: 14px; color: #888; text-align: center; margin-top: 40px;">
+              Atenciosamente,<br>
+              Sistema de Inscrição
+            </p>
+          </div>
+        </body>
+      </html>
+    `;
 
-  console.log('E-mail de verificação enviado com sucesso:', info.response);
+    const textEmail = `
+      Verificação de Email: ${locality},
+
+      Para completar seu registro, clique no link abaixo para verificar seu email:
+      ${verificationLink}
+
+      Se você não se registrou, ignore este email.
+
+      Atenciosamente,
+      Sistema de Inscrição
+    `;
+
+    const info = await transport.sendMail({
+      from: `Sistema de Inscrição <${process.env.USER_EMAIL}>`,
+      to: userEmail,
+      subject: "Verificação de Email",
+      text: textEmail, // Versão alternativa em texto puro
+      html: htmlEmail, // Versão HTML formatada
+    });
+
+    console.log("E-mail de verificação enviado com sucesso:", info.response);
+  } catch (error) {
+    console.error("Erro ao enviar e-mail de verificação:", error);
+  }
 }
 
 module.exports = { sendNotificationNormal, sendNotificationJovem, sendNotificationPayment, sendVerifyEmail };
