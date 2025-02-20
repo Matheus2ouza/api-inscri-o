@@ -166,7 +166,7 @@ async function sendNotificationPayment(message) {
 
 async function sendVerifyEmail(token, userEmail, locality) {
   try {
-    const verificationLink = `https://seusite.com/verify-email?token=${token}`;
+    const verificationLink = `https://inscri-o-conf.vercel.app/verify-email?token=${token}`;
 
     const htmlEmail = `
       <html>
