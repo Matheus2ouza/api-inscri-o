@@ -1,4 +1,5 @@
 const express = require("express");
+require("dotenv").config();
 const { body, validationResult } = require("express-validator");
 const { PrismaClient } = require('@prisma/client');
 const prisma = new PrismaClient();
