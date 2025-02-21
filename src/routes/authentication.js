@@ -107,9 +107,6 @@ registerRoutes.post(
     }
 );
 
-const jwt = require("jsonwebtoken");
-const prisma = require("../prismaClient"); // Certifique-se de que está importando corretamente
-
 registerRoutes.post("/verify-email", async (req, res) => {
     try {
         const { token } = req.body;

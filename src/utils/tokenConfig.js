@@ -1,7 +1,5 @@
 require('dotenv').config();
 const jwt = require('jsonwebtoken');
-const { PrismaClient } = require('@prisma/client');
-const prisma = new PrismaClient();
 
 /**
  * Gera um token JWT válido por 48h.
