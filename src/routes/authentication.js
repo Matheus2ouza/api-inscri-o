@@ -1,5 +1,5 @@
-const express = require("express");
 require("dotenv").config();
+const express = require("express");
 const { body, validationResult } = require("express-validator");
 const { PrismaClient } = require('@prisma/client');
 const prisma = new PrismaClient();
@@ -134,7 +134,7 @@ registerRoutes.post("/verify-email", async (req, res) => {
 
         try {
             console.log("Verificando token JWT...");
-            const decoded = jwt.verify(token, process.env.JWT_SECRET);
+            const decoded = jwt.verify(token, process.env.SECRET_KEY);
             console.log("Token decodificado com sucesso:", decoded);
 
             // Atualiza o status da verificação para true
