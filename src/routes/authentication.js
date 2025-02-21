@@ -1,6 +1,7 @@
 const express = require("express");
 const { body, validationResult } = require("express-validator");
-const { pool } = require("../db/dbConnection");
+const { PrismaClient } = require('@prisma/client');
+const prisma = new PrismaClient();
 const { generateToken } = require("../utils/tokenGenerator");
 const {createHash} = require("../utils/hashCreate");
 const { sendVerifyEmail } = require("../routes/notification")
@@ -19,21 +20,18 @@ registerRoutes.post(
             password
         } = req.body;
 
-        const verificationLocality = await pool.query(`
-            SELECT * FROM localidades
-            WHERE nome = $1`,
-        [locality]);
+        const verificationLocality = await prisma.localidades.findUnique({
+            where: {nome: locality}
+        });
 
-        if (verificationLocality.rows.length === 0) {
+        if (verificationLocality) {
             console.log(`${locality} não corresponde a nenhuma localidade existente`)
             res.status(400).json({message: `${locality} não corresponde a nenhuma localidades`});
         }
 
-        const status = verificationLocality.rows[0].status
+        const statusMessage = verificationLocality.status ? "active" : "inactive";
         
-        const stautsMessage = status ? "active" : "inactive"
-        
-        if(stautsMessage === "inactive") {
+        if(statusMessage === "inactive") {
             res.status(401).json({message: `O status da localidade é ${stautsMessage}`})
         }
     }
