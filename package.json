@@ -13,6 +13,7 @@
     "nodemailer": "^6.9.10",
     "pdfkit": "^0.13.0",
     "pg": "^8.13.0",
-    "prisma": "^6.4.1"
+    "prisma": "^6.4.1",
+    "serve-favicon": "^2.5.0"
   }
 }

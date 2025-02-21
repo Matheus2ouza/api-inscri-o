@@ -3,6 +3,8 @@ const express = require('express');
 const app = express();
 const cors = require('cors');
 const { checkDatabaseConnection } = require('./src/db/dbConnection.js');
+const favicon = require("serve-favicon");
+const path = require("path");
 
 // Importações de Rotas
 const authentication = require('./src/routes/authentication.js')
@@ -35,8 +37,7 @@ const corsOptions = {
 
 app.use(cors(corsOptions));
 
-// Middleware para evitar erro de favicon.ico
-app.get('/favicon.ico', (req, res) => res.status(204).end());
+app.use(favicon(path.join(__dirname, "public", "favicon.png")));
 
 // Middleware de logs de requisição
 app.use((req, res, next) => {
