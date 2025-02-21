@@ -37,7 +37,7 @@ const corsOptions = {
 
 app.use(cors(corsOptions));
 
-app.use(favicon(path.join(__dirname, "src", "public", "icons8-api-48.png")));
+app.use(favicon(path.join(__dirname, "src", "public", "img", "icons8-api-48.png")));
 
 // Middleware de logs de requisição
 app.use((req, res, next) => {
