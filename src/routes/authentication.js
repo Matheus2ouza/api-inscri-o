@@ -2,9 +2,10 @@ const express = require("express");
 const { body, validationResult } = require("express-validator");
 const { PrismaClient } = require('@prisma/client');
 const prisma = new PrismaClient();
-const { generateToken } = require("../utils/tokenGenerator");
-const {createHash} = require("../utils/hashCreate");
+const { generateToken } = require("../utils/tokenConfig");
+const {createHash} = require("../utils/hashConfig");
 const { sendVerifyEmail } = require("../routes/notification")
+const jwt = require('jsonwebtoken');
 
 const registerRoutes = express.Router();
 
@@ -48,48 +49,51 @@ registerRoutes.post(
         try {
             const { locality, email, password } = req.body;
 
-            console.log(locality);
-            console.log(email);
-            console.log(password);
+            console.log(locality, email, password);
 
             // Verifica se a localidade existe
-            const verificationLocality = await pool.query(`
-                SELECT * FROM localidades WHERE nome = $1
-            `, [locality]);
-
-            const localityResult = verificationLocality.rows[0];
+            const localityResult = await prisma.localidades.findUnique({
+                where: { nome: locality }
+            });
 
             if (!localityResult) {
                 return res.status(400).json({ message: "Localidade não encontrada" });
             }
 
             // Verifica se o email já está registrado
-            const verificationEmail = await pool.query(`
-                SELECT * FROM email_verification WHERE email = $1
-            `, [email]);
+            const existingEmail = await prisma.email_verification.findUnique({
+                where: { email }
+            });
 
-            if (verificationEmail.rows.length > 0) {  
+            if (existingEmail) {
                 console.log(`${email} já existe no banco de dados`);
                 return res.status(400).json({ message: `${email} já existe no banco de dados` });
             }
 
-            // Gera um token para verificação de e-mail
-            const token = generateToken();
+            // Gera um token JWT válido por 48h usando a função externa
+            const token = generateToken({ email });
 
             // Insere o e-mail e o token no banco de dados
-            await pool.query(`
-                INSERT INTO email_verification(localidade_id, email, token)
-                VALUES ($1, $2, $3)
-            `, [localityResult.id, email, token]);
-            
-            // Gera o hash da senha
-            const { salt, hash } = createHash(password);
+            await prisma.email_verification.create({
+                data: {
+                    localidade_id: localityResult.id,
+                    email,
+                    token
+                }
+            });
+
+            const { hash, salt} = createHash(password)
 
             // Insere os dados de autenticação no banco
-            await pool.query(`
-                INSERT INTO autenticacao_localidades(localidade_id, senha_hash, salt, algoritmo, data_atualizacao)
-                VALUES($1, $2, $3, $4, NOW())
-            `, [localityResult.id, hash, salt, 'sha256']);
+            await prisma.autenticacao_localidades.create({
+                data: {
+                    localidade_id: localityResult.id,
+                    senha_hash: hash,
+                    salt: salt,
+                    algoritmo: 'bcrypt',
+                    data_atualizacao: new Date()
+                }
+            });
 
             // Envia o e-mail de verificação
             await sendVerifyEmail(token, email, localityResult.nome);
@@ -103,30 +107,45 @@ registerRoutes.post(
     }
 );
 
-registerRoutes.post(
-    "/verify-email",
-    async(req, res) =>{
-        try {
-            const { token } = req.body;
+const jwt = require("jsonwebtoken");
+const prisma = require("../prismaClient"); // Certifique-se de que está importando corretamente
 
-            if(!token) {
-                return res.status(400).json({message: "Token não fornecido."})
-            }
+registerRoutes.post("/verify-email", async (req, res) => {
+    try {
+        const { token } = req.body;
 
-            const verification = await pool.query(`
-                SELECT * FROM email_verification
-                WHERE token = $1
-            `, [token]);
-
-            if(verification.rows.length === 0) {
-                return res.status(400).json({message: "Token Invalido ou expirado. "});
-            };
-
-        } catch (error) {
-            console.error("Erro ao registrar:", error);
-            res.status(500).json({ message: "Erro interno do servidor" });
+        if (!token) {
+            return res.status(400).json({ message: "Token não fornecido." });
         }
+
+        // Verifica o token JWT
+        try {
+            const decoded = jwt.verify(token, process.env.JWT_SECRET); // Usa a chave secreta do .env
+            const email = decoded.email; // Pegamos o e-mail que foi armazenado no token
+
+            // Se o token for válido, apenas retornamos sucesso
+            return res.status(200).json({ message: "E-mail verificado com sucesso!" });
+        } catch (error) {
+            if (error.name === "TokenExpiredError") {
+                // Se o token expirou, deletamos os dados do usuário
+                await prisma.email_verification.deleteMany({
+                    where: { token }
+                });
+
+                await prisma.autenticacao_localidades.deleteMany({
+                    where: { localidade_id: decoded.localidade_id }
+                });
+
+                return res.status(400).json({ message: "Token expirado. Os dados foram removidos." });
+            } else {
+                return res.status(400).json({ message: "Token inválido." });
+            }
+        }
+    } catch (error) {
+        console.error("Erro ao verificar e-mail:", error);
+        res.status(500).json({ message: "Erro interno do servidor" });
     }
-);
+});
+
 
 module.exports = registerRoutes;
