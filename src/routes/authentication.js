@@ -115,34 +115,62 @@ registerRoutes.post("/verify-email", async (req, res) => {
             return res.status(400).json({ message: "Token não fornecido." });
         }
 
-        // Verifica o token JWT
         try {
-            const decoded = jwt.verify(token, process.env.JWT_SECRET); // Usa a chave secreta do .env
-            const email = decoded.email; // Pegamos o e-mail que foi armazenado no token
+            const decoded = jwt.verify(token, process.env.JWT_SECRET);
+            const email = decoded.email;
 
-            // Se o token for válido, apenas retornamos sucesso
+            // Busca o registro de verificação pelo token
+            const verification = await prisma.email_verification.findUnique({
+                where: { token }
+            });
+
+            if (!verification) {
+                return res.status(400).json({ message: "Token inválido." });
+            }
+
+            // Atualiza o status da verificação para true
+            await prisma.email_verification.update({
+                where: { token },
+                data: { status: true }
+            });
+
+            // Atualiza o status da localidade para true
+            await prisma.localidades.update({
+                where: { id: verification.localidade_id },
+                data: { status: true }
+            });
+
             return res.status(200).json({ message: "E-mail verificado com sucesso!" });
+
         } catch (error) {
             if (error.name === "TokenExpiredError") {
-                // Se o token expirou, deletamos os dados do usuário
-                await prisma.email_verification.deleteMany({
+                const expiredVerification = await prisma.email_verification.findUnique({
                     where: { token }
                 });
 
-                await prisma.autenticacao_localidades.deleteMany({
-                    where: { localidade_id: decoded.localidade_id }
-                });
+                if (expiredVerification) {
+                    // Deleta os dados do email_verification
+                    await prisma.email_verification.deleteMany({
+                        where: { token }
+                    });
+
+                    // Deleta os dados de autenticação
+                    await prisma.autenticacao_localidades.deleteMany({
+                        where: { localidade_id: expiredVerification.localidade_id }
+                    });
+                }
 
                 return res.status(400).json({ message: "Token expirado. Os dados foram removidos." });
-            } else {
-                return res.status(400).json({ message: "Token inválido." });
             }
+
+            return res.status(400).json({ message: "Token inválido." });
         }
     } catch (error) {
         console.error("Erro ao verificar e-mail:", error);
         res.status(500).json({ message: "Erro interno do servidor" });
     }
 });
+
 
 
 module.exports = registerRoutes;
