@@ -173,7 +173,7 @@ registerRoutes.post("/verify-email", async (req, res) => {
 
                 console.log("Registros removidos de autenticacao_localidades.");
 
-                return res.status(400).json({ message: "Token expirado. Os dados foram removidos." });
+                return res.status(401).json({ message: "Token expirado. Os dados foram removidos." });
             }
 
             return res.status(400).json({ message: "Token inválido." });
