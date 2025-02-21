@@ -132,6 +132,12 @@ registerRoutes.post("/verify-email", async (req, res) => {
             return res.status(400).json({ message: "Token inválido." });
         }
 
+        // Verifica se o e-mail já foi confirmado anteriormente
+        if (verification.status) {
+            console.log("Erro: Token já foi utilizado anteriormente.");
+            return res.status(402).json({ message: "Token já foi utilizado." });
+        }
+
         try {
             console.log("Verificando token JWT...");
             const decoded = jwt.verify(token, process.env.SECRET_KEY);
@@ -183,6 +189,5 @@ registerRoutes.post("/verify-email", async (req, res) => {
         res.status(500).json({ message: "Erro interno do servidor" });
     }
 });
-
 
 module.exports = registerRoutes;
