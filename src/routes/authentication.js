@@ -116,7 +116,7 @@ registerRoutes.post("/verify-email", async (req, res) => {
         }
 
         // Busca o registro de verificação pelo token
-        const verification = await prisma.email_verification.findUnique({
+        const verification = await prisma.email_verification.findFirst({
             where: { token }
         });
 
