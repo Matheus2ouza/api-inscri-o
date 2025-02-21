@@ -14,8 +14,5 @@
     "pdfkit": "^0.13.0",
     "pg": "^8.13.0",
     "prisma": "^6.4.1"
-  },
-  "scripts": {
-    "postinstall": "prisma generate"
   }
 }
