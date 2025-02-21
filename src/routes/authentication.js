@@ -52,7 +52,7 @@ registerRoutes.post(
             console.log(locality, email, password);
 
             // Verifica se a localidade existe
-            const localityResult = await prisma.localidades.findUnique({
+            const localityResult = await prisma.localidades.findFirst({
                 where: { nome: locality }
             });
 
