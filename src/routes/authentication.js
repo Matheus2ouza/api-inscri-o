@@ -31,7 +31,8 @@ registerRoutes.post(
             }
 
             // Verificação do status da localidade
-            if (!verificationLocality.status) { 
+            if (!verificationLocality.status) {
+                console.log(`O status da localidade é inativo`) 
                 return res.status(401).json({ message: `O status da localidade é inativo` });
             }
 
@@ -41,6 +42,7 @@ registerRoutes.post(
             });
 
             if (!verificationPassword) {
+                console.log(`Nenhum dado de autenticação encontrado para esta localidade`)
                 return res.status(403).json({ message: `Nenhum dado de autenticação encontrado para esta localidade` });
             }
 
@@ -48,10 +50,12 @@ registerRoutes.post(
             const matchPassword = verifyPassword(password, verificationPassword.salt, verificationPassword.senha_hash);
 
             if (!matchPassword) {
+                console.log(`A senha não corresponde`)
                 return res.status(402).json({ message: `A senha não corresponde` });
             }
 
             // Se chegou até aqui, o login foi bem-sucedido
+            console.log(`Login realizado com sucesso!`);
             return res.status(200).json({ message: "Login realizado com sucesso!" });
 
         } catch (error) {
