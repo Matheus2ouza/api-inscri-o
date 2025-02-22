@@ -21,7 +21,7 @@ registerRoutes.post(
             const { locality, password } = req.body;
 
             // Verificação da localidade
-            const verificationLocality = await prisma.localidades.findUnique({
+            const verificationLocality = await prisma.localidades.findFirst({
                 where: { nome: locality }
             });
 
@@ -37,7 +37,7 @@ registerRoutes.post(
             }
 
             // Verificação da autenticação vinculada à localidade
-            const verificationPassword = await prisma.autenticacao_localidades.findUnique({
+            const verificationPassword = await prisma.autenticacao_localidades.findFirst({
                 where: { localidade_id: verificationLocality.id }
             });
 
@@ -54,7 +54,6 @@ registerRoutes.post(
                 return res.status(402).json({ message: `A senha não corresponde` });
             }
 
-            // Se chegou até aqui, o login foi bem-sucedido
             console.log(`Login realizado com sucesso!`);
             return res.status(200).json({ message: "Login realizado com sucesso!" });
 
