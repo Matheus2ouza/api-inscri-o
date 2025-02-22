@@ -4,7 +4,7 @@ const { body, validationResult } = require("express-validator");
 const { PrismaClient } = require('@prisma/client');
 const prisma = new PrismaClient();
 const { generateToken } = require("../utils/tokenConfig");
-const {createHash} = require("../utils/hashConfig");
+const {createHash, verifyPassword} = require("../utils/hashConfig");
 const { sendVerifyEmail } = require("../routes/notification")
 const jwt = require('jsonwebtoken');
 
@@ -13,31 +13,53 @@ const registerRoutes = express.Router();
 registerRoutes.post(
     "/login",
     [
-        body("locality").isString().withMessage("User nao encontrado"),
-        body("password").isString().withMessage("Password nao encontrado")
+        body("locality").isString().withMessage("User não encontrado"),
+        body("password").isString().withMessage("Password não encontrado")
     ],
     async (req, res) => {
-        const {
-            locality,
-            password
-        } = req.body;
+        try {
+            const { locality, password } = req.body;
 
-        const verificationLocality = await prisma.localidades.findUnique({
-            where: {nome: locality}
-        });
+            // Verificação da localidade
+            const verificationLocality = await prisma.localidades.findUnique({
+                where: { nome: locality }
+            });
 
-        if (verificationLocality) {
-            console.log(`${locality} não corresponde a nenhuma localidade existente`)
-            res.status(400).json({message: `${locality} não corresponde a nenhuma localidades`});
-        }
+            if (!verificationLocality) { 
+                console.log(`${locality} não corresponde a nenhuma localidade existente`);
+                return res.status(400).json({ message: `${locality} não corresponde a nenhuma localidade existente` });
+            }
 
-        const statusMessage = verificationLocality.status ? "active" : "inactive";
-        
-        if(statusMessage === "inactive") {
-            res.status(401).json({message: `O status da localidade é ${stautsMessage}`})
+            // Verificação do status da localidade
+            if (!verificationLocality.status) { 
+                return res.status(401).json({ message: `O status da localidade é inativo` });
+            }
+
+            // Verificação da autenticação vinculada à localidade
+            const verificationPassword = await prisma.autenticacao_localidades.findUnique({
+                where: { localidade_id: verificationLocality.id }
+            });
+
+            if (!verificationPassword) {
+                return res.status(403).json({ message: `Nenhum dado de autenticação encontrado para esta localidade` });
+            }
+
+            // Verificação da senha
+            const matchPassword = verifyPassword(password, verificationPassword.salt, verificationPassword.senha_hash);
+
+            if (!matchPassword) {
+                return res.status(402).json({ message: `A senha não corresponde` });
+            }
+
+            // Se chegou até aqui, o login foi bem-sucedido
+            return res.status(200).json({ message: "Login realizado com sucesso!" });
+
+        } catch (error) {
+            console.error("Erro ao realizar login:", error);
+            return res.status(500).json({ message: "Erro interno no servidor" });
         }
     }
-)
+);
 
 registerRoutes.post(
     "/register",
