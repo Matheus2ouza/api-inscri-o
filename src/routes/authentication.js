@@ -13,8 +13,8 @@ const registerRoutes = express.Router();
 registerRoutes.post(
     "/login",
     [
-        body("locality").isString().toUpperCase.withMessage("User não encontrado"),
-        body("password").isString().toUpperCase.withMessage("Password não encontrado")
+        body("locality").isString().withMessage("User não encontrado"),
+        body("password").isString().withMessage("Password não encontrado")
     ],
     async (req, res) => {
         try {
