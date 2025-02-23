@@ -14,7 +14,7 @@ function createHash(password) {
     const hash = crypto.pbkdf2Sync(password, salt, iterations, keylen, digest).toString('hex');
 
     return { salt, hash };
-}
+};
 
 function verifyPassword(password, storedSalt, storedHash) {
     const iterations = 100000;
@@ -24,6 +24,6 @@ function verifyPassword(password, storedSalt, storedHash) {
     const hashToCompare = crypto.pbkdf2Sync(password, storedSalt, iterations, keylen, digest).toString('hex');
 
     return hashToCompare === storedHash;
-}
+};
 
 module.exports = { createHash, verifyPassword };
