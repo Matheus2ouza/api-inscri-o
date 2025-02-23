@@ -3,7 +3,7 @@ const express = require("express");
 const { body, validationResult } = require("express-validator");
 const { PrismaClient } = require('@prisma/client');
 const prisma = new PrismaClient();
-const { generateToken } = require("../utils/tokenConfig");
+const { generateTokenEmail } = require("../utils/tokenConfig");
 const {createHash, verifyPassword} = require("../utils/hashConfig");
 const { sendVerifyEmail } = require("../routes/notification")
 const jwt = require('jsonwebtoken');
@@ -54,8 +54,18 @@ registerRoutes.post(
                 return res.status(402).json({ message: `A senha não corresponde` });
             }
 
+            const token = generateTokenAuth({
+                id: verificationLocality.id, 
+                nome: verificationLocality.nome, role: 
+                verificationLocality.role
+            });
+
+
             console.log(`Login realizado com sucesso!`);
-            return res.status(200).json({ message: "Login realizado com sucesso!" });
+            return res.status(200).json({ 
+                message: "Login realizado com sucesso!",
+                token: token
+            });
 
         } catch (error) {
             console.error("Erro ao realizar login:", error);
@@ -97,7 +107,7 @@ registerRoutes.post(
             }
 
             // Gera um token JWT válido por 48h usando a função externa
-            const token = generateToken({ email });
+            const token = generateTokenEmail({ email });
 
             // Insere o e-mail e o token no banco de dados
             await prisma.email_verification.create({
@@ -165,7 +175,7 @@ registerRoutes.post("/verify-email", async (req, res) => {
 
         try {
             console.log("Verificando token JWT...");
-            const decoded = jwt.verify(token, process.env.SECRET_KEY);
+            const decoded = jwt.verify(token, process.env.SECRET_KEY_EMAIL);
             console.log("Token decodificado com sucesso:", decoded);
 
             // Atualiza o status da verificação para true
