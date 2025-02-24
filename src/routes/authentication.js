@@ -75,8 +75,7 @@ registerRoutes.post(
             res.cookie("refreshToken", refreshToken, {
                 httpOnly: true,
                 secure: isProduction,   // ✅ HTTPS apenas em produção
-                sameSite: isProduction ? "None" : "Lax",  // ✅ None para cross-site, Lax para localhost
-                domain: isProduction ? "inscri-o-conf.vercel.app" : undefined  // ✅ Apenas o domínio
+                sameSite: isProduction ? "None" : "Lax",  // None para cross-site, Lax para localhost
             });
             
 
