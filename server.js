@@ -93,3 +93,9 @@ app.use((err, req, res, next) => {
     res.status(500).json({ error: 'Erro interno no servidor' });
 });
 
+const port = process.env.PORT;
+console.log(port);
+app.listen(port, () => {
+    console.info('API iniciada com sucesso');
+    console.log(`API rodando em http://localhost:${port}`);
+});
