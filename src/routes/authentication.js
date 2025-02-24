@@ -70,12 +70,14 @@ registerRoutes.post(
                 role: verificationLocality.role
             });
 
+            const isProduction = window.location.hostname !== "localhost";
+            
             // Armazena o refreshToken no cookie seguro
             res.cookie("refreshToken", refreshToken, {
-                httpOnly: true,     // Protege contra acesso via JS
-                secure: true,       // Apenas HTTPS
-                sameSite: "None",   
-                domain: ".vercel.app" 
+                httpOnly: true,
+                secure: isProduction,   // ✅ HTTPS apenas em produção
+                sameSite: isProduction ? "None" : "Lax",  // ✅ None para cross-site, Lax para localhost
+                domain: isProduction ? ".seusite.com" : undefined  // ✅ Define domínio só em produção
             });
 
             // 🔥 Log para verificar se o cookie foi enviado
