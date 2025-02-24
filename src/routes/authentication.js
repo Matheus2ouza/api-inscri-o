@@ -57,7 +57,7 @@ registerRoutes.post(
             }
 
             // Verifica senha usando bcrypt
-            const matchPassword = await verifyPassword(password, verificationPassword.salt, verificationPassword.hash);
+            const matchPassword = await verifyPassword(password, verificationPassword.salt, verificationPassword.senha_hash);
 
             if (!matchPassword) {
                 return res.status(401).json({ message: "Senha incorreta" });
