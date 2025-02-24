@@ -3,7 +3,7 @@ const express = require("express");
 const { body, validationResult } = require("express-validator");
 const { PrismaClient } = require('@prisma/client');
 const prisma = new PrismaClient();
-const { generateTokenAuth } = require("../middlewares/authMiddleware")
+const { generateTokenAuth, authenticateToken } = require("../middlewares/authMiddleware")
 const { generateTokenEmail } = require("../utils/tokenConfig");
 const {createHash, verifyPassword} = require("../utils/hashConfig");
 const { sendVerifyEmail } = require("../routes/notification")
@@ -11,6 +11,9 @@ const jwt = require('jsonwebtoken');
 
 const registerRoutes = express.Router();
 
+/**
+ * Rota para Login
+ */
 registerRoutes.post(
     "/login",
     [
@@ -78,6 +81,9 @@ registerRoutes.post(
     }
 );
 
+/**
+ * Rota para registrar o Usuario
+ */
 registerRoutes.post(
     "/register",
     [
@@ -147,6 +153,9 @@ registerRoutes.post(
     }
 );
 
+/**
+ * Rota para autenticar o email
+*/
 registerRoutes.post("/verify-email", async (req, res) => {
     try {
         const { token } = req.body;
@@ -229,6 +238,16 @@ registerRoutes.post("/verify-email", async (req, res) => {
     }
 });
 
+/**
+ * Rota para verificar se o accessToken é valido
+ */
+registerRoutes.get('/verify-token', authenticateToken, async(req, res) => {
+    res.status(200).json({message: "Token valido"})
+});
+
+/**
+ * Rota para atualizar o accessToken
+ */
 registerRoutes.post('/refresh-token', async(req, res) => {
     const { refreshToken } = req.body;
 
