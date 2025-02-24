@@ -32,20 +32,32 @@ function authenticateToken(req, res, next) {
     const authHeader = req.headers.authorization;
     const token = authHeader && authHeader.split(" ")[1]; // Pega o token corretamente
 
+    console.log("Verificando autenticação...");
+    console.log("Cabeçalho de autorização recebido:", authHeader);
+    console.log("Token extraído:", token);
+
     if (!token) {
+        console.warn("Acesso negado: Token não fornecido.");
         return res.status(401).json({ message: "Acesso negado. Token não fornecido." });
     }
 
     try {
         const decoded = jwt.verify(token, process.env.JWT_SECRET_AUTH);
+        console.log("Token decodificado com sucesso:", decoded);
+
         req.user = decoded; // Armazena os dados decodificados
         next();
     } catch (error) {
+        console.error("Erro ao validar o token:", error);
+
         if (error.name === "TokenExpiredError") {
+            console.warn("Token expirado.");
             return res.status(401).json({ message: "Token expirado. Faça login novamente." });
         } else if (error.name === "JsonWebTokenError") {
+            console.warn("Token inválido.");
             return res.status(403).json({ message: "Token inválido. Acesso negado." });
         } else {
+            console.error("Erro interno na validação do token.");
             return res.status(500).json({ message: "Erro ao validar o token." });
         }
     }
