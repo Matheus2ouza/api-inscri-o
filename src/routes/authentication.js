@@ -8,14 +8,24 @@ const { generateTokenEmail } = require("../utils/tokenConfig");
 const {createHash, verifyPassword} = require("../utils/hashConfig");
 const { sendVerifyEmail } = require("../routes/notification")
 const jwt = require('jsonwebtoken');
+const rateLimit = require("express-rate-limit");
+const { hash } = require("bcryptjs");
 
 const registerRoutes = express.Router();
+
+
+const loginLimiter = rateLimit({
+    windowMs: 15 * 60 * 1000, // 15 minutos
+    max: 5, // Máximo de 5 tentativas falhas
+    message: { message: "Muitas tentativas de login. Tente novamente mais tarde." }
+});
 
 /**
  * Rota para Login
  */
 registerRoutes.post(
     "/login",
+    loginLimiter, // 🔥 Adiciona proteção contra brute-force
     [
         body("locality").isString().withMessage("User não encontrado"),
         body("password").isString().withMessage("Password não encontrado")
@@ -27,55 +37,47 @@ registerRoutes.post(
             // Verificação da localidade
             const verificationLocality = await prisma.localidades.findFirst({
                 where: { nome: locality },
-                select: {
-                    id: true,
-                    nome: true,
-                    role: true,  // 🔥 Garante que o Prisma retorne o campo role
-                    status: true
-                }
+                select: { id: true, nome: true, role: true, status: true }
             });
 
             if (!verificationLocality) { 
-                console.log(`${locality} não corresponde a nenhuma localidade existente`);
-                return res.status(400).json({ message: `${locality} não corresponde a nenhuma localidade existente` });
+                return res.status(404).json({ message: "Usuário não encontrado" });
             }
 
-            // Verificação do status da localidade
             if (!verificationLocality.status) {
-                console.log(`O status da localidade é inativo`) 
-                return res.status(401).json({ message: `O status da localidade é inativo` });
+                return res.status(403).json({ message: "Localidade inativa" });
             }
 
-            // Verificação da autenticação vinculada à localidade
+            // Verifica se há autenticação vinculada
             const verificationPassword = await prisma.autenticacao_localidades.findFirst({
                 where: { localidade_id: verificationLocality.id }
             });
 
             if (!verificationPassword) {
-                console.log(`Nenhum dado de autenticação encontrado para esta localidade`)
-                return res.status(403).json({ message: `Nenhum dado de autenticação encontrado para esta localidade` });
+                return res.status(401).json({ message: "Nenhuma autenticação encontrada" });
             }
 
-            // Verificação da senha
-            const matchPassword = verifyPassword(password, verificationPassword.salt, verificationPassword.senha_hash);
+            // Verifica senha usando bcrypt
+            const matchPassword = await verifyPassword(password, verificationPassword.salt, verificationPassword.hash);
 
             if (!matchPassword) {
-                console.log(`A senha não corresponde`)
-                return res.status(402).json({ message: `A senha não corresponde` });
+                return res.status(401).json({ message: "Senha incorreta" });
             }
 
-            console.log(verificationLocality);
+            // Gera tokens
             const { accessToken, refreshToken } = generateTokenAuth({
                 id: verificationLocality.id,
                 nome: verificationLocality.nome,
                 role: verificationLocality.role
-            })
+            });
 
+            // Armazena o refreshToken no cookie seguro
             res.cookie("refreshToken", refreshToken, {
-                httpOnly: true,     // Protege contra acesso via JavaScript
-                secure: false,       // Apenas HTTPS
-                sameSite: "Strict"  // Evita CSRF
-            })
+                httpOnly: true,
+                secure: process.env.NODE_ENV === "production",
+                sameSite: "Strict"
+            });
+
             return res.status(200).json({ 
                 message: "Login realizado com sucesso!",
                 accessToken: accessToken
