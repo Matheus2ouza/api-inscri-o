@@ -26,7 +26,13 @@ registerRoutes.post(
 
             // Verificação da localidade
             const verificationLocality = await prisma.localidades.findFirst({
-                where: { nome: locality }
+                where: { nome: locality },
+                select: {
+                    id: true,
+                    nome: true,
+                    role: true,  // 🔥 Garante que o Prisma retorne o campo role
+                    status: true
+                }
             });
 
             if (!verificationLocality) { 
