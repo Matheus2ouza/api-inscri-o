@@ -9,7 +9,6 @@ const {createHash, verifyPassword} = require("../utils/hashConfig");
 const { sendVerifyEmail } = require("../routes/notification")
 const jwt = require('jsonwebtoken');
 const rateLimit = require("express-rate-limit");
-const { hash } = require("bcryptjs");
 
 const registerRoutes = express.Router();
 
