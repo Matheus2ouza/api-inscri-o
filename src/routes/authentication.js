@@ -72,8 +72,8 @@ registerRoutes.post(
 
             // Armazena o refreshToken no cookie seguro
             res.cookie("refreshToken", refreshToken, {
-                httpOnly: true,
-                secure: process.env.NODE_ENV === "production",
+                httpOnly: false,
+                secure: true,
                 sameSite: "Strict"
             });
 
