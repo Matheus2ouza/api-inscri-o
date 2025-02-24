@@ -4,6 +4,7 @@ const cors = require('cors');
 const rateLimit = require("express-rate-limit");
 const { checkDatabaseConnection } = require('./src/db/dbConnection.js');
 const favicon = require("serve-favicon");
+const cookieParser = require("cookie-parser");
 const path = require("path");
 
 const app = express();
@@ -20,7 +21,8 @@ const limiter = rateLimit({
     legacyHeaders: false, // Desativa os headers X-RateLimit
 });
 
-app.use(limiter)
+app.use(limiter);
+app.use(cookieParser());
 
 // Conexão com o banco de dados
 checkDatabaseConnection();
