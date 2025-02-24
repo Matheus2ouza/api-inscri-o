@@ -72,13 +72,13 @@ registerRoutes.post(
 
             const isProduction = process.env.NODE_ENV === "production"; 
 
-            // Armazena o refreshToken no cookie seguro
             res.cookie("refreshToken", refreshToken, {
                 httpOnly: true,
                 secure: isProduction,   // ✅ HTTPS apenas em produção
                 sameSite: isProduction ? "None" : "Lax",  // ✅ None para cross-site, Lax para localhost
-                domain: isProduction ? "https://inscri-o-conf.vercel.app" : undefined  // ✅ Define domínio só em produção
+                domain: isProduction ? "inscri-o-conf.vercel.app" : undefined  // ✅ Apenas o domínio
             });
+            
 
             // 🔥 Log para verificar se o cookie foi enviado
             console.log("RefreshToken enviado para o cookie:", refreshToken);
