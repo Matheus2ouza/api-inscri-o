@@ -15,7 +15,7 @@ const registerRoutes = express.Router();
 
 const loginLimiter = rateLimit({
     windowMs: 15 * 60 * 1000, // 15 minutos
-    max: 5, // Máximo de 5 tentativas falhas
+    max: 100, // Máximo de 5 tentativas falhas
     message: { message: "Muitas tentativas de login. Tente novamente mais tarde." }
 });
 
@@ -77,6 +77,9 @@ registerRoutes.post(
                 sameSite: "None",   
                 domain: ".vercel.app" 
             });
+
+            // 🔥 Log para verificar se o cookie foi enviado
+            console.log("RefreshToken enviado para o cookie:", refreshToken);
 
             return res.status(200).json({ 
                 message: "Login realizado com sucesso!",
