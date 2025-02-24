@@ -1,34 +1,17 @@
 require('dotenv').config();
 const express = require('express');
-const app = express();
 const cors = require('cors');
 const { checkDatabaseConnection } = require('./src/db/dbConnection.js');
 const favicon = require("serve-favicon");
 const path = require("path");
 
-// Importações de Rotas
-const authentication = require('./src/routes/authentication.js')
-const basicData = require('./src/routes/basicData.js');
-const register = require('./src/routes/register.js');
-const registerServico = require('./src/routes/registerServ.js');
-const registerJovem = require('./src/routes/registerJovem.js');
-const paymentRoutes = require('./src/routes/payment.js');
-const hospedagemRoutes = require('./src/routes/hospedagem.js');
-const dashboardRoutes = require('./src/routes/dashboard.js');
-const loginAdminRoutes = require('./src/routes/loginAdmin.js');
-const report = require('./src/routes/report.js');
-const listHosting = require('./src/routes/listHosting.js');
-const generatePdf = require('./src/routes/listPdf.js');
-const getcomprovante = require('./src/routes/comprovanteGet.js');
-const RegistroPagamento = require('./src/routes/registro_pagamento.js');
-const movementPdf = require('./src/routes/movementPdf.js');
-const createPdfRouter = require('./src/routes/createPdf.js');
-
+const app = express();
 app.use(express.json());
 
 // Conexão com o banco de dados
 checkDatabaseConnection();
 
+// Configuração do CORS para múltiplas origens permitidas
 const allowedOrigins = [
     "http://127.0.0.1:5500",
     "https://inscri-o-conf.vercel.app"
@@ -49,7 +32,7 @@ const corsOptions = {
 
 app.use(cors(corsOptions));
 
-
+// Middleware do favicon
 app.use(favicon(path.join(__dirname, "src", "public", "img", "icons8-api-48.png")));
 
 // Middleware de logs de requisição
@@ -58,28 +41,29 @@ app.use((req, res, next) => {
     next();
 });
 
+// Rota de boas-vindas
 app.get('/', (req, res) => {
     console.info('Rota de boas-vindas acessada');
     res.send('Bem-vindo à minha API! ❤️');
 });
 
-// Suas rotas
-app.use('/user',authentication)
-app.use('/dados', basicData);
-app.use('/registro', register);
-app.use('/registroServ', registerServico);
-app.use('/registroJovem', registerJovem);
-app.use('/pagamento', paymentRoutes);
-app.use('/hospedagem', hospedagemRoutes);
-app.use('/dashboard', dashboardRoutes);
-app.use('/loginAdmin', loginAdminRoutes);
-app.use('/report', report);
-app.use('/listHosting', listHosting);
-app.use('/generatePdf', generatePdf);
-app.use('/buscarComporvante', getcomprovante);
-app.use('/RegistroPagamento', RegistroPagamento);
-app.use('/movementPdf', movementPdf);
-app.use('/pdf', createPdfRouter);
+// Importação e uso de rotas
+app.use('/user', require('./src/routes/authentication.js'));
+app.use('/dados', require('./src/routes/basicData.js'));
+app.use('/registro', require('./src/routes/register.js'));
+app.use('/registroServ', require('./src/routes/registerServ.js'));
+app.use('/registroJovem', require('./src/routes/registerJovem.js'));
+app.use('/pagamento', require('./src/routes/payment.js'));
+app.use('/hospedagem', require('./src/routes/hospedagem.js'));
+app.use('/dashboard', require('./src/routes/dashboard.js'));
+app.use('/loginAdmin', require('./src/routes/loginAdmin.js'));
+app.use('/report', require('./src/routes/report.js'));
+app.use('/listHosting', require('./src/routes/listHosting.js'));
+app.use('/generatePdf', require('./src/routes/listPdf.js'));
+app.use('/buscarComporvante', require('./src/routes/comprovanteGet.js'));
+app.use('/RegistroPagamento', require('./src/routes/registro_pagamento.js'));
+app.use('/movementPdf', require('./src/routes/movementPdf.js'));
+app.use('/pdf', require('./src/routes/createPdf.js'));
 
 // Middleware para capturar erros 404 (rota não encontrada)
 app.use((req, res, next) => {
@@ -93,9 +77,5 @@ app.use((err, req, res, next) => {
     res.status(500).json({ error: 'Erro interno no servidor' });
 });
 
-const port = process.env.PORT;
-console.log(port);
-app.listen(port, () => {
-    console.info('API iniciada com sucesso');
-    console.log(`API rodando em http://localhost:${port}`);
-});
+// Exportação correta para a Vercel
+module.exports = app;
