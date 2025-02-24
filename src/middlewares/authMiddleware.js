@@ -6,6 +6,8 @@ const jwt = require('jsonwebtoken');
  * @returns {object} - Objeto contendo accessToken e refreshToken
  */
 function generateTokenAuth(payload) {
+    console.log(payload.id, payload.nome, payload.role);
+
     const accessToken = jwt.sign(
         { id: payload.id, nome: payload.nome, role: payload.role },
         process.env.JWT_SECRET_AUTH,
