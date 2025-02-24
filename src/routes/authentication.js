@@ -72,9 +72,10 @@ registerRoutes.post(
 
             // Armazena o refreshToken no cookie seguro
             res.cookie("refreshToken", refreshToken, {
-                httpOnly: false,
-                secure: true,
-                sameSite: "Strict"
+                httpOnly: true,     // Protege contra acesso via JS
+                secure: true,       // Apenas HTTPS
+                sameSite: "None",   
+                domain: ".vercel.app" 
             });
 
             return res.status(200).json({ 
