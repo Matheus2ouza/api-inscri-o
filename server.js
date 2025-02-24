@@ -1,12 +1,26 @@
 require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
+const rateLimit = require("express-rate-limit");
 const { checkDatabaseConnection } = require('./src/db/dbConnection.js');
 const favicon = require("serve-favicon");
 const path = require("path");
 
 const app = express();
 app.use(express.json());
+
+app.set("trust proxy", 1);
+
+// Configuração do rate limit (exemplo: 100 requisições por 15 minutos)
+const limiter = rateLimit({
+    windowMs: 15 * 60 * 1000, // 15 minutos
+    max: 100, // Limite de 100 requisições por IP
+    message: "Muitas requisições! Tente novamente mais tarde.",
+    standardHeaders: true, // Inclui os headers RateLimit
+    legacyHeaders: false, // Desativa os headers X-RateLimit
+});
+
+app.use(limiter)
 
 // Conexão com o banco de dados
 checkDatabaseConnection();
