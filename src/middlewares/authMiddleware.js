@@ -6,19 +6,22 @@ const jwt = require('jsonwebtoken');
  * @returns {object} - Objeto contendo accessToken e refreshToken
  */
 function generateTokenAuth(payload) {
-    const acessToken = jwt.sign(
+    const accessToken = jwt.sign(
         { id: payload.id, nome: payload.nome, role: payload.role },
         process.env.JWT_SECRET_AUTH,
-        {expiresIn: "2h"}
+        { expiresIn: "2h" }
     );
 
     const refreshToken = jwt.sign(
-        {id: payload.id},
+        { id: payload.id },
         process.env.JWT_SECRET_REFRESH,
-        {expiresIn: "7d"}
+        { expiresIn: "7d" }
     );
 
-    return {acessToken, refreshToken }
+    console.log("Access Token Gerado:", accessToken);
+    console.log("Refresh Token Gerado:", refreshToken);
+
+    return { accessToken, refreshToken };
 }
 
 /**
