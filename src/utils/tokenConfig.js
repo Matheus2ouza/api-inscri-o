@@ -10,13 +10,4 @@ function generateTokenEmail(payload) {
     return jwt.sign(payload, process.env.SECRET_KEY_EMAIL, { expiresIn: '48h' });
 }
 
-/**
- * 
- * @param {object} payload - Dados que criam o token
- * @returns {string} - Token JWT assinado para o user
- */
-function generateTokenAuth(payload) {
-    return jwt.sign(payload, process.env.JWT_SECRET_AUTH, { expiresIn: '2h' });
-}
-
-module.exports = { generateTokenEmail, generateTokenAuth };
+module.exports = { generateTokenEmail };

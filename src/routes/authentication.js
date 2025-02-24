@@ -3,7 +3,8 @@ const express = require("express");
 const { body, validationResult } = require("express-validator");
 const { PrismaClient } = require('@prisma/client');
 const prisma = new PrismaClient();
-const { generateTokenEmail, generateTokenAuth } = require("../utils/tokenConfig");
+const { generateTokenAuth } = require("../middlewares/authMiddleware")
+const { generateTokenEmail } = require("../utils/tokenConfig");
 const {createHash, verifyPassword} = require("../utils/hashConfig");
 const { sendVerifyEmail } = require("../routes/notification")
 const jwt = require('jsonwebtoken');
@@ -54,17 +55,20 @@ registerRoutes.post(
                 return res.status(402).json({ message: `A senha não corresponde` });
             }
 
-            const token = generateTokenAuth({
-                id: verificationLocality.id, 
-                nome: verificationLocality.nome, role: 
-                verificationLocality.role
-            });
+            const { accessToken, refreshToken } = generateTokenAuth({
+                id: verificationLocality.id,
+                nome: verificationLocality.nome,
+                role: verificationLocality.role
+            })
 
-
-            console.log(`Login realizado com sucesso!`);
+            res.cookie("refreshToken", refreshToken, {
+                httpOnly: true,     // Protege contra acesso via JavaScript
+                secure: false,       // Apenas HTTPS
+                sameSite: "Strict"  // Evita CSRF
+            })
             return res.status(200).json({ 
                 message: "Login realizado com sucesso!",
-                token: token
+                accessToken: accessToken
             });
 
         } catch (error) {
@@ -222,6 +226,36 @@ registerRoutes.post("/verify-email", async (req, res) => {
     } catch (error) {
         console.error("Erro ao verificar e-mail:", error);
         res.status(500).json({ message: "Erro interno do servidor" });
+    }
+});
+
+registerRoutes.post('/refresh-token', async(req, res) => {
+    const { refreshToken } = req.body;
+
+    if(!refreshToken) {
+        return res.status(401).json({ message: "Token de atualização não fornecido" });
+    };
+
+    try {
+        const decoded = jwt.verify(refreshToken, process.env.JWT_SECRET_REFRESH);
+
+        const locality = prisma.localidades.findFirst({
+            where: {id: decoded.id }
+        });
+
+        if(!locality) {
+            return res.status(403).json({message: "Localidade não encontrada"});
+        }
+
+        const newAccessToken = jwt.sign({id: locality.id, nome: locality.nome, role: locality.role,},
+            process.env.JWT_SECRET_AUTH,
+            {expiresIn: "2h"}
+        );
+
+        return res.json({ accessToken: newAccessToken });
+
+    }catch(error) {
+        return res.status(403).json({ message: "Token de atualização inválido ou expirado" });
     }
 });
 
