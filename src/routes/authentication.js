@@ -248,9 +248,16 @@ registerRoutes.post("/verify-email", async (req, res) => {
 /**
  * Rota para verificar se o accessToken é valido
  */
-registerRoutes.get('/verify-token', authenticateToken, async(req, res) => {
-    res.status(200).json({message: "Token valido"})
+registerRoutes.get('/verify-token', authenticateToken, async (req, res) => {
+    res.set({
+        "Cache-Control": "no-store, no-cache, must-revalidate, proxy-revalidate",
+        "Pragma": "no-cache",
+        "Expires": "0"
+    });
+
+    res.status(200).json({ message: "Token valido" });
 });
+
 
 /**
  * Rota para atualizar o accessToken
