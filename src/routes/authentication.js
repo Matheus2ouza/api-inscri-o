@@ -267,34 +267,53 @@ registerRoutes.get('/verify-token', authenticateToken, async (req, res) => {
 /**
  * Rota para atualizar o accessToken
  */
-registerRoutes.post('/refresh-token', async(req, res) => {
-    const { refreshToken } = req.body;
-
-    if(!refreshToken) {
-        return res.status(401).json({ message: "Token de atualização não fornecido" });
-    };
-
+registerRoutes.post('/refresh-token', async (req, res) => {
     try {
-        const decoded = jwt.verify(refreshToken, process.env.JWT_SECRET_REFRESH);
+        console.log("🔄 Rota /refresh-token acessada");
 
-        const locality = prisma.localidades.findFirst({
-            where: {id: decoded.id }
-        });
+        const refreshToken = req.cookies.refreshToken; // 🔥 Pegando o refreshToken do cookie
+        console.log("📌 Token recebido do cookie:", refreshToken);
 
-        if(!locality) {
-            return res.status(403).json({message: "Localidade não encontrada"});
+        if (!refreshToken) {
+            console.warn("⚠️ Nenhum refreshToken fornecido!");
+            return res.status(401).json({ message: "Token de atualização não fornecido" });
         }
 
-        const newAccessToken = jwt.sign({id: locality.id, nome: locality.nome, role: locality.role,},
+        let decoded;
+        try {
+            decoded = jwt.verify(refreshToken, process.env.JWT_SECRET_REFRESH);
+            console.log("✅ Token decodificado com sucesso:", decoded);
+        } catch (err) {
+            console.error("❌ Erro ao decodificar o refreshToken:", err.message);
+            return res.status(403).json({ message: "Token de atualização inválido ou expirado" });
+        }
+
+        const locality = await prisma.localidades.findFirst({ 
+            where: { id: decoded.id }
+        });
+
+        console.log("📌 Localidade encontrada no banco de dados:", locality);
+
+        if (!locality) {
+            console.warn("⚠️ Localidade não encontrada!");
+            return res.status(403).json({ message: "Localidade não encontrada" });
+        }
+
+        const newAccessToken = jwt.sign(
+            { id: locality.id, nome: locality.nome, role: locality.role },
             process.env.JWT_SECRET_AUTH,
-            {expiresIn: "2h"}
+            { expiresIn: "2h" }
         );
+
+        console.log("✅ Novo accessToken gerado:", newAccessToken);
 
         return res.json({ accessToken: newAccessToken });
 
-    }catch(error) {
-        return res.status(403).json({ message: "Token de atualização inválido ou expirado" });
+    } catch (error) {
+        console.error("❌ Erro inesperado ao atualizar token:", error);
+        return res.status(500).json({ message: "Erro interno no servidor ao atualizar token" });
     }
 });
+
 
 module.exports = registerRoutes;
