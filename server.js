@@ -29,14 +29,26 @@ app.use(express.json());
 // Conexão com o banco de dados
 checkDatabaseConnection();
 
+const allowedOrigins = [
+    "http://127.0.0.1:5500",
+    "https://inscri-o-conf.vercel.app"
+];
+
 const corsOptions = {
-    origin: '*',
-    methods: 'GET, POST, PUT, DELETE',
-    allowedHeaders: 'Content-Type, Authorization',
+    origin: function (origin, callback) {
+        if (!origin || allowedOrigins.includes(origin)) {
+            callback(null, true); // Permite a origem
+        } else {
+            callback(new Error("Não permitido pelo CORS"));
+        }
+    },
+    methods: "GET, POST, PUT, DELETE",
+    allowedHeaders: "Content-Type, Authorization",
     credentials: true
 };
 
 app.use(cors(corsOptions));
+
 
 app.use(favicon(path.join(__dirname, "src", "public", "img", "icons8-api-48.png")));
 
@@ -81,9 +93,3 @@ app.use((err, req, res, next) => {
     res.status(500).json({ error: 'Erro interno no servidor' });
 });
 
-const port = process.env.PORT;
-console.log(port);
-app.listen(port, () => {
-    console.info('API iniciada com sucesso');
-    console.log(`API rodando em http://localhost:${port}`);
-});
