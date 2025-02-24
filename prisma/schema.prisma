@@ -3,7 +3,6 @@ generator client {
   binaryTargets = ["native", "rhel-openssl-3.0.x"]
 }
 
-
 datasource db {
   provider = "postgresql"
   url      = env("POSTGRES_URL")
@@ -164,15 +163,13 @@ model localidades {
   nome                     String                    @db.VarChar(100)
   saldo_devedor            Decimal?                  @default(0.00) @db.Decimal(10, 2)
   status                   Boolean?                  @default(false)
-  role                     String                    @default("user") @db.VarChar(50)
-
+  role                     String?                   @default("user") @db.VarChar(50)
   autenticacao_localidades autenticacao_localidades?
   comprovantes             comprovantes[]
   email_verification       email_verification[]
   inscricao_avulsa2        inscricao_avulsa2[]
   inscricao_geral          inscricao_geral[]
 }
-
 
 model movimentacao_financeira {
   id        Int       @id @default(autoincrement())
