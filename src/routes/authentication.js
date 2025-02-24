@@ -58,6 +58,7 @@ registerRoutes.post(
                 return res.status(402).json({ message: `A senha não corresponde` });
             }
 
+            console.log(verificationLocality);
             const { accessToken, refreshToken } = generateTokenAuth({
                 id: verificationLocality.id,
                 nome: verificationLocality.nome,
