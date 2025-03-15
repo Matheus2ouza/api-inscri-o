@@ -101,43 +101,45 @@ createPdfRouter.post("/createPdf", async (req, res) => {
                 // Desenha o cabeçalho
                 desenharCabecalho();
         
-                // Adiciona os dados na tabela
                 Object.values(dados).forEach((item) => {
-                    if (doc.y + 20 > 750) {
+                    // Calcular a altura necessária para o item e seus pagamentos
+                    const alturaItem = 20; // Altura estimada para o item principal
+                    const alturaTituloPagamentos = item.pagamentos && item.pagamentos.length > 0 ? 15 : 0;
+                    const alturaPagamentos = item.pagamentos ? item.pagamentos.length * 15 : 0;
+                    const alturaTotal = alturaItem + alturaTituloPagamentos + alturaPagamentos + 10; // +10 para espaçamento final
+                
+                    // Se não houver espaço suficiente, adicione uma nova página
+                    if (doc.y + alturaTotal > 750) {
                         doc.addPage();
-                        desenharCabecalho(); // Redesenha o cabeçalho em nova página
+                        desenharCabecalho();
                     }
-        
+                
                     let currentY = doc.y;
-        
+                
+                    // Renderiza o item principal
                     doc.font("Helvetica").fontSize(10).text(item.id.toString(), colId, currentY, { width: colWidths.id, align: "left" });
                     doc.font("Helvetica").fontSize(9).text(item.descricao, colDescricao, currentY, { width: colWidths.descricao, align: "left" });
                     doc.font("Helvetica").fontSize(10).text(`R$ ${formatarValor(item.valor)}`, colValor, currentY, { width: colWidths.valor, align: "right" });
                     doc.text(item.tipo, colTipo, currentY, { width: colWidths.tipo, align: "left" });
-        
+                
                     doc.moveDown(0.8);
-        
-                    // Exibe os pagamentos abaixo de cada item, se existirem
+                
+                    // Renderiza os pagamentos, se existirem
                     if (item.pagamentos && item.pagamentos.length > 0) {
                         doc.font("Helvetica-Bold").text("Pagamentos:", colDescricao, doc.y, { underline: true });
                         doc.moveDown(0.5);
-        
+                
                         item.pagamentos.forEach((pag) => {
-                            if (doc.y + 15 > 750) {
-                                doc.addPage();
-                                desenharCabecalho();
-                            }
-        
                             doc.font("Helvetica").fontSize(9).text(
                                 `- ${pag.tipo_pagamento}: R$ ${formatarValor(pag.valor)}`,
                                 colDescricao, doc.y, { width: colWidths.descricao, align: "left" }
                             );
                             doc.moveDown(0.5);
                         });
-        
+                
                         doc.moveDown(1);
                     }
-                });
+                });                
             }
         });                
         
