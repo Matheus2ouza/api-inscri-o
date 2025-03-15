@@ -11,13 +11,13 @@ function generateTokenAuth(payload) {
     const accessToken = jwt.sign(
         { id: payload.id, nome: payload.nome, role: payload.role },
         process.env.JWT_SECRET_AUTH,
-        { expiresIn: "1h" }
+        { expiresIn: "20s" }
     );
 
     const refreshToken = jwt.sign(
         { id: payload.id },
         process.env.JWT_SECRET_REFRESH,
-        { expiresIn: "7d" }
+        { expiresIn: "20s" }
     );
 
     console.log("Access Token Gerado:", accessToken);
