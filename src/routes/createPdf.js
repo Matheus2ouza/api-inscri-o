@@ -30,7 +30,7 @@ createPdfRouter.post("/createPdf", async (req, res) => {
             console.log("✅ PDF gerado com sucesso!");
         });
     
-        const imagePath = path.join(__dirname, '..', 'public', 'img', 'logo_conf_Tropas_e_Capitães.png');
+        const imagePath = path.join(__dirname, '..', 'public', 'img', 'logo Gálatas.png');
     
         // Verifica se a imagem existe e adiciona no PDF
         if (fs.existsSync(imagePath)) {
