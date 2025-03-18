@@ -65,8 +65,8 @@ app.get('/', (req, res) => {
 
 // Importação e uso de rotas
 app.use('/user', require('./src/routes/authentication.js'));
+app.use('/register', require('./src/routes/register.js'));
 app.use('/dados', require('./src/routes/basicData.js'));
-app.use('/registro', require('./src/routes/register.js'));
 app.use('/registroServ', require('./src/routes/registerServ.js'));
 app.use('/registroJovem', require('./src/routes/registerJovem.js'));
 app.use('/pagamento', require('./src/routes/payment.js'));

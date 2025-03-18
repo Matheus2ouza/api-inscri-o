@@ -15,7 +15,7 @@ const registerRoutes = express.Router();
 
 const loginLimiter = rateLimit({
     windowMs: 15 * 60 * 1000, // 15 minutos
-    max: 100, // Máximo de 5 tentativas falhas
+    max: 10, // Máximo de 5 tentativas falhas
     message: { message: "Muitas tentativas de login. Tente novamente mais tarde." }
 });
 
