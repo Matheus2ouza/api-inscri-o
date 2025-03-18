@@ -62,3 +62,4 @@ registerRoutes.post(
   }
 )
 
+module.exports = registerRoutes
