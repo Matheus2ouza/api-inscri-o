@@ -14,12 +14,12 @@ const registerRoutes = express.Router();
 // Configuração do multer para armazenamento temporário do arquivo
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
-    cb(null, '../public/uploads/'); //Diretorio para guardar o arquivo
+    const uploadPath = path.join(__dirname, '../public/uploads/');
+    cb(null, uploadPath);
   },
   filename: function (req, file, cb) {
     cb(null, `${Date.now()}${path.extname(file.originalname)}`);
-}
-
+  }
 });
 
 const uploadLimiter = rateLimit({
