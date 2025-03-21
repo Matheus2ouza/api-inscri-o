@@ -17,8 +17,9 @@ const storage = multer.diskStorage({
     cb(null, '../public/uploads/'); //Diretorio para guardar o arquivo
   },
   filename: function (req, file, cb) {
-    cb(null, Date.now(), path.extname(file.originalname));
-  }
+    cb(null, `${Date.now()}${path.extname(file.originalname)}`);
+}
+
 });
 
 const uploadLimiter = rateLimit({
