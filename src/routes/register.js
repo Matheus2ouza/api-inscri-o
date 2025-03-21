@@ -2,47 +2,26 @@ const express = require("express");
 const rateLimit = require("express-rate-limit");
 const multer = require("multer");
 const xlsx = require("xlsx");
-const path = require("path");
-const fs = require('fs').promises; // Usando fs.promises para operações assíncronas
 const { PrismaClient } = require('@prisma/client');
 const prisma = new PrismaClient();
 
 const registerRoutes = express.Router();
 
-// Configuração do multer para armazenamento temporário do arquivo
-const storage = multer.diskStorage({
-  destination: async function (req, file, cb) {
-    // Define o caminho para o diretório de uploads
-    const uploadPath = path.join(__dirname, '../public/uploads');
-    
-    try {
-      // Verifica se o diretório existe, e se não, cria
-      await fs.mkdir(uploadPath, { recursive: true });
-      // Define o diretório de destino para o arquivo
-      cb(null, uploadPath);
-    } catch (err) {
-      console.error("Erro ao criar diretório de uploads:", err);
-      cb(err, null); // Passa erro para o callback do multer
-    }
-  },
-  filename: function (req, file, cb) {
-    // Define o nome do arquivo com a data atual e extensão
-    cb(null, `${Date.now()}${path.extname(file.originalname)}`);
-  }
-});
+// Configuração do multer para armazenar o arquivo na memória
+const storage = multer.memoryStorage();
 
 const uploadLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
   max: 50,
-  message: { message: "Muitas de envio. Tente novamente mais tarde" }
+  message: { message: "Muitas tentativas de envio. Tente novamente mais tarde" }
 });
 
-const upload = multer({ storage: storage, limits: { fieldSize: 10 * 1024 * 1024 } });
+const upload = multer({ storage: storage, limits: { fileSize: 10 * 1024 * 1024 } });
 
 registerRoutes.post(
   "/upload-file",
   uploadLimiter,
-  upload.single("file"), // "file" deve ser o mesmo nome usado no frontend
+  upload.single("file"),  // "file" deve ser o mesmo nome usado no frontend
   async (req, res) => {
     try {
       if (!req.file) {
@@ -51,11 +30,8 @@ registerRoutes.post(
 
       console.log("Arquivo recebido:", req.file); // Verifica os detalhes do arquivo
 
-      // Verifique se o arquivo foi salvo no diretório
-      const filePath = req.file.path;
-
-      // Lê o arquivo Excel
-      const workbook = xlsx.readFile(filePath);
+      // Lê o arquivo Excel a partir da memória
+      const workbook = xlsx.read(req.file.buffer, { type: 'buffer' });
 
       // Seleciona a primeira planilha do arquivo
       const sheetName = workbook.SheetNames[0];
