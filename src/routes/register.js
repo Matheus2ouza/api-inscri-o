@@ -32,34 +32,38 @@ const upload = multer({storage: storage, limits: { fieldSize: 10 * 1024 * 1024 }
 registerRoutes.post(
   "/upload-file",
   uploadLimiter,
-  upload.single("file"),
+  upload.single("file"), // "file" deve ser o mesmo nome usado no frontend
   async (req, res) => {
     try {
-      if(!req.file) {
-        return res.status(400).json({message: "Nenhum arquivo enviado."})
+      if (!req.file) {
+        return res.status(400).json({ message: "Nenhum arquivo enviado." });
       }
-  
-      // Lê o arquivo Excel usando a biblioteca xlsx
-      const filePath = path.join(__dirname, 'uploads', req.file.filename);
+
+      console.log("Arquivo recebido:", req.file); // Verifica os detalhes do arquivo
+
+      // Obtendo o caminho real do arquivo salvo
+      const filePath = req.file.path; 
+
+      // Lê o arquivo Excel
       const workbook = xlsx.readFile(filePath);
-  
+
       // Seleciona a primeira planilha do arquivo
       const sheetName = workbook.SheetNames[0];
       const worksheet = workbook.Sheets[sheetName];
-  
+
       // Converte os dados da planilha para JSON
       const jsonData = xlsx.utils.sheet_to_json(worksheet);
-  
+
       return res.status(201).json({
         body: jsonData,
         message: "Arquivo convertido para JSON"
       });
 
-    } catch(error) {
+    } catch (error) {
       console.log("Erro interno no servidor", error);
       return res.status(500).json({ message: "Erro interno no servidor" });
     }
   }
-)
+);
 
 module.exports = registerRoutes
