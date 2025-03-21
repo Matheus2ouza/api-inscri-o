@@ -3,7 +3,7 @@ const rateLimit = require("express-rate-limit");
 const multer = require("multer");
 const xlsx = require("xlsx");
 const path = require("path");
-const fs = require('fs');
+const fs = require('fs').promises; // Usando fs.promises para operações assíncronas
 const { PrismaClient } = require('@prisma/client');
 const prisma = new PrismaClient();
 
@@ -11,17 +11,19 @@ const registerRoutes = express.Router();
 
 // Configuração do multer para armazenamento temporário do arquivo
 const storage = multer.diskStorage({
-  destination: function (req, file, cb) {
+  destination: async function (req, file, cb) {
     // Define o caminho para o diretório de uploads
     const uploadPath = path.join(__dirname, '../public/uploads');
     
-    // Verifica se o diretório existe, e se não, cria
-    if (!fs.existsSync(uploadPath)) {
-      fs.mkdirSync(uploadPath, { recursive: true });
+    try {
+      // Verifica se o diretório existe, e se não, cria
+      await fs.mkdir(uploadPath, { recursive: true });
+      // Define o diretório de destino para o arquivo
+      cb(null, uploadPath);
+    } catch (err) {
+      console.error("Erro ao criar diretório de uploads:", err);
+      cb(err, null); // Passa erro para o callback do multer
     }
-    
-    // Defina o diretório de destino para o arquivo
-    cb(null, uploadPath);
   },
   filename: function (req, file, cb) {
     // Define o nome do arquivo com a data atual e extensão
@@ -32,15 +34,15 @@ const storage = multer.diskStorage({
 const uploadLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
   max: 50,
-  message: { message: "Muitas de envio. Tente novamente mais tarde"}
-})
+  message: { message: "Muitas de envio. Tente novamente mais tarde" }
+});
 
-const upload = multer({storage: storage, limits: { fieldSize: 10 * 1024 * 1024 } });
+const upload = multer({ storage: storage, limits: { fieldSize: 10 * 1024 * 1024 } });
 
 registerRoutes.post(
   "/upload-file",
   uploadLimiter,
-  upload.single("file"),
+  upload.single("file"), // "file" deve ser o mesmo nome usado no frontend
   async (req, res) => {
     try {
       if (!req.file) {
@@ -51,11 +53,6 @@ registerRoutes.post(
 
       // Verifique se o arquivo foi salvo no diretório
       const filePath = req.file.path;
-
-      // Se o arquivo não existir, retorne erro
-      if (!fs.existsSync(filePath)) {
-        return res.status(500).json({ message: "Arquivo não encontrado após upload" });
-      }
 
       // Lê o arquivo Excel
       const workbook = xlsx.readFile(filePath);
@@ -79,5 +76,4 @@ registerRoutes.post(
   }
 );
 
-
-module.exports = registerRoutes
+module.exports = registerRoutes;
