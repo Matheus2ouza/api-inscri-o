@@ -3,10 +3,8 @@ const rateLimit = require("express-rate-limit");
 const multer = require("multer");
 const xlsx = require("xlsx");
 const path = require("path");
+const fs = require('fs');
 const { PrismaClient } = require('@prisma/client');
-const { max } = require("moment-timezone");
-const { body } = require("express-validator");
-const { error } = require("console");
 const prisma = new PrismaClient();
 
 const registerRoutes = express.Router();
@@ -14,10 +12,19 @@ const registerRoutes = express.Router();
 // Configuração do multer para armazenamento temporário do arquivo
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
-    const uploadPath = path.join(__dirname, '../public/uploads/');
+    // Define o caminho para o diretório de uploads
+    const uploadPath = path.join(__dirname, '../public/uploads');
+    
+    // Verifica se o diretório existe, e se não, cria
+    if (!fs.existsSync(uploadPath)) {
+      fs.mkdirSync(uploadPath, { recursive: true });
+    }
+    
+    // Defina o diretório de destino para o arquivo
     cb(null, uploadPath);
   },
   filename: function (req, file, cb) {
+    // Define o nome do arquivo com a data atual e extensão
     cb(null, `${Date.now()}${path.extname(file.originalname)}`);
   }
 });
@@ -33,7 +40,7 @@ const upload = multer({storage: storage, limits: { fieldSize: 10 * 1024 * 1024 }
 registerRoutes.post(
   "/upload-file",
   uploadLimiter,
-  upload.single("file"), // "file" deve ser o mesmo nome usado no frontend
+  upload.single("file"),
   async (req, res) => {
     try {
       if (!req.file) {
@@ -42,8 +49,13 @@ registerRoutes.post(
 
       console.log("Arquivo recebido:", req.file); // Verifica os detalhes do arquivo
 
-      // Obtendo o caminho real do arquivo salvo
-      const filePath = req.file.path; 
+      // Verifique se o arquivo foi salvo no diretório
+      const filePath = req.file.path;
+
+      // Se o arquivo não existir, retorne erro
+      if (!fs.existsSync(filePath)) {
+        return res.status(500).json({ message: "Arquivo não encontrado após upload" });
+      }
 
       // Lê o arquivo Excel
       const workbook = xlsx.readFile(filePath);
@@ -66,7 +78,6 @@ registerRoutes.post(
     }
   }
 );
-
 
 
 module.exports = registerRoutes
