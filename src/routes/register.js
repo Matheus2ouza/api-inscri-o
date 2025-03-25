@@ -78,7 +78,7 @@ registerRoutes.post(
       // Retorna o JSON com os dados da planilha e a contagem dos tipos de inscrição
       return res.status(201).json({
         body: jsonData,
-        inscriptionNames: inscriptionNames,
+        inscriptionData: inscriptionData,
         inscriptionCount: inscriptionCount, // Inclui a contagem no JSON
         message: "Arquivo convertido para JSON"
       });
