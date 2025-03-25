@@ -48,7 +48,7 @@ registerRoutes.post(
         const age = row["Idade"];
 
         if(name) {
-          inscriptionData[name] = {
+          inscriptionData = {
             name: name,
             age: age
           }
