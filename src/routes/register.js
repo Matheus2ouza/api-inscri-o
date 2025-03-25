@@ -43,6 +43,15 @@ registerRoutes.post(
       // Variável para armazenar os nomes
       const inscriptionNames = [];
 
+      // Loop através dos dados para extrair os nomes
+      jsonData.forEach(row => {
+        const name = row["Nome completo"];  // Acessa a coluna que contém o nome
+
+        if (name) {
+          inscriptionNames.push(name);  // Adiciona o nome à lista de nomes
+        }
+      });
+
       const inscriptionCount = {
         normal: 0,
         participação: 0,
@@ -50,7 +59,7 @@ registerRoutes.post(
       };
 
       // Loop através dos dados para extrair os nomes
-      jsonData.foreach(row => {
+      jsonData.forEach(row => {
         const type = row["Tipo de Inscrição"];
 
         if(type) {
@@ -64,6 +73,7 @@ registerRoutes.post(
       // Retorna o JSON com os dados da planilha e a contagem dos tipos de inscrição
       return res.status(201).json({
         body: jsonData,
+        inscriptionNames: inscriptionNames,
         inscriptionCount: inscriptionCount, // Inclui a contagem no JSON
         message: "Arquivo convertido para JSON"
       });
