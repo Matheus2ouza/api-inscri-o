@@ -40,20 +40,18 @@ registerRoutes.post(
       // Converte os dados da planilha para JSON
       const jsonData = xlsx.utils.sheet_to_json(worksheet);
 
-      // Variável para armazenar os nomes
-      const inscriptionData = [];
+      const inscriptionData = {};
 
       // Loop através dos dados para extrair os nomes
       jsonData.forEach(row => {
         const name = row["Nome completo"];  // Acessa a coluna que contém o nome
         const age = row["Idade"];
 
-        if (name) {
-          inscriptionData.push(name);  // Adiciona o nome à lista de nomes
-        }
-
-        if(age) {
-          inscriptionData.push(age)
+        if(name) {
+          inscriptionData[name] = {
+            name: name,
+            age: age
+          }
         }
       });
 
