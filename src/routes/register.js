@@ -82,17 +82,11 @@ registerRoutes.post(
         const name = row["Nome completo"];
         const birthDate = row["Data de nascimento"];
 
-        if (name && birthDate) {
-          const age = calculateAge(birthDate);
-          if (age !== null) {
-            inscriptionData[name] = {
-              name: name,
-              age: age
-            };
-          } else {
-            console.warn(`Failed to calculate age for ${name}`);
-          }
-        }
+        console.log(birthDate);
+        console.log(typeof birthDate);
+        inscriptionData[name] = {
+          name: name
+        };
       });
 
       // Retornar os resultados com os dados de inscrição e total
