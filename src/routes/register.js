@@ -17,13 +17,18 @@ const uploadLimiter = rateLimit({
 });
 
 function calculateAge(birthDate) {
+  // Converte o formato DD/MM/YYYY para YYYY-MM-DD
+  const [day, month, year] = birthDate.split("/"); 
+  const formattedDate = `${year}-${month}-${day}`; 
+  
   const today = new Date();
-  const birth = new Date(birthDate);
+  const birth = new Date(formattedDate);
 
   let age = today.getFullYear() - birth.getFullYear();
   const currentMonth = today.getMonth();
   const birthMonth = birth.getMonth();
 
+  // Ajuste para não contar o aniversário antes da data atual
   if (currentMonth < birthMonth || (currentMonth === birthMonth && today.getDate() < birth.getDate())) {
     age--;
   }
