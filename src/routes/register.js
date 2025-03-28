@@ -75,7 +75,7 @@ registerRoutes.post(
       const jsonData = xlsx.utils.sheet_to_json(worksheet);
 
       // Loop para transformar o jsonData em um objeto com índice 0 e os dados necessários
-      const inscriptionData = jsonData.map((row, index) => {
+      const inscriptionData = jsonData.map((row) => {
         const name = row["Nome completo"];
         const birthDate = row["Data de nascimento"];
         const sex = row["Sexo"];
@@ -86,9 +86,7 @@ registerRoutes.post(
 
         // Cria o objeto para cada pessoa com nome, idade, sexo e tipo de inscrição
         return {
-          index: index,  // Usando o índice como número sequencial
           name: name,
-          birthDate: birthDate,
           sex: sex,
           inscriptionType: inscriptionType,
           age: age
@@ -99,7 +97,7 @@ registerRoutes.post(
       return res.status(200).json({
         status: "success",
         message: "Arquivo convertido para JSON com sucesso",
-        list: inscriptionData
+        inscription: inscriptionData
       });
 
 
