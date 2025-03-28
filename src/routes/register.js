@@ -17,12 +17,26 @@ const uploadLimiter = rateLimit({
 });
 
 function calculateAge(birthDate) {
+  if (typeof birthDate !== "string") {
+    console.error(`Invalid birthDate:`, birthDate);
+    return null; // Retorna nulo se não for uma string
+  }
+
   // Converte o formato DD/MM/YYYY para YYYY-MM-DD
   const [day, month, year] = birthDate.split("/"); 
-  const formattedDate = `${year}-${month}-${day}`; 
+  if (!day || !month || !year) {
+    console.error(`Invalid date format: ${birthDate}`);
+    return null; // Retorna nulo se o formato estiver errado
+  }
   
+  const formattedDate = `${year}-${month}-${day}`; 
   const today = new Date();
   const birth = new Date(formattedDate);
+
+  if (isNaN(birth.getTime())) {
+    console.error(`Invalid Date object: ${formattedDate}`);
+    return null; // Retorna nulo se não for uma data válida
+  }
 
   let age = today.getFullYear() - birth.getFullYear();
   const currentMonth = today.getMonth();
@@ -35,6 +49,7 @@ function calculateAge(birthDate) {
 
   return age;
 }
+
 
 const upload = multer({ storage: storage, limits: { fileSize: 10 * 1024 * 1024 } });
 
@@ -62,17 +77,20 @@ registerRoutes.post(
 
       const inscriptionData = {};
 
-      // Loop através dos dados para extrair os nomes
+      // Loop para usar a função dentro do seu JSON
       jsonData.forEach(row => {
-        const name = row["Nome completo"];  // Acessa a coluna que contém o nome
+        const name = row["Nome completo"];
         const birthDate = row["Data de nascimento"];
 
-        if(name || birthDate) {
+        if (name && birthDate) {
           const age = calculateAge(birthDate);
-
-          inscriptionData[name] = {
-            name: name,
-            age: age
+          if (age !== null) {
+            inscriptionData[name] = {
+              name: name,
+              age: age
+            };
+          } else {
+            console.warn(`Failed to calculate age for ${name}`);
           }
         }
       });
