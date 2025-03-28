@@ -16,40 +16,38 @@ const uploadLimiter = rateLimit({
   message: { message: "Muitas tentativas de envio. Tente novamente mais tarde" }
 });
 
+function excelSerialDateToJSDate(serial) {
+  const excelEpoch = new Date(1899, 11, 30); // Excel começa em 30/12/1899
+  return new Date(excelEpoch.getTime() + serial * 86400000); // Multiplica pelos ms de um dia
+}
+
+// Função para calcular a idade
 function calculateAge(birthDate) {
-  if (typeof birthDate !== "string") {
+  // Se for número, converte do formato Excel
+  if (typeof birthDate === "number") {
+    birthDate = excelSerialDateToJSDate(birthDate);
+  } else {
+    console.error(`Invalid birthDate type: ${typeof birthDate}`);
+    return null;
+  }
+
+  if (!(birthDate instanceof Date) || isNaN(birthDate)) {
     console.error(`Invalid birthDate:`, birthDate);
-    return null; // Retorna nulo se não for uma string
+    return null;
   }
 
-  // Converte o formato DD/MM/YYYY para YYYY-MM-DD
-  const [day, month, year] = birthDate.split("/"); 
-  if (!day || !month || !year) {
-    console.error(`Invalid date format: ${birthDate}`);
-    return null; // Retorna nulo se o formato estiver errado
-  }
-  
-  const formattedDate = `${year}-${month}-${day}`; 
   const today = new Date();
-  const birth = new Date(formattedDate);
-
-  if (isNaN(birth.getTime())) {
-    console.error(`Invalid Date object: ${formattedDate}`);
-    return null; // Retorna nulo se não for uma data válida
-  }
-
-  let age = today.getFullYear() - birth.getFullYear();
+  let age = today.getFullYear() - birthDate.getFullYear();
   const currentMonth = today.getMonth();
-  const birthMonth = birth.getMonth();
+  const birthMonth = birthDate.getMonth();
 
   // Ajuste para não contar o aniversário antes da data atual
-  if (currentMonth < birthMonth || (currentMonth === birthMonth && today.getDate() < birth.getDate())) {
+  if (currentMonth < birthMonth || (currentMonth === birthMonth && today.getDate() < birthDate.getDate())) {
     age--;
   }
 
   return age;
 }
-
 
 const upload = multer({ storage: storage, limits: { fileSize: 10 * 1024 * 1024 } });
 
@@ -77,15 +75,20 @@ registerRoutes.post(
 
       const inscriptionData = {};
 
-      // Loop para usar a função dentro do seu JSON
+      // Loop para testar com seu JSON
       jsonData.forEach(row => {
         const name = row["Nome completo"];
-        const birthDate = row["Data de nascimento"];
+        const birthDate = row["Data de nascimento"]; // Vem como número
 
-        console.log(birthDate);
-        console.log(typeof birthDate);
+        // Calcula a idade
+        const age = calculateAge(birthDate);
+        
+        console.log(`Nome: ${name}, Idade: ${age}`); // Apenas para verificar
+        
+        // Armazenando no objeto
         inscriptionData[name] = {
-          name: name
+          name: name,
+          age: age
         };
       });
 
