@@ -65,6 +65,7 @@ registerRoutes.post(
       };
 
       let eventRegistrationFees = {};
+      let totals = {};
 
       // Loop através dos dados de inscrição para contar e calcular o valor por tipo de inscrição
       jsonData.forEach(row => {
@@ -134,7 +135,7 @@ registerRoutes.post(
         });
 
         // Calculando o total de cada tipo de inscrição
-        const totals = {
+        totals = {
           normal: inscriptionCount.normal * (eventRegistrationFees['normal']?.valor || 0),
           meia: inscriptionCount.meia * (eventRegistrationFees['meia']?.valor || 0),
           isenta: inscriptionCount.isenta * (eventRegistrationFees['isenta']?.valor || 0),
