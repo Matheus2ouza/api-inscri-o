@@ -58,41 +58,95 @@ registerRoutes.post(
       const inscriptionCount = {
         normal: 0,
         participação: 0,
-        serviço: 0
+        serviço: 0,
+        meia: 0,  // Adicionando uma contagem de "meia" para as inscrições com valor 120
+        isenta: 0, // Adicionando uma contagem de "isenta" para as inscrições com valor 0
       };
-
-      // Loop através dos dados para extrair os nomes
+      
+      let eventRegistrationFees = {};
+      
+      // Loop através dos dados de inscrição para contar e calcular o valor por tipo de inscrição
       jsonData.forEach(row => {
         const type = row["Tipo de Inscrição"];
-
-        if(type) {
+        const birthDate = row["Data de Nascimento"];
+        
+        if (type && birthDate) {
           const lowerCaseType = type.toLowerCase().trim();
-          if(inscriptionCount[lowerCaseType] !== undefined) {
-            inscriptionCount[lowerCaseType] +=1
+      
+          // Calcular a idade a partir da data de nascimento
+          const birthDateObj = new Date(birthDate);
+          const age = new Date().getFullYear() - birthDateObj.getFullYear();
+          
+          // Definindo a lógica de valor baseada na idade
+          let typeToRecord = lowerCaseType;
+          let value = 0; // O valor será ajustado de acordo com a idade e tipo
+          
+          // Definir o tipo de inscrição e valor de acordo com a idade
+          const ageBasedValues = {
+            isenta: { maxAge: 5, value: 0 },
+            meia: { minAge: 6, maxAge: 10, value: 120 },
+            normal: { minAge: 11, value: 200 },
+            participação: { value: 200 },
+            serviço: { value: 100 }
+          };
+      
+          // Determinar o tipo de inscrição baseado na idade
+          for (let typeKey in ageBasedValues) {
+            const rule = ageBasedValues[typeKey];
+      
+            // Verificar se a idade se encaixa nos critérios para o tipo atual
+            if ((rule.minAge === undefined || age >= rule.minAge) && (rule.maxAge === undefined || age <= rule.maxAge)) {
+              typeToRecord = typeKey;
+              value = rule.value;
+              break; // Se encontrou uma correspondência, podemos sair do loop
+            }
           }
-        };
-      });
-
+          
+          // Incrementar o contador para cada tipo de inscrição
+          if (inscriptionCount[typeToRecord] !== undefined) {
+            inscriptionCount[typeToRecord] += 1;
+          }
+        }
+      });      
+      
+      // Agora, consultamos as taxas de inscrição para o evento atual
       const currentEvent = await prisma.eventos.findFirst({
-        where: { status: true, },
-        select: { id: true, },
+        where: { status: true },
+        select: { id: true },
       });
-
-      if(currentEvent) {
+      
+      if (currentEvent) {
         const registrationFees = await prisma.tipo_inscricao.findMany({
-          where: { evento_id: currentEvent.id}
+          where: { evento_id: currentEvent.id },
         });
+      
+        // Preencher o objeto global com as taxas de inscrição para o evento atual
+        registrationFees.forEach(fee => {
+          eventRegistrationFees[fee.descricao.toLowerCase()] = fee;
+        });
+      
+        // Agora, calculamos o total para cada tipo de inscrição baseado nas contagens e valores
+        const totals = {
+          normal: inscriptionCount.normal * (eventRegistrationFees['normal']?.valor || 0),
+          meia: inscriptionCount.meia * (eventRegistrationFees['meia']?.valor || 0),
+          isenta: inscriptionCount.isenta * (eventRegistrationFees['isenta']?.valor || 0),
+          participação: inscriptionCount.participação * (eventRegistrationFees['participação']?.valor || 0),
+          serviço: inscriptionCount.serviço * (eventRegistrationFees['serviço']?.valor || 0),
+        };
+      
+        // Exibir os resultados finais
+        console.log('Contagem de Inscrições por Tipo:', inscriptionCount);
+        console.log('Total por Tipo de Inscrição:', totals);
+      }      
 
-        console.log(registrationFees)
-      };
-
-      // Retorna o JSON com os dados da planilha e a contagem dos tipos de inscrição
-      return res.status(201).json({
-        body: jsonData,
-        inscriptionData: inscriptionData,
-        inscriptionCount: inscriptionCount, // Inclui a contagem no JSON
-        message: "Arquivo convertido para JSON"
-      });
+    // Retorna o JSON com os dados da planilha e a contagem dos tipos de inscrição
+    return res.status(200).json({
+      data: {
+        body: jsonData,              // Dados da planilha
+        inscriptionData: inscriptionData,  // Dados do tipo de inscrição, se houver
+        inscriptionCount: inscriptionCount // Contagem dos tipos de inscrição
+      }
+    });
 
     } catch (error) {
       console.log("Erro interno no servidor", error);
