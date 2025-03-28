@@ -3,6 +3,7 @@ const rateLimit = require("express-rate-limit");
 const multer = require("multer");
 const xlsx = require("xlsx");
 const { PrismaClient } = require('@prisma/client');
+const { list } = require("pdfkit");
 const prisma = new PrismaClient();
 
 const registerRoutes = express.Router();
@@ -73,21 +74,23 @@ registerRoutes.post(
       // Converte os dados da planilha para JSON
       const jsonData = xlsx.utils.sheet_to_json(worksheet);
 
-      const inscriptionData = {};
-
-      // Loop para testar com seu JSON
-      jsonData.forEach(row => {
+      // Loop para transformar o jsonData em um objeto com índice 0 e os dados necessários
+      const inscriptionData = jsonData.map((row, index) => {
         const name = row["Nome completo"];
-        const birthDate = row["Data de nascimento"]; // Vem como número
+        const birthDate = row["Data de nascimento"];
+        const sex = row["Sexo"];
+        const inscriptionType = row["Tipo de Inscrição"];
 
-        // Calcula a idade
+        // Calcula a idade com base na data de nascimento
         const age = calculateAge(birthDate);
-        
-        console.log(`Nome: ${name}, Idade: ${age}`); // Apenas para verificar
-        
-        // Armazenando no objeto
-        inscriptionData[name] = {
+
+        // Cria o objeto para cada pessoa com nome, idade, sexo e tipo de inscrição
+        return {
+          index: index,  // Usando o índice como número sequencial
           name: name,
+          birthDate: birthDate,
+          sex: sex,
+          inscriptionType: inscriptionType,
           age: age
         };
       });
@@ -96,9 +99,7 @@ registerRoutes.post(
       return res.status(200).json({
         status: "success",
         message: "Arquivo convertido para JSON com sucesso",
-        data: {
-          list: inscriptionData,
-        }
+        list: inscriptionData
       });
 
 
