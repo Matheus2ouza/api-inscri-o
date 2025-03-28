@@ -73,7 +73,7 @@ registerRoutes.post(
         };
       });
 
-      const currentEvent = await prisma.eventos.findUnique({
+      const currentEvent = await prisma.eventos.findFirst({
         where: { status: true, },
         select: { id: true, },
       });
