@@ -16,6 +16,21 @@ const uploadLimiter = rateLimit({
   message: { message: "Muitas tentativas de envio. Tente novamente mais tarde" }
 });
 
+function calculateAge(birthDate) {
+  const today = new Date();
+  const birth = new Date(birthDate);
+
+  let age = today.getFullYear() - birth.getFullYear();
+  const currentMonth = today.getMonth();
+  const birthMonth = birth.getMonth();
+
+  if (currentMonth < birthMonth || (currentMonth === birthMonth && today.getDate() < birth.getDate())) {
+    age--;
+  }
+
+  return age;
+}
+
 const upload = multer({ storage: storage, limits: { fileSize: 10 * 1024 * 1024 } });
 
 registerRoutes.post(
@@ -45,22 +60,17 @@ registerRoutes.post(
       // Loop através dos dados para extrair os nomes
       jsonData.forEach(row => {
         const name = row["Nome completo"];  // Acessa a coluna que contém o nome
-        const age = row["Idade"];
+        const birthDate = row["Data de nascimento"];
 
-        if (name) {
+        if(name || birthDate) {
+          const age = calculateAge(birthDate);
+
           inscriptionData[name] = {
             name: name,
             age: age
           }
         }
       });
-
-      // Loop através dos dados de inscrição para contar e calcular o valor por tipo de inscrição
-      jsonData.forEach(row => {
-        
-      });
-
-      
 
       // Retornar os resultados com os dados de inscrição e total
       return res.status(200).json({
