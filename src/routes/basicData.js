@@ -20,23 +20,25 @@ router.get('/localidades', async (req, res) => {
     }
 });
 
-router.get('/eventos', async (req, res) =>{
-    try{
-        const events = await pool.query('SELECT * FROM eventos');
-        const result = events.rows;
+router.get('/eventos', async (req, res) => {
+    try {
+        // Busca todos os eventos usando o Prisma
+        const events = await prisma.eventos.findMany();
 
-        if(result.length === 0) {
-            console.warn(`Nenhum evento encontrado`);
-            res.status(401).json({message: 'Nenhum evento encontrado'});
-        } else {
-            console.log(`Consulta de eventos feita com sucesso`);
-            res.status(201).json(result)
+        if (events.length === 0) {
+            console.warn('Nenhum evento encontrado');
+            return res.status(404).json({ message: 'Nenhum evento encontrado' });
         }
-    }catch (err) {
-        console.error(`Erro ao buscar os eventos: ${err}`);
-        res.status(500).json({ error: `Erro na busca de eventos ${err}` });
+
+        console.log('Consulta de eventos feita com sucesso');
+        res.status(200).json(events);
+    } catch (err) {
+        console.error(`Erro ao buscar os eventos: ${err.message}`);
+        res.status(500).json({ error: `Erro na busca de eventos: ${err.message}` });
+    } finally {
+        await prisma.$disconnect(); // Encerra a conexão
     }
-})
+});
 
 router.get('/inscricaoData', async(req, res) =>{
     try{
