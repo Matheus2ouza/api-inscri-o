@@ -71,7 +71,20 @@ registerRoutes.post(
             inscriptionCount[lowerCaseType] +=1
           }
         };
-      })
+      });
+
+      const currentEvent = await prisma.eventos.findUnique({
+        where: { status: true, },
+        select: { id: true, },
+      });
+
+      if(currentEvent) {
+        const registrationFees = await prisma.tipo_inscricao.findMany({
+          where: { evento_id: currentEvent.id}
+        });
+
+        console.log(registrationFees)
+      };
 
       // Retorna o JSON com os dados da planilha e a contagem dos tipos de inscrição
       return res.status(201).json({

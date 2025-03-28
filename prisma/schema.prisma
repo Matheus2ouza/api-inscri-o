@@ -48,8 +48,10 @@ model eventos {
   id                Int                 @id @default(autoincrement())
   descricao         String              @db.VarChar(200)
   data_limite       DateTime            @db.Date
-  inscricao_avulsa2 inscricao_avulsa2[]
+  status            Boolean             @default(true)
+  inscricao_avulsa  inscricao_avulsa[]
   inscricao_geral   inscricao_geral[]
+  tipo_inscricao    tipo_inscricao[]
   venda_alimentacao venda_alimentacao[]
 }
 
@@ -91,24 +93,7 @@ model inscricao_7_10 {
 }
 
 model inscricao_avulsa {
-  id                     Int      @id @default(autoincrement())
-  vl_total               Decimal  @db.Decimal(10, 2)
-  data                   DateTime @db.Date
-  qtd_geral_06           Int?     @default(0)
-  qtd_geral_7_10         Int?     @default(0)
-  qtd_geral_normal       Int?     @default(0)
-  qtd_geral_visitante    Int?     @default(0)
-  id_localidade          Int?
-  localidade             String   @db.VarChar(50)
-  qtd_geral_pulseiras    Int?     @default(0)
-  forma_pagamento        String   @db.VarChar(50)
-  qtd_geral_servico      Int?     @default(0)
-  qtd_geral_visitantes   Int?     @default(0)
-  qtd_geral_participacao Int?     @default(0)
-}
-
-model inscricao_avulsa2 {
-  id               Int                @id @default(autoincrement())
+  id               Int                @id(map: "inscricao_avulsa2_pkey") @default(autoincrement())
   evento_id        Int
   localidade_id    Int
   qtd_0_6          Int                @default(0)
@@ -117,8 +102,8 @@ model inscricao_avulsa2 {
   qtd_visitante    Int                @default(0)
   data             DateTime?          @db.Date
   nome_responsavel String?            @db.VarChar(255)
-  eventos          eventos            @relation(fields: [evento_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
-  localidades      localidades        @relation(fields: [localidade_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  eventos          eventos            @relation(fields: [evento_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "inscricao_avulsa2_evento_id_fkey")
+  localidades      localidades        @relation(fields: [localidade_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "inscricao_avulsa2_localidade_id_fkey")
   pagamento_avulso pagamento_avulso[]
 }
 
@@ -167,7 +152,7 @@ model localidades {
   autenticacao_localidades autenticacao_localidades?
   comprovantes             comprovantes[]
   email_verification       email_verification[]
-  inscricao_avulsa2        inscricao_avulsa2[]
+  inscricao_avulsa         inscricao_avulsa[]
   inscricao_geral          inscricao_geral[]
 }
 
@@ -188,22 +173,24 @@ model pagamento_alimentacao {
 }
 
 model pagamento_avulso {
-  id                   Int               @id @default(autoincrement())
+  id                   Int              @id @default(autoincrement())
   inscricao_avulsa2_id Int
-  tipo_pagamento       String            @db.VarChar(100)
+  tipo_pagamento       String           @db.VarChar(100)
   valor                Int
-  inscricao_avulsa2    inscricao_avulsa2 @relation(fields: [inscricao_avulsa2_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  inscricao_avulsa2    inscricao_avulsa @relation(fields: [inscricao_avulsa2_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
 }
 
 model tipo_inscricao {
   id                        Int                         @id @default(autoincrement())
   descricao                 String                      @db.VarChar(50)
   valor                     Decimal?                    @db.Decimal(10, 2)
+  evento_id                 Int?
   inscricao_0_6             inscricao_0_6[]
   inscricao_10_acima        inscricao_10_acima[]
   inscricao_7_10            inscricao_7_10[]
   inscricao_servico         inscricao_servico[]
   inscricao_tx_participacao inscricao_tx_participacao[]
+  eventos                   eventos?                    @relation(fields: [evento_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_evento")
 }
 
 model venda_alimentacao {
