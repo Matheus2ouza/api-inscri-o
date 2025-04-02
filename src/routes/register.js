@@ -117,7 +117,7 @@ registerRoutes.post(
         where: { evento_id: event.id },
       });
       
-      console.log(valueInscription);
+      console.log("Tipos de inscrição disponíveis:", valueInscription);
       
       // Mapeamento de tipos de inscrição para os contadores
       const tipoInscricaoMap = {
@@ -130,7 +130,7 @@ registerRoutes.post(
       // Função para processar cada pessoa
       function processPerson(person) {
         console.log(`Processando ${person.name} - Tipo de Inscrição: ${person.inscriptionType}`);
-      
+        
         if (person.age < 6) {
           // Se a pessoa for menor que 6 anos, é isenta
           inscriptionCount.isenta++;
@@ -146,6 +146,11 @@ registerRoutes.post(
       function processInscricaoType(person) {
         // Usando person.inscriptionType para acessar o tipo de inscrição corretamente
         console.log(`Buscando tipo de inscrição para ${person.name}: ${person.inscriptionType}`);
+      
+        // Aqui vamos mostrar os tipos de inscrição para ver como estão sendo passados
+        valueInscription.forEach(inscricao => {
+          console.log(`Descrição no banco de dados: "${inscricao.descricao}"`);
+        });
       
         const tipoInscricao = valueInscription.find(inscricao => 
           inscricao.descricao.trim().toUpperCase() === person.inscriptionType.trim().toUpperCase()
@@ -180,6 +185,7 @@ registerRoutes.post(
         inscriptionCount: inscriptionCount,
         totais: totais
       });
+      
       
 
     } catch (error) {
