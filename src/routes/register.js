@@ -142,15 +142,19 @@ registerRoutes.post(
       // Função para processar o tipo de inscrição
       function processInscricaoType(person) {
         // Usando person.inscriptionType para acessar o tipo de inscrição corretamente
-        const tipoInscricao = valueInscription.find(inscricao => inscricao.tipo_inscricao === person.inscriptionType);
-      
+        const tipoInscricao = valueInscription.find(inscricao => 
+          inscricao.tipo_inscricao.trim().toUpperCase() === person.inscriptionType.trim().toUpperCase()
+        );
+
         if (!tipoInscricao) {
           console.log(`Tipo de inscrição não encontrado para ${person.name}`);
           return;
         }
-      
+
         // Convertendo o tipo de inscrição para maiúsculas e verificando se é válido
-        const tipo = person.inscriptionType.toUpperCase();
+        const tipo = person.inscriptionType.trim().toUpperCase();
+
+        console.log(tipo);
         if (tipoInscricaoMap[tipo]) {
           inscriptionCount[tipoInscricaoMap[tipo].count]++;
           totais[tipoInscricaoMap[tipo].total]++;
