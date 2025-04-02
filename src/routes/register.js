@@ -93,11 +93,81 @@ registerRoutes.post(
         };
       });
 
+      const inscriptionCount = {
+        normal: 0,
+        meia: 0,
+        participação: 0,
+        serviço: 0,
+        isenta: 0
+      };
+      
+      const totais = {
+        totalNormal: 0,
+        totalMeia: 0,
+        totalParticipação: 0,
+        totalServiço: 0
+      };
+      
+      const event = await prisma.eventos.findFirst({
+        where: { status: true },
+        select: { id: true }
+      });
+      
+      const valueInscription = await prisma.tipo_inscricao.findMany({
+        where: { evento_id: event.id },
+      });
+      
+      console.log(valueInscription);
+      
+      // Mapeamento de tipos de inscrição para os contadores
+      const tipoInscricaoMap = {
+        'NORMAL': { count: 'normal', total: 'totalNormal' },
+        'MEIA': { count: 'meia', total: 'totalMeia' },
+        'PARTICIPAÇÃO': { count: 'participação', total: 'totalParticipação' },
+        'SERVIÇO': { count: 'serviço', total: 'totalServiço' }
+      };
+      
+      // Função para processar cada pessoa
+      function processPerson(person) {
+        if (person.age < 6) {
+          // Se a pessoa for menor que 6 anos, é isenta
+          inscriptionCount.isenta++;
+          return;
+        }
+      
+        // Se a pessoa tem 6 anos ou mais, vamos verificar o tipo de inscrição
+        processInscricaoType(person);
+      }
+      
+      // Função para processar o tipo de inscrição
+      function processInscricaoType(person) {
+        const tipoInscricao = valueInscription.find(inscricao => inscricao.tipo_inscricao === person.tipo_inscricao);
+      
+        if (!tipoInscricao) {
+          console.log(`Tipo de inscrição não encontrado para ${person.name}`);
+          return;
+        }
+      
+        // Incrementa os contadores de inscrição e totais
+        const tipo = person.tipo_inscricao.toUpperCase();
+        if (tipoInscricaoMap[tipo]) {
+          inscriptionCount[tipoInscricaoMap[tipo].count]++;
+          totais[tipoInscricaoMap[tipo].total]++;
+        } else {
+          console.log(`Tipo de inscrição desconhecido para ${person.name}`);
+        }
+      }
+      
+      // Processando todas as pessoas
+      inscriptionData.forEach(processPerson);
+      
       // Retornar os resultados com os dados de inscrição e total
       return res.status(200).json({
         status: "success",
         message: "Arquivo convertido para JSON com sucesso",
-        inscription: inscriptionData
+        inscription: inscriptionData,
+        inscriptionCount: inscriptionCount,
+        totais: totais
       });
 
 
