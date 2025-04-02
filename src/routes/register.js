@@ -152,7 +152,7 @@ registerRoutes.post(
         }
 
         // Convertendo o tipo de inscrição para maiúsculas e verificando se é válido
-        const tipo = person.inscriptionType.trim().toUpperCase();
+        const tipo = person.inscriptionType.toUpperCase();
 
         console.log(tipo);
         if (tipoInscricaoMap[tipo]) {
