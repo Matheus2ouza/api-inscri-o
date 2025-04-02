@@ -129,9 +129,12 @@ registerRoutes.post(
       
       // Função para processar cada pessoa
       function processPerson(person) {
+        console.log(`Processando ${person.name} - Tipo de Inscrição: ${person.inscriptionType}`);
+      
         if (person.age < 6) {
           // Se a pessoa for menor que 6 anos, é isenta
           inscriptionCount.isenta++;
+          console.log(`${person.name} é isento.`);
           return;
         }
       
@@ -142,20 +145,21 @@ registerRoutes.post(
       // Função para processar o tipo de inscrição
       function processInscricaoType(person) {
         // Usando person.inscriptionType para acessar o tipo de inscrição corretamente
+        console.log(`Buscando tipo de inscrição para ${person.name}: ${person.inscriptionType}`);
+      
         const tipoInscricao = valueInscription.find(inscricao => 
           inscricao.descricao.trim().toUpperCase() === person.inscriptionType.trim().toUpperCase()
         );
-
-        console.log(tipoInscricao)
+      
         if (!tipoInscricao) {
           console.log(`Tipo de inscrição não encontrado para ${person.name}`);
           return;
         }
-
+      
         // Convertendo o tipo de inscrição para maiúsculas e verificando se é válido
         const tipo = person.inscriptionType.trim().toUpperCase();
-
-        console.log(tipo)
+        console.log(`Tipo de inscrição encontrado para ${person.name}: ${tipo}`);
+      
         if (tipoInscricaoMap[tipo]) {
           inscriptionCount[tipoInscricaoMap[tipo].count]++;
           totais[tipoInscricaoMap[tipo].total]++;
@@ -171,11 +175,12 @@ registerRoutes.post(
       return res.status(200).json({
         status: "success",
         message: "Arquivo convertido para JSON com sucesso",
-        data:jsonData,
+        data: jsonData,
         inscription: inscriptionData,
         inscriptionCount: inscriptionCount,
         totais: totais
       });
+      
 
     } catch (error) {
       console.log("Erro interno no servidor", error);
