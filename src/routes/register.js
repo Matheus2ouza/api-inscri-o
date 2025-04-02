@@ -149,7 +149,7 @@ registerRoutes.post(
       
         // Aqui vamos mostrar os tipos de inscrição para ver como estão sendo passados
         valueInscription.forEach(inscricao => {
-          console.log(`Descrição no banco de dados: "${inscricao.descricao}"`);
+          console.log(`Descrição no banco de dados: "${inscricao.descricao}", Valor: ${inscricao.valor}`);
         });
       
         const tipoInscricao = valueInscription.find(inscricao => 
@@ -165,9 +165,10 @@ registerRoutes.post(
         const tipo = person.inscriptionType.trim().toUpperCase();
         console.log(`Tipo de inscrição encontrado para ${person.name}: ${tipo}`);
       
+        // Incrementa a contagem e o valor
         if (tipoInscricaoMap[tipo]) {
           inscriptionCount[tipoInscricaoMap[tipo].count]++;
-          totais[tipoInscricaoMap[tipo].total]++;
+          totais[tipoInscricaoMap[tipo].total] += tipoInscricao.valor; // Soma o valor da inscrição ao total
         } else {
           console.log(`Tipo de inscrição desconhecido para ${person.name}`);
         }
@@ -185,8 +186,7 @@ registerRoutes.post(
         inscriptionCount: inscriptionCount,
         totais: totais
       });
-      
-      
+          
 
     } catch (error) {
       console.log("Erro interno no servidor", error);
