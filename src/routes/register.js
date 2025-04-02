@@ -143,8 +143,10 @@ registerRoutes.post(
       function processInscricaoType(person) {
         // Usando person.inscriptionType para acessar o tipo de inscrição corretamente
         const tipoInscricao = valueInscription.find(inscricao => 
-          inscricao.tipo_inscricao.trim().toUpperCase() === person.inscriptionType.trim().toUpperCase()
+          inscricao.tipo_inscricao.toUpperCase() === person.inscriptionType.toUpperCase()
         );
+
+        console.log(tipoInscricao)
 
         if (!tipoInscricao) {
           console.log(`Tipo de inscrição não encontrado para ${person.name}`);
