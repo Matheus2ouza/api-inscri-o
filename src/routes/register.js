@@ -143,7 +143,7 @@ registerRoutes.post(
       function processInscricaoType(person) {
         // Usando person.inscriptionType para acessar o tipo de inscrição corretamente
         const tipoInscricao = valueInscription.find(inscricao => 
-          inscricao.tipo_inscricao.toUpperCase() === person.inscriptionType.toUpperCase()
+          inscricao.tipo_inscricao === person.inscriptionType
         );
 
         console.log(tipoInscricao)
@@ -154,7 +154,7 @@ registerRoutes.post(
         }
 
         // Convertendo o tipo de inscrição para maiúsculas e verificando se é válido
-        const tipo = person.inscriptionType.toUpperCase();
+        const tipo = person.inscriptionType;
 
         console.log(tipo);
         if (tipoInscricaoMap[tipo]) {
