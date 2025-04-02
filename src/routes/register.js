@@ -166,6 +166,7 @@ registerRoutes.post(
       return res.status(200).json({
         status: "success",
         message: "Arquivo convertido para JSON com sucesso",
+        data:jsonData,
         inscription: inscriptionData,
         inscriptionCount: inscriptionCount,
         totais: totais
