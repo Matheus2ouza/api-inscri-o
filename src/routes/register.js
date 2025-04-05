@@ -4,6 +4,7 @@ const multer = require("multer");
 const xlsx = require("xlsx");
 const { PrismaClient } = require('@prisma/client');
 const { list } = require("pdfkit");
+const { authenticateToken } = require("../middlewares/authMiddleware");
 const prisma = new PrismaClient();
 
 const registerRoutes = express.Router();
@@ -54,15 +55,14 @@ const upload = multer({ storage: storage, limits: { fileSize: 10 * 1024 * 1024 }
 
 registerRoutes.post(
   "/upload-file",
+  authenticateToken,
   uploadLimiter,
-  upload.single("file"),  // "file" deve ser o mesmo nome usado no frontend
+  upload.single("file"),
   async (req, res) => {
     try {
       if (!req.file) {
         return res.status(400).json({ message: "Nenhum arquivo enviado." });
       }
-
-      console.log("Arquivo recebido:", req.file); // Verifica os detalhes do arquivo
 
       // Lê o arquivo Excel a partir da memória
       const workbook = xlsx.read(req.file.buffer, { type: 'buffer' });
@@ -188,13 +188,10 @@ registerRoutes.post(
       return res.status(200).json({
         status: "success",
         message: "Arquivo convertido para JSON com sucesso",
-        data: jsonData,
         inscription: inscriptionData,
         inscriptionCount: inscriptionCount,
         totais: totais
-      });
-      
-      
+      });       
 
     } catch (error) {
       console.log("Erro interno no servidor", error);
