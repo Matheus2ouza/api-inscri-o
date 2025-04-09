@@ -64,6 +64,9 @@ registerRoutes.post(
         return res.status(400).json({ message: "Nenhum arquivo enviado." });
       }
 
+      const user = req.user
+      console.log(user)
+
       // Lê o arquivo Excel a partir da memória
       const workbook = xlsx.read(req.file.buffer, { type: 'buffer' });
 

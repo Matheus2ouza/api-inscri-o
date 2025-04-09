@@ -264,7 +264,6 @@ registerRoutes.get('/verify-token', authenticateToken, async (req, res) => {
     res.status(200).json({ message: "Token valido" });
 });
 
-
 /**
  * Rota para atualizar o accessToken
  */
@@ -315,6 +314,5 @@ registerRoutes.post('/refresh-token', async (req, res) => {
         return res.status(500).json({ message: "Erro interno no servidor ao atualizar token" });
     }
 });
-
 
 module.exports = registerRoutes;

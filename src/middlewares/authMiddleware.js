@@ -51,6 +51,7 @@ function authenticateToken(req, res, next) {
         console.log("Token decodificado com sucesso:", decoded);
 
         req.user = decoded; // Armazena os dados decodificados
+
         next();
     } catch (error) {
         console.error("Erro ao validar o token:", error);
