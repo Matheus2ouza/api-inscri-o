@@ -77,124 +77,112 @@ registerRoutes.post(
       // Converte os dados da planilha para JSON
       const jsonData = xlsx.utils.sheet_to_json(worksheet);
 
-      // Loop para transformar o jsonData em um objeto com índice 0 e os dados necessários
-      const inscriptionData = jsonData.map((row) => {
-        const name = row["Nome completo"];
-        const birthDate = row["Data de nascimento"];
-        const sex = row["Sexo"];
-        const inscriptionType = row["Tipo de Inscrição"];
+    // Funções auxiliares de log
+    function logError(context, error) {
+      console.error(`[ERRO] ${context}:`, error);
+    }
 
-        // Calcula a idade com base na data de nascimento
-        const age = calculateAge(birthDate);
+    function logWarn(context, warning) {
+      console.warn(`[AVISO] ${context}:`, warning);
+    }
 
-        // Cria o objeto para cada pessoa com nome, idade, sexo e tipo de inscrição
-        return {
-          name: name,
-          sex: sex,
-          inscriptionType: inscriptionType,
-          age: age
-        };
-      });
+    // Transforma o Excel em JSON
+    const inscriptionData = jsonData.map((row) => {
+      const name = row["Nome completo"];
+      const birthDate = row["Data de nascimento"];
+      const sex = row["Sexo"];
+      const inscriptionType = row["Tipo de Inscrição"];
 
-      const inscriptionCount = {
-        normal: 0,
-        meia: 0,
-        participação: 0,
-        serviço: 0,
-        isenta: 0
+      const age = calculateAge(birthDate);
+
+      return {
+        name: name,
+        sex: sex,
+        inscriptionType: inscriptionType,
+        age: age
       };
-      
-      const totais = {
-        totalNormal: 0,
-        totalMeia: 0,
-        totalParticipação: 0,
-        totalServiço: 0
-      };
-      
-      const event = await prisma.eventos.findFirst({
-        where: { status: true },
-        select: { id: true }
-      });
-      
-      const valueInscription = await prisma.tipo_inscricao.findMany({
-        where: { evento_id: event.id },
-      });
-      
-      console.log("Tipos de inscrição disponíveis:", valueInscription);
-      
-      // Mapeamento de tipos de inscrição para os contadores
-      const tipoInscricaoMap = {
-        'NORMAL': { count: 'normal', total: 'totalNormal' },
-        'MEIA': { count: 'meia', total: 'totalMeia' },
-        'PARTICIPAÇÃO': { count: 'participação', total: 'totalParticipação' },
-        'SERVIÇO': { count: 'serviço', total: 'totalServiço' }
-      };
-      
-      // Função para processar cada pessoa
-      function processPerson(person) {
-        console.log(`Processando ${person.name} - Tipo de Inscrição: ${person.inscriptionType}`);
-        
-        if (person.age < 6) {
-          // Se a pessoa for menor que 6 anos, é isenta
-          inscriptionCount.isenta++;
-          console.log(`${person.name} é isento.`);
-          return;
-        }
-      
-        // Se a pessoa tem 6 anos ou mais, vamos verificar o tipo de inscrição
-        processInscricaoType(person);
+    });
+
+    const inscriptionCount = {
+      normal: 0,
+      meia: 0,
+      participação: 0,
+      serviço: 0,
+      isenta: 0
+    };
+
+    const totais = {
+      totalNormal: 0,
+      totalMeia: 0,
+      totalParticipação: 0,
+      totalServiço: 0
+    };
+
+    const event = await prisma.eventos.findFirst({
+      where: { status: true },
+      select: { id: true }
+    });
+
+    const valueInscription = await prisma.tipo_inscricao.findMany({
+      where: { evento_id: event.id },
+    });
+
+    const tipoInscricaoMap = {
+      'NORMAL': { count: 'normal', total: 'totalNormal' },
+      'MEIA': { count: 'meia', total: 'totalMeia' },
+      'PARTICIPAÇÃO': { count: 'participação', total: 'totalParticipação' },
+      'SERVIÇO': { count: 'serviço', total: 'totalServiço' }
+    };
+
+    // Processa cada pessoa
+    function processPerson(person) {
+      if (person.age < 6) {
+        inscriptionCount.isenta++;
+        return;
       }
-      
-      // Função para processar o tipo de inscrição
-      function processInscricaoType(person) {
-        // Usando person.inscriptionType para acessar o tipo de inscrição corretamente
-        console.log(`Buscando tipo de inscrição para ${person.name}: ${person.inscriptionType}`);
-      
-        // Exibir os tipos de inscrição do banco de dados
-        valueInscription.forEach(inscricao => {
-          console.log(`Descrição no banco de dados: "${inscricao.descricao}", Valor: ${inscricao.valor}`);
-        });
-      
-        const tipoInscricao = valueInscription.find(inscricao => 
-          inscricao.descricao.trim().toUpperCase() === person.inscriptionType.trim().toUpperCase()
-        );
-      
-        if (!tipoInscricao) {
-          console.log(`Tipo de inscrição não encontrado para ${person.name}`);
-          return;
-        }
-      
-        // Convertendo o tipo de inscrição para maiúsculas e verificando se é válido
-        const tipo = person.inscriptionType.trim().toUpperCase();
-        console.log(`Tipo de inscrição encontrado para ${person.name}: ${tipo}`);
-      
-        // Convertendo o valor para Number antes de somar
-        const valorInscricao = Number(tipoInscricao.valor);
-        if (isNaN(valorInscricao)) {
-          console.log(`Valor inválido encontrado para ${person.name}: ${tipoInscricao.valor}`);
-          return;
-        }
-      
-        // Incrementa a contagem e soma o valor ao total
-        if (tipoInscricaoMap[tipo]) {
-          inscriptionCount[tipoInscricaoMap[tipo].count]++;
-          totais[tipoInscricaoMap[tipo].total] += valorInscricao;
-        } else {
-          console.log(`Tipo de inscrição desconhecido para ${person.name}`);
-        }
+
+      processInscricaoType(person);
+    }
+
+    // Processa o tipo de inscrição
+    function processInscricaoType(person) {
+      const tipoInscricao = valueInscription.find(inscricao => 
+        inscricao.descricao.trim().toUpperCase() === person.inscriptionType.trim().toUpperCase()
+      );
+
+      if (!tipoInscricao) {
+        logWarn("Tipo de inscrição não encontrado", `${person.name} - "${person.inscriptionType}"`);
+        return;
       }
+
+      const tipo = person.inscriptionType.trim().toUpperCase();
+      const valorInscricao = Number(tipoInscricao.valor);
+
+      if (isNaN(valorInscricao)) {
+        logError("Valor inválido", `${person.name} - Valor: ${tipoInscricao.valor}`);
+        return;
+      }
+
+      if (tipoInscricaoMap[tipo]) {
+        inscriptionCount[tipoInscricaoMap[tipo].count]++;
+        totais[tipoInscricaoMap[tipo].total] += valorInscricao;
+      } else {
+        logWarn("Tipo de inscrição desconhecido", person.name);
+      }
+    }
+
+    // Processa todo mundo
+    inscriptionData.forEach(processPerson);
+
+    // Retorna a resposta
+    return res.status(200).json({
+      status: "success",
+      message: "Arquivo convertido para JSON com sucesso",
+      inscription: inscriptionData,
+      inscriptionCount: inscriptionCount,
+      totais: totais
+    });
       
-      // Processando todas as pessoas
-      inscriptionData.forEach(processPerson);
-      
-      // Retornar os resultados com os dados de inscrição e total
-      return res.status(200).json({
-        status: "success",
-        message: "Arquivo convertido para JSON com sucesso",
-        inscription: inscriptionData,
-        inscriptionCount: inscriptionCount,
-        totais: totais
-      });       
 
     } catch (error) {
       console.log("Erro interno no servidor", error);
