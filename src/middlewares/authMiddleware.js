@@ -38,7 +38,6 @@ function authenticateToken(req, res, next) {
     const token = authHeader && authHeader.split(" ")[1]; // Pega o token corretamente
 
     console.log("Verificando autenticação...");
-    console.log("Cabeçalho de autorização recebido:", authHeader);
     console.log("Token extraído:", token);
 
     if (!token) {
@@ -49,6 +48,7 @@ function authenticateToken(req, res, next) {
     try {
         const decoded = jwt.verify(token, process.env.JWT_SECRET_AUTH);
         console.log("Token decodificado com sucesso:", decoded);
+        console.log("Expira em:", new Date(decoded.exp * 1000), " | Agora:", new Date());
 
         req.user = decoded; // Armazena os dados decodificados
 
