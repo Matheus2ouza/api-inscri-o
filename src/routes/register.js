@@ -3,9 +3,10 @@ const rateLimit = require("express-rate-limit");
 const multer = require("multer");
 const xlsx = require("xlsx");
 const { PrismaClient } = require('@prisma/client');
-const { list } = require("pdfkit");
 const { authenticateToken } = require("../middlewares/authMiddleware");
 const prisma = new PrismaClient();
+const { v4: uuidv4 } = require("uuid");
+const { redis } = require("..lib/redis")
 
 const registerRoutes = express.Router();
 
@@ -188,6 +189,15 @@ registerRoutes.post(
       console.log("Erro interno no servidor", error);
       return res.status(500).json({ message: "Erro interno no servidor" });
     }
+  }
+);
+
+registerRoutes.post(
+  "/confirm-register",
+  authenticateToken,
+  uploadLimiter,
+  async (req, res) =>{
+
   }
 );
 
