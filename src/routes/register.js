@@ -6,7 +6,7 @@ const { PrismaClient } = require('@prisma/client');
 const { authenticateToken } = require("../middlewares/authMiddleware");
 const prisma = new PrismaClient();
 const { v4: uuidv4 } = require("uuid");
-const { redis } = require("..lib/redis")
+const { redis } = require("../lib/redis")
 
 const registerRoutes = express.Router();
 
