@@ -11,7 +11,7 @@ function generateTokenAuth(payload) {
     const accessToken = jwt.sign(
         { id: payload.id, nome: payload.nome, role: payload.role },
         process.env.JWT_SECRET_AUTH,
-        { expiresIn: "10s" }
+        { expiresIn: "2h" }
     );
 
     const refreshToken = jwt.sign(
