@@ -68,8 +68,8 @@ registerRoutes.post(
       const user = req.user
       console.log(user)
 
-      const responsible = req.responsible
-      console.log(responsible)
+      const responsible = req.body.responsible;
+      console.log(responsible);
 
       // Lê o arquivo Excel a partir da memória
       const workbook = xlsx.read(req.file.buffer, { type: 'buffer' });
