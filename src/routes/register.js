@@ -68,7 +68,7 @@ registerRoutes.post(
       const user = req.user
       console.log(user)
 
-      const responsible = req.responsibleName
+      const responsible = req.responsible
       console.log(responsible)
 
       // Lê o arquivo Excel a partir da memória
