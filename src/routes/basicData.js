@@ -50,7 +50,12 @@ router.get('/eventData', async (req, res) => {
           status: true, // se quiser só eventos ativos
         },
         include: {
-          tipo_inscricao: true, // traz junto os tipos de inscrição
+          tipo_inscricao: {
+            select: {
+                descricao: true,
+                valor: true
+            }
+          }
         },
         orderBy: {
           data_limite: 'asc'
