@@ -42,20 +42,25 @@ router.get('/eventos', async (req, res) => {
     }
 });
 
-router.get('/eventData', async(req, res) =>{
-    try {
-        const events = prisma.eventos.findMany({
-            include: {
-                tipo_inscricao: true
-            }
-        });
 
-        res.status(200).json(events);
-    } catch (err) {
-        console.error(`Erro ao buscar os eventos: ${err.message}`);
-        res.status(400).json({ error: `Erro na busca de eventos: ${err.message}` });
-    } finally {
-        await prisma.$disconnect(); // Encerra a conexão
+router.get('/eventData', async (req, res) => {
+    try {
+      const eventos = await prisma.eventos.findMany({
+        where: {
+          status: true, // se quiser só eventos ativos
+        },
+        include: {
+          tipo_inscricao: true, // traz junto os tipos de inscrição
+        },
+        orderBy: {
+          data_limite: 'asc'
+        }
+      });
+  
+      res.status(200).json(eventos);
+    } catch (error) {
+      console.error(error);
+      res.status(500).json({ message: 'Erro ao buscar os eventos.' });
     }
 });
 
