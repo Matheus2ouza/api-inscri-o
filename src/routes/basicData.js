@@ -34,7 +34,24 @@ router.get('/eventos', async (req, res) => {
         res.status(200).json(events);
     } catch (err) {
         console.error(`Erro ao buscar os eventos: ${err.message}`);
-        res.status(500).json({ error: `Erro na busca de eventos: ${err.message}` });
+        res.status(400).json({ error: `Erro na busca de eventos: ${err.message}` });
+    } finally {
+        await prisma.$disconnect(); // Encerra a conexão
+    }
+});
+
+router.get('/eventData', async(req, res) =>{
+    try {
+        const events = prisma.eventos.findMany({
+            include: {
+                tipo_inscricao: true
+            }
+        });
+
+        res.status(200).json(events);
+    } catch (err) {
+        console.error(`Erro ao buscar os eventos: ${err.message}`);
+        res.status(400).json({ error: `Erro na busca de eventos: ${err.message}` });
     } finally {
         await prisma.$disconnect(); // Encerra a conexão
     }
