@@ -46,9 +46,6 @@ router.get('/eventos', async (req, res) => {
 router.get('/eventData', async (req, res) => {
     try {
       const eventos = await prisma.eventos.findMany({
-        where: {
-          status: true, // se quiser só eventos ativos
-        },
         include: {
           tipo_inscricao: {
             select: {
