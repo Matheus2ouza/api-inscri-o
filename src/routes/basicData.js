@@ -1,6 +1,8 @@
 const express = require('express')
 const router = express.Router();
 const { pool } = require('../db/dbConnection')
+const { PrismaClient } = require('@prisma/client');
+const prisma = new PrismaClient();
 
 router.get('/localidades', async (req, res) => {
     try {
