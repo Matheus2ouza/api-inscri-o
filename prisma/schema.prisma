@@ -48,7 +48,6 @@ model eventos {
   id                Int                 @id @default(autoincrement())
   descricao         String              @db.VarChar(200)
   data_limite       DateTime            @db.Date
-  status            Boolean             @default(true)
 
   inscricao_avulsa  inscricao_avulsa[]
   tipo_inscricao    tipo_inscricao[]
