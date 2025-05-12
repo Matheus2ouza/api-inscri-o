@@ -33,9 +33,14 @@ router.get('/eventos', async (req, res) => {
         const events = await prisma.eventos.findMany({
             include: {
                 tipo_inscricao: {
+                    where: {
+                        valor: {
+                            gt: 0
+                        }
+                    },
                     select: {
                         descricao: true,
-                        valor: true
+                        valor: true,
                     }
                 },
             },
