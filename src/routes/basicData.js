@@ -30,7 +30,11 @@ router.get('/localidades', async (req, res) => {
 router.get('/eventos', async (req, res) => {
     try {
         // Busca todos os eventos usando o Prisma
-        const events = await prisma.eventos.findMany();
+        const events = await prisma.eventos.findMany({
+            include: {
+                tipo_inscricao:true
+            },
+        });
 
         if (events.length === 0) {
             console.warn('Nenhum evento encontrado');
@@ -46,7 +50,6 @@ router.get('/eventos', async (req, res) => {
         await prisma.$disconnect(); // Encerra a conexão
     }
 });
-
 
 router.get('/eventData', async (req, res) => {
     try {
