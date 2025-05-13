@@ -66,7 +66,10 @@ registerRoutes.post(
       }
 
       const user = req.user
-      console.log(user)
+      console.log(user);
+
+      const eventSelected = req.body.event;
+      console.log(event);
 
       const responsible = req.body.responsible;
       console.log(responsible);
