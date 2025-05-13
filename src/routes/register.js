@@ -99,17 +99,12 @@ registerRoutes.post(
       const birthDate = row["Data de nascimento"];
       const sex = row["Sexo"];
       const inscriptionType = row["Tipo de Inscrição"];
-
       const age = calculateAge(birthDate);
 
-      return {
-        name: name,
-        sex: sex,
-        inscriptionType: inscriptionType,
-        age: age
-      };
+      return { name, sex, inscriptionType, age };
     });
 
+    // Inicializa contadores
     const inscriptionCount = {
       normal: 0,
       meia: 0,
@@ -125,15 +120,14 @@ registerRoutes.post(
       totalServiço: 0
     };
 
-    const event = await prisma.eventos.findFirst({
-      where: { status: true },
-      select: { id: true }
+    // Busca os tipos de inscrição para o evento selecionado
+    const tiposInscricao = await prisma.tipo_inscricao.findMany({
+      where: {
+        evento_id: Number(eventSelected)
+      }
     });
 
-    const valueInscription = await prisma.tipo_inscricao.findMany({
-      where: { evento_id: event.id },
-    });
-
+    // Mapeamento dos tipos para as chaves de contagem
     const tipoInscricaoMap = {
       'NORMAL': { count: 'normal', total: 'totalNormal' },
       'MEIA': { count: 'meia', total: 'totalMeia' },
@@ -148,37 +142,33 @@ registerRoutes.post(
         return;
       }
 
-      processInscricaoType(person);
-    }
-
-    // Processa o tipo de inscrição
-    function processInscricaoType(person) {
-      const tipoInscricao = valueInscription.find(inscricao => 
-        inscricao.descricao.trim().toUpperCase() === person.inscriptionType.trim().toUpperCase()
+      const tipo = person.inscriptionType?.trim().toUpperCase();
+      const tipoInfo = tiposInscricao.find(t =>
+        t.descricao.trim().toUpperCase() === tipo
       );
 
-      if (!tipoInscricao) {
+      if (!tipoInfo) {
         logWarn("Tipo de inscrição não encontrado", `${person.name} - "${person.inscriptionType}"`);
         return;
       }
 
-      const tipo = person.inscriptionType.trim().toUpperCase();
-      const valorInscricao = Number(tipoInscricao.valor);
+      const valorInscricao = Number(tipoInfo.valor);
 
       if (isNaN(valorInscricao)) {
-        logError("Valor inválido", `${person.name} - Valor: ${tipoInscricao.valor}`);
+        logError("Valor inválido", `${person.name} - Valor: ${tipoInfo.valor}`);
         return;
       }
 
       if (tipoInscricaoMap[tipo]) {
-        inscriptionCount[tipoInscricaoMap[tipo].count]++;
-        totais[tipoInscricaoMap[tipo].total] += valorInscricao;
+        const { count, total } = tipoInscricaoMap[tipo];
+        inscriptionCount[count]++;
+        totais[total] += valorInscricao;
       } else {
         logWarn("Tipo de inscrição desconhecido", person.name);
       }
     }
 
-    // Processa todo mundo
+    // Processa todas as inscrições
     inscriptionData.forEach(processPerson);
 
     // Retorna a resposta
@@ -186,10 +176,9 @@ registerRoutes.post(
       status: "success",
       message: "Arquivo convertido para JSON com sucesso",
       inscription: inscriptionData,
-      inscriptionCount: inscriptionCount,
-      totais: totais
+      inscriptionCount,
+      totais
     });
-      
 
     } catch (error) {
       console.log("Erro interno no servidor", error);
