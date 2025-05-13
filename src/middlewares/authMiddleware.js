@@ -58,10 +58,10 @@ function authenticateToken(req, res, next) {
 
         if (error.name === "TokenExpiredError") {
             console.warn("Token expirado.");
-            return res.status(401).json({ message: "Token expirado. Faça login novamente." });
+            return res.status(403).json({ message: "Token expirado. Faça login novamente." });
         } else if (error.name === "JsonWebTokenError") {
             console.warn("Token inválido.");
-            return res.status(403).json({ message: "Token inválido. Acesso negado." });
+            return res.status(404).json({ message: "Token inválido. Acesso negado." });
         } else {
             console.error("Erro interno na validação do token.");
             return res.status(500).json({ message: "Erro ao validar o token." });
