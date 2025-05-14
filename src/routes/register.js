@@ -105,19 +105,26 @@ registerRoutes.post(
         inscriptionType.map(item => item.descricao.trim().toUpperCase())
       );
 
-      const verifyInscriptionType = jsonData.map(item => {
-        const type = String(item["Tipo de Inscrição"] || "").trim().toUpperCase();
-        const isValid = validInscriptionTypes.has(type);
+      const formattedData = jsonData.map(item => {
+        const rawType = String(item["Tipo de Inscrição"] || "").trim().toUpperCase();
+        const isValidType = validInscriptionTypes.has(rawType);
+
+        const rawBirthDate = item["Data de nascimento"];
+        const idade = calculateAge(rawBirthDate);
 
         return {
-          ...item,
-          typeInscription: isValid
+          nome: String(item["Nome completo"] || "").trim(),
+          sexo: String(item["Sexo"] || "").trim(),
+          tipoInscricao: rawType,
+          tipoInscricaoValido: isValidType,
+          dataNascimento: typeof rawBirthDate === "number" ? excelSerialDateToJSDate(rawBirthDate) : null,
+          idade: idade,
         };
       });
 
       return res.status(200).json({
         message: "Arquivo processado com sucesso.",
-        data: verifyInscriptionType,
+        data: formattedData,
       });
 
     } catch (error) {
