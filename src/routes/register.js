@@ -105,6 +105,8 @@ registerRoutes.post(
         inscriptionType.map(item => item.descricao.trim().toUpperCase())
       );
 
+      const nameCountMap = new Map();
+
       const formattedData = jsonData.map(item => {
         const rawType = String(item["Tipo de Inscrição"] || "").trim().toUpperCase();
         const isValidType = validInscriptionTypes.has(rawType);
@@ -117,14 +119,28 @@ registerRoutes.post(
           sexo: String(item["Sexo"] || "").trim(),
           tipoInscricao: rawType,
           tipoInscricaoValido: isValidType,
-          dataNascimento: typeof rawBirthDate === "number" ? excelSerialDateToJSDate(rawBirthDate) : null,
           idade: idade,
         };
       });
 
+      formattedData.forEach(item => {
+        const name = item.nome.toUpperCase();
+        nameCountMap.set(name, (nameCountMap.get(name) || 0) + 1);
+      })
+
+      // Filtra nomes que aparecem mais de uma vez
+      const duplicatedNames = Array.from(nameCountMap.entries())
+        .filter(([_, count]) => count > 1)
+        .map(([name]) => name);
+
+      const duplicatedRecords = formattedData.filter(item => {
+        duplicatedNames.includes(item.nome.toUpperCase());
+      })
+
       return res.status(200).json({
         message: "Arquivo processado com sucesso.",
         data: formattedData,
+        duplicatedRecords: duplicatedRecords,
       });
 
     } catch (error) {
