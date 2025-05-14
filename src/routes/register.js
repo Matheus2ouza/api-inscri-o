@@ -106,19 +106,24 @@ registerRoutes.post(
       );
 
       const formattedData = [];
-      const duplicatedRecords = [];
-      const seenNames = new Set();  // Para armazenar os nomes que já foram vistos
+      const seenNames = new Set();
+
+      const validationIssues = {
+        duplicatedNames: [],
+        invalidAges: [],
+      };
 
       jsonData.forEach(item => {
+        const nome = String(item["Nome completo"] || "").trim();
+        const nomeUpper = nome.toUpperCase();
+
         const rawType = String(item["Tipo de Inscrição"] || "").trim().toUpperCase();
         const isValidType = validInscriptionTypes.has(rawType);
 
         const rawBirthDate = item["Data de nascimento"];
         const idade = calculateAge(rawBirthDate);
 
-        const nome = String(item["Nome completo"] || "").trim();
-
-        const newItem = {
+        const formattedItem = {
           nome,
           sexo: String(item["Sexo"] || "").trim(),
           tipoInscricao: rawType,
@@ -126,18 +131,26 @@ registerRoutes.post(
           idade,
         };
 
-        if (seenNames.has(nome.toUpperCase())) {
-          duplicatedRecords.push(newItem); // Adiciona o objeto completo de duplicado
+        // Verifica nome duplicado
+        if (seenNames.has(nomeUpper)) {
+          validationIssues.duplicatedNames.push(formattedItem);
+          return; // Não adiciona aos dados principais
         } else {
-          seenNames.add(nome.toUpperCase());
-          formattedData.push(newItem);  // Adiciona ao array de dados formatados
+          seenNames.add(nomeUpper);
         }
+
+        // Verifica idade inválida
+        if (idade === null || idade < 0 || idade > 130) {
+          validationIssues.invalidAges.push(formattedItem);
+        }
+
+        formattedData.push(formattedItem);
       });
 
       return res.status(200).json({
         message: "Arquivo processado com sucesso.",
         data: formattedData,
-        duplicatedRecords: duplicatedRecords,
+        issues: validationIssues
       });
 
     } catch (error) {
