@@ -102,15 +102,15 @@ registerRoutes.post(
 
     // Cria um Set com os tipos de inscrição válidos
     const validInscriptionTypes = new Set(
-      inscriptionType.map(item => item.descricao.trim().toUpperCase())  // Normaliza os tipos para maiúsculas
+      inscriptionType.map(item => item.descricao.trim().toUpperCase())
     );
 
-    const validInscriptionsData = jsonData.map((item) => {
+    const validInscriptionsData = jsonData.filter((item) => {
       const inscriptionType = item["Tipo de Inscrição"];
       return validInscriptionTypes.has(inscriptionType.trim().toUpperCase());
     });
 
-    console.log(validInscriptionTypes)
+    console.log(validInscriptionsData)
 
     } catch (error) {
       console.log("Erro interno no servidor", error);
