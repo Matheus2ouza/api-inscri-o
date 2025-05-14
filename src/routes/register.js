@@ -66,7 +66,7 @@ registerRoutes.post(
         return res.status(400).json({ message: "Nenhum arquivo enviado." });
       }
 
-      const user = req.user
+      const user = req.user;
       console.log(user);
 
       const eventSelected = req.body.eventSelectd;
@@ -85,33 +85,38 @@ registerRoutes.post(
       // Converte os dados da planilha para JSON
       const jsonData = xlsx.utils.sheet_to_json(worksheet);
 
-    // Funções auxiliares de log
-    function logError(context, error) {
-      console.error(`[ERRO] ${context}:`, error);
-    }
+      // Funções auxiliares de log
+      function logError(context, error) {
+        console.error(`[ERRO] ${context}:`, error);
+      }
 
-    function logWarn(context, warning) {
-      console.warn(`[AVISO] ${context}:`, warning);
-    }
+      function logWarn(context, warning) {
+        console.warn(`[AVISO] ${context}:`, warning);
+      }
 
-    const inscriptionType = await prisma.tipo_inscricao.findMany({
-      where: {
-        evento_id: Number(eventSelected),
-      },
-    });
+      const inscriptionType = await prisma.tipo_inscricao.findMany({
+        where: {
+          evento_id: Number(eventSelected),
+        },
+      });
 
-    // Cria um Set com os tipos de inscrição válidos
-    const validInscriptionTypes = new Set(
-      inscriptionType.map(item => item.descricao.trim().toUpperCase())
-    );
+      // Cria um Set com os tipos de inscrição válidos
+      const validInscriptionTypes = new Set(
+        inscriptionType.map(item => item.descricao.trim().toUpperCase())
+      );
 
-    const validInscriptionsData = jsonData.filter((item) => {
-      const inscriptionType = item["Tipo de Inscrição"];
-      return validInscriptionTypes.has(inscriptionType.trim().toUpperCase());
-    });
+      const hasInvalid = jsonData.filter(item => {
+        const type = String(item["Tipo de Inscrição"] || "").trim().toUpperCase();
+        return !validInscriptionTypes.has(type);
+      });
 
-    console.log(validInscriptionsData)
-
+      if (hasInvalid.length > 0) {
+        logWarn("Tipos de Inscrição inválidos", hasInvalid);
+        return res.status(403).json({
+          message: "Tipos de Inscrição inválidos",
+          invalidTypes: hasInvalid,
+        });
+      }
     } catch (error) {
       console.log("Erro interno no servidor", error);
       return res.status(500).json({ message: "Erro interno no servidor" });
