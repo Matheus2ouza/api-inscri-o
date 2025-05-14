@@ -105,37 +105,34 @@ registerRoutes.post(
         inscriptionType.map(item => item.descricao.trim().toUpperCase())
       );
 
-      const nameCountMap = new Map();
+      const formattedData = [];
+      const duplicatedRecords = [];
+      const seenNames = new Set();  // Para armazenar os nomes que já foram vistos
 
-      const formattedData = jsonData.map(item => {
+      jsonData.forEach(item => {
         const rawType = String(item["Tipo de Inscrição"] || "").trim().toUpperCase();
         const isValidType = validInscriptionTypes.has(rawType);
 
         const rawBirthDate = item["Data de nascimento"];
         const idade = calculateAge(rawBirthDate);
 
-        return {
-          nome: String(item["Nome completo"] || "").trim(),
+        const nome = String(item["Nome completo"] || "").trim();
+
+        const newItem = {
+          nome,
           sexo: String(item["Sexo"] || "").trim(),
           tipoInscricao: rawType,
           tipoInscricaoValido: isValidType,
-          idade: idade,
+          idade,
         };
+
+        if (seenNames.has(nome.toUpperCase())) {
+          duplicatedRecords.push(newItem); // Adiciona o objeto completo de duplicado
+        } else {
+          seenNames.add(nome.toUpperCase());
+          formattedData.push(newItem);  // Adiciona ao array de dados formatados
+        }
       });
-
-      formattedData.forEach(item => {
-        const name = item.nome.toUpperCase();
-        nameCountMap.set(name, (nameCountMap.get(name) || 0) + 1);
-      })
-
-      // Filtra nomes que aparecem mais de uma vez
-      const duplicatedNames = Array.from(nameCountMap.entries())
-        .filter(([_, count]) => count > 1)
-        .map(([name]) => name);
-
-      const duplicatedRecords = formattedData.filter(item => 
-        duplicatedNames.includes(item.nome.toUpperCase())
-      );
 
       return res.status(200).json({
         message: "Arquivo processado com sucesso.",
