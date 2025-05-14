@@ -111,6 +111,7 @@ registerRoutes.post(
       const validationIssues = {
         duplicatedNames: [],
         invalidAges: [],
+        invalidInscriptionTypes: []
       };
 
       jsonData.forEach(item => {
@@ -130,6 +131,11 @@ registerRoutes.post(
           tipoInscricaoValido: isValidType,
           idade,
         };
+
+        // Verifica tipo de inscrição inválido
+        if (!isValidType) {
+          validationIssues.invalidInscriptionTypes.push(formattedItem);
+        }
 
         // Verifica nome duplicado
         if (seenNames.has(nomeUpper)) {
