@@ -133,9 +133,9 @@ registerRoutes.post(
         .filter(([_, count]) => count > 1)
         .map(([name]) => name);
 
-      const duplicatedRecords = formattedData.filter(item => {
-        duplicatedNames.includes(item.nome.toUpperCase());
-      })
+      const duplicatedRecords = formattedData.filter(item => 
+        duplicatedNames.includes(item.nome.toUpperCase())
+      );
 
       return res.status(200).json({
         message: "Arquivo processado com sucesso.",
