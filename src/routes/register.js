@@ -105,18 +105,21 @@ registerRoutes.post(
         inscriptionType.map(item => item.descricao.trim().toUpperCase())
       );
 
-      const hasInvalid = jsonData.filter(item => {
+      const verifyInscriptionType = jsonData.map(item => {
         const type = String(item["Tipo de Inscrição"] || "").trim().toUpperCase();
-        return !validInscriptionTypes.has(type);
+        const isValid = validInscriptionTypes.has(type);
+
+        return {
+          ...item,
+          typeInscription: isValid
+        };
       });
 
-      if (hasInvalid.length > 0) {
-        logWarn("Tipos de Inscrição inválidos", hasInvalid);
-        return res.status(403).json({
-          message: "Tipos de Inscrição inválidos",
-          invalidTypes: hasInvalid,
-        });
-      }
+      return res.status(200).json({
+        message: "Arquivo processado com sucesso.",
+        data: verifyInscriptionType,
+      });
+
     } catch (error) {
       console.log("Erro interno no servidor", error);
       return res.status(500).json({ message: "Erro interno no servidor" });
