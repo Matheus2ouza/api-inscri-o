@@ -136,12 +136,12 @@ registerRoutes.post(
 
         // Verifica tipo de inscrição inválido
         if (!isValidType) {
-          invalidInscriptionTypes.invalidInscriptionTypes.push(formattedItem);
+          invalidInscriptionTypes.push(formattedItem);
         }
 
         // Verifica nome duplicado
         if (seenNames.has(nomeUpper)) {
-          duplicatedNames.duplicatedNames.push(formattedItem);
+          duplicatedNames.push(formattedItem);
           return; // Não adiciona aos dados principais
         } else {
           seenNames.add(nomeUpper);
@@ -149,7 +149,7 @@ registerRoutes.post(
 
         // Verifica idade inválida
         if (idade === null || idade < 0 || idade > 130) {
-          invalidAges.invalidAges.push(formattedItem);
+          invalidAges.push(formattedItem);
         }
 
         formattedData.push(formattedItem);
