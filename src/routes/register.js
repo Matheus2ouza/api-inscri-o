@@ -112,11 +112,9 @@ registerRoutes.post(
       const formattedData = [];
       const seenNames = new Set();
 
-      const validationIssues = {
-        duplicatedNames: [],
-        invalidAges: [],
-        invalidInscriptionTypes: []
-      };
+      const duplicatedNames = [];
+      const invalidAges = [];
+      const invalidInscriptionTypes = [];
 
       jsonData.forEach(item => {
         const nome = String(item["Nome completo"] || "").trim();
@@ -160,7 +158,9 @@ registerRoutes.post(
       return res.status(200).json({
         message: "Arquivo processado com sucesso.",
         data: formattedData,
-        issues: validationIssues
+        duplicatedNames: duplicatedNames,
+        invalidAges: invalidAges,
+        invalidInscriptionTypes: invalidInscriptionTypes,
       });
 
     } catch (error) {
