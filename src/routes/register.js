@@ -75,6 +75,10 @@ registerRoutes.post(
       const responsible = req.body.responsible;
       console.log(responsible);
 
+      if (!eventSelected || !responsible) {
+        return res.status(400).json({ message: "Required fields are missing or invalid." })
+      };
+
       // Lê o arquivo Excel a partir da memória
       const workbook = xlsx.read(req.file.buffer, { type: 'buffer' });
 
