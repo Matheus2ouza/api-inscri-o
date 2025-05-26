@@ -113,7 +113,7 @@ registerRoutes.post(
         inscriptionType.map(item => item.descricao.trim().toUpperCase())
       );
 
-      const errors = {};
+      const errors = [];
 
       const formattedData = [];
       const missingData = [];
@@ -136,11 +136,11 @@ registerRoutes.post(
       });
 
       if (missingData.length > 0) {
-        errors.missingData = missingData;
+        errors.push = missingData;
       }
 
       return res.status(200).json({
-        message: "Campos obrigatórios ausentes.",
+        message: "Arquivo processado com sucesso.",
         errors
       });
 
