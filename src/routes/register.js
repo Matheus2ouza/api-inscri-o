@@ -109,9 +109,10 @@ registerRoutes.post(
         inscriptionType.map(item => item.descricao.trim().toUpperCase())
       );
 
-      const formattedData = [];
-      const seenNames = new Set();
+      const errors = {};
 
+      const formattedData = [];
+      const missingData = [];
       const duplicatedNames = [];
       const invalidAges = [];
       const invalidInscriptionTypes = [];
@@ -124,14 +125,19 @@ registerRoutes.post(
 
         if (!nomeCompleto || !dataNascimento || !sexo || !tipoInscricao) {
           logWarn(`Linha ${index + 5}`, "Campos obrigatórios ausentes.");
-          return res.status(400).json({
-            message: "Campos obrigatórios ausentes. Verifique o arquivo e tente novamente.",
+          missingData.push({
+            row: index + 5
           });
         }
       });
 
+      if (missingData.length > 0) {
+        errors.missingData = missingData;
+      }
+
       return res.status(200).json({
-        message: "Arquivo processado com sucesso.",
+        message: "Campos obrigatórios ausentes.",
+        errors
       });
 
     } catch (error) {
