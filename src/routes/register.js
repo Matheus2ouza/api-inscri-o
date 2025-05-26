@@ -124,7 +124,7 @@ registerRoutes.post(
 
         if (!nomeCompleto || !dataNascimento || !sexo || !tipoInscricao) {
           logWarn(`Linha ${index + 5}`, "Campos obrigatórios ausentes.");
-          return status(400).json({
+          return res.status(400).json({
             message: "Campos obrigatórios ausentes. Verifique o arquivo e tente novamente.",
           });
         }
