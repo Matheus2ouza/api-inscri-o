@@ -87,7 +87,11 @@ registerRoutes.post(
       const worksheet = workbook.Sheets[sheetName];
 
       // Converte os dados da planilha para JSON
-      const jsonData = xlsx.utils.sheet_to_json(worksheet);
+      const jsonData = xlsx.utils.sheet_to_json(worksheet, {
+        range: 2, // Começa a ler a partir da terceira linha (índice 2)
+        defval: null, // Define valor padrão para células vazias
+        header: 1 // força como array de arrays, para analisar manualmente
+      });
 
       // Funções auxiliares de log
       function logError(context, error) {
