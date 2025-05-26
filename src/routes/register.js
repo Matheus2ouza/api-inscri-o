@@ -116,7 +116,7 @@ registerRoutes.post(
       const invalidAges = [];
       const invalidInscriptionTypes = [];
 
-      jsonData.forEach(item => {
+      jsonData.forEach((item, index) => {
         const nomeCompleto = item["Nome Completo"]?.trim();
         const dataNascimento = item["Data de nascimento"];
         const sexo = item["Sexo"]?.trim();
