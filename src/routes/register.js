@@ -89,7 +89,8 @@ registerRoutes.post(
       // Converte os dados da planilha para JSON
       const jsonData = xlsx.utils.sheet_to_json(worksheet, {
         range: 2, // Começa a ler a partir da terceira linha (índice 2)
-        defval: null, // Define valor padrão para células vazias
+        defval: null, // Define valor padrão para células vazias,
+        
       }).slice(1); //Ignora a 4 linha (índice 3)
 
       // Funções auxiliares de log
@@ -119,8 +120,6 @@ registerRoutes.post(
       const duplicatedNames = [];
       const invalidAges = [];
       const invalidInscriptionTypes = [];
-
-      console.log(jsonData)
 
       jsonData.forEach((item, index) => {
         const nomeCompleto = item["Nome Completo"]?.trim();
