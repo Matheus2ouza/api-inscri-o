@@ -117,53 +117,21 @@ registerRoutes.post(
       const invalidInscriptionTypes = [];
 
       jsonData.forEach(item => {
-        const nome = String(item["Nome completo"] || "").trim();
-        const nomeUpper = nome.toUpperCase();
+        const nomeCompleto = item["Nome Completo"]?.trim();
+        const dataNascimento = item["Data de nascimento"];
+        const sexo = item["Sexo"]?.trim();
+        const tipoInscricao = item["Tipo de Inscrição"]?.trim().toUpperCase();
 
-        const rawType = String(item["Tipo de Inscrição"] || "").trim().toUpperCase();
-        const isValidType = validInscriptionTypes.has(rawType);
-
-        const rawBirthDate = item["Data de nascimento"];
-        const idade = calculateAge(rawBirthDate);
-
-        const formattedItem = {
-          nome,
-          sexo: String(item["Sexo"] || "").trim(),
-          tipoInscricao: rawType,
-          tipoInscricaoValido: isValidType,
-          idade,
-        };
-
-        // Verifica tipo de inscrição inválido
-        if (!isValidType) {
-          invalidInscriptionTypes.push(formattedItem);
-          logWarn("Tipo de Inscrição Inválido", formattedItem);
+        if (!nomeCompleto || !dataNascimento || !sexo || !tipoInscricao) {
+          logWarn(`Linha ${index + 5}`, "Campos obrigatórios ausentes.");
+          return status(400).json({
+            message: "Campos obrigatórios ausentes. Verifique o arquivo e tente novamente.",
+          });
         }
-
-        // Verifica nome duplicado
-        if (seenNames.has(nomeUpper)) {
-          duplicatedNames.push(formattedItem);
-          logWarn("Nome Duplicado", formattedItem);
-          return; // Não adiciona aos dados principais
-        } else {
-          seenNames.add(nomeUpper);
-        }
-
-        // Verifica idade inválida
-        if (idade === null || idade < 0 || idade > 130) {
-          invalidAges.push(formattedItem);
-          logWarn("Idade Inválida", formattedItem);
-        }
-
-        formattedData.push(formattedItem);
       });
 
       return res.status(200).json({
         message: "Arquivo processado com sucesso.",
-        data: formattedData,
-        duplicatedNames: duplicatedNames,
-        invalidAges: invalidAges,
-        invalidInscriptionTypes: invalidInscriptionTypes,
       });
 
     } catch (error) {
