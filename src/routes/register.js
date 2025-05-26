@@ -136,7 +136,7 @@ registerRoutes.post(
       });
 
       if (missingData.length > 0) {
-        errors.push = missingData;
+        errors.push(missingData);
       }
 
       return res.status(200).json({
