@@ -113,7 +113,7 @@ registerRoutes.post(
         inscriptionType.map(item => item.descricao.trim().toUpperCase())
       );
 
-      const errors = [];
+      const errors = {};
 
       const formattedData = [];
       const missingData = [];
@@ -143,7 +143,7 @@ registerRoutes.post(
       });
 
       if (missingData.length > 0) {
-        errors.push(missingData);
+        errors.missingData = missingData;
       }
 
       return res.status(200).json({
