@@ -127,10 +127,17 @@ registerRoutes.post(
         const sexo = item["Sexo"]?.trim();
         const tipoInscricao = item["Tipo de Inscrição"]?.trim().toUpperCase();
 
+        const missingFields = [];
+        if (!nomeCompleto) missingFields.push("Nome Completo");
+        if (!dataNascimento) missingFields.push("Data de nascimento");
+        if (!sexo) missingFields.push("Sexo");
+        if (!tipoInscricao) missingFields.push("Tipo de Inscrição");
+
         if (!nomeCompleto || !dataNascimento || !sexo || !tipoInscricao) {
-          logWarn(`Linha ${index + 5}`, "Campos obrigatórios ausentes.");
+          logWarn(`Linha ${index + 5}, Campos obrigatórios ausentes: ${missingFields.join(", ")}`);
           missingData.push({
-            row: index + 5
+            row: index + 5,
+            field: missingFields
           });
         }
       });
