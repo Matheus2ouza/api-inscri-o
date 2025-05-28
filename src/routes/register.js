@@ -162,6 +162,10 @@ registerRoutes.post(
           seenNames.add(fullName);
         }
 
+        console.log(birthDateRaw)
+        console.log(typeof birthDateRaw)
+
+        
         const birthDate = excelSerialDateToJSDate(birthDateRaw)
         const age = calculateAge(birthDate);
 
