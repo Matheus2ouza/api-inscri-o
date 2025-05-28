@@ -94,12 +94,12 @@ registerRoutes.post(
       }).slice(1); //Ignora a 4 linha (índice 3)
 
       // Funções auxiliares de log
-      function logError(context, error) {
-        console.error(`[ERRO] ${context}:`, error);
+      function logError(message) {
+        console.error(`[ERRO] ${message}:`);
       }
 
-      function logWarn(context, warning) {
-        console.warn(`[AVISO] ${context}:`, warning);
+      function logWarn(message) {
+        console.warn(`[AVISO] ${message}:`);
       }
 
       const inscriptionType = await prisma.tipo_inscricao.findMany({
@@ -122,8 +122,6 @@ registerRoutes.post(
 
       jsonData.forEach((item, index) => {
         const fullName = item["Nome Completo"];
-        logWarn(fullName);
-
         const birthDate = item["Data de nascimento"];
         const gender  = item["Sexo"]?.trim();
         const registrationType  = item["Tipo de Inscrição"]?.trim().toUpperCase();
@@ -146,10 +144,11 @@ registerRoutes.post(
 
         if(fullName) {
           const lowerCaseName = fullName.toLowerCase();
-          const hasSurname = fullName.split(/\s+/).length > 2;
-          const isDuplicated = seenNames.has(lowerCaseName);
+          // Verifica se o nome contém apenas letras e espaços e não contem caracteres especiais ou numeros
+          const nameRegex = fullName.split(/^[A-Za-zÀ-ÿ]+(?: [A-Za-zÀ-ÿ]+)+$/);
+          const isDuplicated = seenNames.has(lowerCaseName); // Verifica se o nome já foi visto
           
-          if(!hasSurname || isDuplicated) {
+          if(!nameRegex || isDuplicated) {
             logWarn(`Linha ${index + 5}, Nome inválido ou duplicado: ${fullName}`);
             invalidNames.push({
               row: index + 5,
