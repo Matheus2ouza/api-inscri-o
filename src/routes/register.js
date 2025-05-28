@@ -121,7 +121,9 @@ registerRoutes.post(
       const seenNames = new Set();
 
       jsonData.forEach((item, index) => {
-        const fullName = item["Nome Completo"]?.trim();
+        const fullName = item["Nome Completo"];
+        logWarn(fullName);
+
         const birthDate = item["Data de nascimento"];
         const gender  = item["Sexo"]?.trim();
         const registrationType  = item["Tipo de Inscrição"]?.trim().toUpperCase();
