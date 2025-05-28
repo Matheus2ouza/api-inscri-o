@@ -165,10 +165,10 @@ registerRoutes.post(
         const age = calculateAge(birthDateRaw);
 
         if(age === null, age < 0 || age > 120) {
-          logWarn(`Linha ${index + 5}, Data de nascimento inválida: ${birthDate}`);
+          logWarn(`Linha ${index + 5}, Data de nascimento inválida: ${birthDateRaw}`);
           invalidBirthDates.push({
             row: index + 5,
-            field: birthDate
+            field: birthDateRaw
           });
         }
       });
