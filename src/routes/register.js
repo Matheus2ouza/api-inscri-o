@@ -162,10 +162,7 @@ registerRoutes.post(
           seenNames.add(fullName);
         }
 
-        const birthDate = excelSerialDateToJSDate(birthDateRaw)
-        console.log(birthDate)
-
-        const age = calculateAge(birthDate);
+        const age = calculateAge(birthDateRaw);
 
         if(age === null, age < 0 || age > 120) {
           logWarn(`Linha ${index + 5}, Data de nascimento inválida: ${birthDate}`);
