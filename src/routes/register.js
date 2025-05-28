@@ -117,24 +117,25 @@ registerRoutes.post(
 
       const missingData = []; //array para armazenar linhas com dados ausentes
       const invalidNames = []; //array para armazenar nomes inválidos
+      const invalidBirthDates = []; //array para armazenar datas de nascimento inválidas
 
       const seenNames = new Set();
 
       jsonData.forEach((item, index) => {
         const fullName = item["Nome Completo"]?.trim();
-        const birthDate = item["Data de nascimento"];
+        const birthDateRaw = item["Data de nascimento"];
         const gender  = item["Sexo"]?.trim();
         const registrationType  = item["Tipo de Inscrição"]?.trim().toUpperCase();
 
         // Verifica se tem alguma célula vazia
         const missingFields = [];
         if (!fullName) missingFields.push("Nome Completo");
-        if (!birthDate) missingFields.push("Data de nascimento");
+        if (!birthDateRaw) missingFields.push("Data de nascimento");
         if (!gender) missingFields.push("Sexo");
         if (!registrationType ) missingFields.push("Tipo de Inscrição");
 
         // Caso encontre algum campo obrigatório vazio, adiciona ao array de erros
-        if (!fullName || !birthDate || !gender || !registrationType) {
+        if (!fullName || !birthDateRaw || !gender || !registrationType) {
           logWarn(`Linha ${index + 5}, Campos obrigatórios ausentes: ${missingFields.join(", ")}`);
           missingData.push({
             row: index + 5,
@@ -147,7 +148,7 @@ registerRoutes.post(
           // Regex para verificar se o nome está no formato correto
           const nameRegex = /^[A-Za-zÀ-ÿ]+(?: [A-Za-zÀ-ÿ]+)+$/;
 
-          const isValidName= nameRegex.test(fullName) // Verifica se o nome está no formato correto
+          const isValidName = nameRegex.test(fullName) // Verifica se o nome está no formato correto
           const isDuplicated = seenNames.has(fullName); // Verifica se o nome já foi visto
           
           if(!isValidName || isDuplicated) {
@@ -160,6 +161,17 @@ registerRoutes.post(
 
           seenNames.add(fullName);
         }
+
+        const birthDate = excelSerialDateToJSDate(birthDateRaw)
+        const age = calculateAge(birthDate);
+
+        if(age === null, age < 0 || age > 120) {
+          logWarn(`Linha ${index + 5}, Data de nascimento inválida: ${birthDate}`);
+          invalidBirthDates.push({
+            row: index + 5,
+            field: birthDate
+          });
+        }
       });
 
       if (missingData.length > 0) {
@@ -168,6 +180,10 @@ registerRoutes.post(
 
       if(invalidNames.length > 0) {
         errors.invalidNames = invalidNames;
+      }
+
+      if (invalidBirthDates.length > 0) {
+        errors.invalidBirthDates = invalidBirthDates;
       }
 
       return res.status(200).json({
