@@ -115,35 +115,56 @@ registerRoutes.post(
 
       const errors = {};
 
-      const formattedData = [];
-      const missingData = [];
-      const duplicatedNames = [];
-      const invalidAges = [];
-      const invalidInscriptionTypes = [];
+      const missingData = []; //array para armazenar linhas com dados ausentes
+      const invalidNames = []; //array para armazenar nomes inválidos
+
+      const seenNames = new Set();
 
       jsonData.forEach((item, index) => {
-        const nomeCompleto = item["Nome Completo"]?.trim();
-        const dataNascimento = item["Data de nascimento"];
-        const sexo = item["Sexo"]?.trim();
-        const tipoInscricao = item["Tipo de Inscrição"]?.trim().toUpperCase();
+        const fullName = item["Nome Completo"]?.trim();
+        const birthDate = item["Data de nascimento"];
+        const gender  = item["Sexo"]?.trim();
+        const registrationType  = item["Tipo de Inscrição"]?.trim().toUpperCase();
 
+        // Verifica se tem alguma célula vazia
         const missingFields = [];
-        if (!nomeCompleto) missingFields.push("Nome Completo");
-        if (!dataNascimento) missingFields.push("Data de nascimento");
-        if (!sexo) missingFields.push("Sexo");
-        if (!tipoInscricao) missingFields.push("Tipo de Inscrição");
+        if (!fullName) missingFields.push("Nome Completo");
+        if (!birthDate) missingFields.push("Data de nascimento");
+        if (!gender) missingFields.push("Sexo");
+        if (!registrationType ) missingFields.push("Tipo de Inscrição");
 
-        if (!nomeCompleto || !dataNascimento || !sexo || !tipoInscricao) {
+        // Caso encontre algum campo obrigatório vazio, adiciona ao array de erros
+        if (!fullName || !birthDate || !gender || !registrationType) {
           logWarn(`Linha ${index + 5}, Campos obrigatórios ausentes: ${missingFields.join(", ")}`);
           missingData.push({
             row: index + 5,
             field: missingFields
           });
         }
+
+        if(fullName) {
+          const lowerCaseName = fullName.toLowerCase();
+          const hasSurname = fullName.split(/\s+/).length > 2;
+          const isDuplicated = seenNames.has(lowerCaseName);
+          
+          if(!hasSurname || isDuplicated) {
+            logWarn(`Linha ${index + 5}, Nome inválido ou duplicado: ${fullName}`);
+            invalidNames.push({
+              row: index + 5,
+              name: fullName
+            });
+          }
+
+          seenNames.add(lowerCaseName);
+        }
       });
 
       if (missingData.length > 0) {
         errors.missingData = missingData;
+      }
+
+      if(invalidNames.length > 0) {
+        errors.invalidNames = invalidNames;
       }
 
       return res.status(200).json({
