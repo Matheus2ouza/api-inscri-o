@@ -121,7 +121,7 @@ registerRoutes.post(
       const seenNames = new Set();
 
       jsonData.forEach((item, index) => {
-        const fullName = item["Nome Completo"];
+        const fullName = item["Nome Completo"]?.trim();
         const birthDate = item["Data de nascimento"];
         const gender  = item["Sexo"]?.trim();
         const registrationType  = item["Tipo de Inscrição"]?.trim().toUpperCase();
@@ -143,12 +143,14 @@ registerRoutes.post(
         }
 
         if(fullName) {
-          const lowerCaseName = fullName.toLowerCase();
-          // Verifica se o nome contém apenas letras e espaços e não contem caracteres especiais ou numeros
-          const nameRegex = fullName.split(/^[A-Za-zÀ-ÿ]+(?: [A-Za-zÀ-ÿ]+)+$/);
-          const isDuplicated = seenNames.has(lowerCaseName); // Verifica se o nome já foi visto
+
+          // Regex para verificar se o nome está no formato correto
+          const nameRegex = /^[A-Za-zÀ-ÿ]+(?: [A-Za-zÀ-ÿ]+)+$/;
+
+          const isValidName= nameRegex.test(fullName) // Verifica se o nome está no formato correto
+          const isDuplicated = seenNames.has(fullName); // Verifica se o nome já foi visto
           
-          if(!nameRegex || isDuplicated) {
+          if(!isValidName || isDuplicated) {
             logWarn(`Linha ${index + 5}, Nome inválido ou duplicado: ${fullName}`);
             invalidNames.push({
               row: index + 5,
@@ -156,7 +158,7 @@ registerRoutes.post(
             });
           }
 
-          seenNames.add(lowerCaseName);
+          seenNames.add(fullName);
         }
       });
 
