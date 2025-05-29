@@ -118,6 +118,7 @@ registerRoutes.post(
       const missingData = []; //array para armazenar linhas com dados ausentes
       const invalidNames = []; //array para armazenar nomes inválidos
       const invalidBirthDates = []; //array para armazenar datas de nascimento inválidas
+      const invalidRegistrationTypes = []; //array para armazenar tipos de inscrição inválidos
 
       const seenNames = new Set();
 
@@ -129,6 +130,7 @@ registerRoutes.post(
 
         // Verifica se tem alguma célula vazia
         const missingFields = [];
+
         if (!fullName) missingFields.push("Nome Completo");
         if (!birthDateRaw) missingFields.push("Data de nascimento");
         if (!gender) missingFields.push("Sexo");
@@ -143,6 +145,7 @@ registerRoutes.post(
           });
         }
 
+        // Verifica se o nome completo está presente e se não está duplicado
         if(fullName) {
 
           // Regex para verificar se o nome está no formato correto
@@ -164,6 +167,7 @@ registerRoutes.post(
 
         const age = calculateAge(birthDateRaw);
 
+        // Verifica se a data de nascimento é válida
         if(age === null, age < 0 || age > 120) {
           logWarn(`Linha ${index + 5}, Data de nascimento inválida: ${birthDateRaw}`);
           invalidBirthDates.push({
@@ -171,7 +175,21 @@ registerRoutes.post(
             field: birthDateRaw
           });
         }
+        
+        // Verifica se o tipo de inscrição é válido
+        if (registrationType && !validInscriptionTypes.has(registrationType)) {
+          logWarn(`Linha ${index + 5}, Tipo de Inscrição inválido: ${registrationType}`);
+          invalidRegistrationTypes.push({
+            row: index + 5,
+            field: registrationType
+          });
+        };
+
       });
+
+      if(invalidRegistrationTypes.length > 0) {
+        errors.invalidRegistrationTypes = invalidRegistrationTypes;
+      }
 
       if (missingData.length > 0) {
         errors.missingData = missingData;
