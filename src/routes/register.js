@@ -108,6 +108,8 @@ registerRoutes.post(
         },
       });
 
+      console.log(inscriptionType);
+
       // Cria um Set com os tipos de inscrição válidos
       const validInscriptionTypes = new Set(
         inscriptionType.map(item => item.descricao.trim().toUpperCase())
