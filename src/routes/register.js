@@ -69,8 +69,8 @@ registerRoutes.post(
       const user = req.user;
       console.log(user);
 
-      const eventSelected = req.body.eventSelected;
-      
+      const eventSelected = JSON.parse(req.body.eventSelected);
+
       console.log(eventSelected);
 
       const responsible = req.body.responsible;
