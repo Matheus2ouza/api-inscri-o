@@ -139,7 +139,7 @@ registerRoutes.post(
       const validEntries = [];
 
       // Arrays com dados validos
-      const dataInscriptions = {};
+      let dataInscriptions = {};
       const summaryByType = {};
 
       // Arrays para armazenar erros
