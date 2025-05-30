@@ -113,6 +113,8 @@ registerRoutes.post(
         inscriptionType.map(item => item.descricao.trim().toUpperCase())
       );
 
+      console.log(validInscriptionTypes)
+
       const errors = {};
 
       const missingData = []; //array para armazenar linhas com dados ausentes
