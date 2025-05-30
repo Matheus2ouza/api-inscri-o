@@ -126,7 +126,7 @@ registerRoutes.post(
 
       const typeToValueMap = {};
       inscriptionType.forEach(item => {
-        typeToValueMap[item.descricao.trim().toUpperCase()] = item.valor;
+        typeToValueMap[item.descricao.trim().toUpperCase()] = Number(item.valor);
       });
 
       console.log(validInscriptionTypes)
@@ -139,7 +139,7 @@ registerRoutes.post(
       const validEntries = [];
 
       // Arrays com dados validos
-      let dataInscriptions = {};
+      const dataInscriptions = [];
       const summaryByType = {};
 
       // Arrays para armazenar erros
@@ -207,10 +207,10 @@ registerRoutes.post(
         }
 
         if(!hasErrors) {
-          dataInscriptions = {
+          dataInscriptions.push({
             name: fullName,
             age: age
-          }
+          });
         }
         
         // Verifica se o tipo de inscrição é válido
@@ -270,6 +270,7 @@ registerRoutes.post(
         message: "Arquivo processado com sucesso.",
         validEntries,
         summaryByType,
+        dataInscriptions: dataInscriptions
       });
 
     } catch (error) {
