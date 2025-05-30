@@ -180,9 +180,10 @@ registerRoutes.post(
         // Verifica se a data de nascimento é válida
         if(age === null, age < 0 || age > 120) {
           logWarn(`Linha ${index + 5}, Data de nascimento inválida: ${birthDateRaw}`);
+          const birthDate = excelSerialDateToJSDate(birthDateRaw);
           invalidBirthDates.push({
             row: index + 5,
-            field: birthDateRaw
+            field: birthDate
           });
         }
         
