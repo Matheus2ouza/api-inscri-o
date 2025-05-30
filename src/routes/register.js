@@ -8,6 +8,7 @@ const prisma = new PrismaClient();
 const { v4: uuidv4 } = require("uuid");
 const { redis } = require("../lib/redis");
 const { rows } = require("pg/lib/defaults");
+const { list } = require("pdfkit");
 
 const registerRoutes = express.Router();
 
@@ -123,19 +124,23 @@ registerRoutes.post(
         inscriptionType.map(item => item.descricao.trim().toUpperCase())
       );
 
+      const typeToValueMap = {};
+      inscriptionType.forEach(item => {
+        inscriptionType[item.descricao.trim().toUpperCase()] = item.valor;
+      });
+
       console.log(validInscriptionTypes)
+      console.log(typeToValueMap);
 
       //Controlador do return
       let hasErrors = false;
+
       const errors = {};
-
-      // // Arrays para armazenar dados validos
-      // const namesArray = []; //array para armazenar nomes válidos
-      // const birthDatesArray = []; //array para armazenar datas de nascimento válidas
-      // const gendersArray = []; //array para armazenar gêneros válidos
-      // const registrationTypesArray = []; //array para armazenar tipos de inscrição válidos
-
       const validEntries = [];
+
+      // Arrays com dados validos
+      const dataInscriptions = {};
+      const summaryByType = {};
 
       // Arrays para armazenar erros
       const missingData = []; //array para armazenar linhas com dados ausentes
@@ -146,6 +151,8 @@ registerRoutes.post(
       const seenNames = new Set(); // Set para rastrear nomes já vistos
 
       jsonData.forEach((item, index) => {
+        hasErrors = false; // Reseta o hasErrors para cada linha
+
         const fullName = item["Nome Completo"]?.trim();
         const birthDateRaw = item["Data de nascimento"];
         const gender  = item["Sexo"]?.trim();
@@ -198,6 +205,13 @@ registerRoutes.post(
 
           hasErrors = true;
         }
+
+        if(!hasErrors) {
+          dataInscriptions = {
+            name: fullName,
+            age: age
+          }
+        }
         
         // Verifica se o tipo de inscrição é válido
         if (registrationType && !validInscriptionTypes.has(registrationType)) {
@@ -217,12 +231,15 @@ registerRoutes.post(
           age <= 120 && 
           validInscriptionTypes.has(registrationType)) {
           
-          validEntries.push({
-            namesFull: fullName,
-            birthDate: birthDate.toLocaleDateString('pt-BR', {year: 'numeric', month: '2-digit', day: '2-digit'}),
-            gender: gender,
-            registrationType: registrationType
-          })
+          if (!summaryByType[registrationType]) {
+            summaryByType[registrationType] = {
+              count: 1,
+              totalValue: typeToValueMap[registrationType] || 0
+            }
+          } else {
+            summaryByType[registrationType].count += 1;
+            summaryByType[registrationType].totalValue += typeToValueMap[registrationType] || 0
+          }
         }
       });
 
@@ -251,7 +268,8 @@ registerRoutes.post(
 
       return res.status(200).json({
         message: "Arquivo processado com sucesso.",
-        validEntries
+        validEntries,
+        summaryByType,
       });
 
     } catch (error) {
