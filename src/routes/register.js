@@ -72,8 +72,6 @@ registerRoutes.post(
       const eventSelectedId = req.body.eventSelectedId;
       console.log(eventSelectedId);
 
-      console.log(eventSelected);
-
       const responsible = req.body.responsible;
       console.log(responsible);
 
