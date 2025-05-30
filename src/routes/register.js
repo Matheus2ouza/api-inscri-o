@@ -110,7 +110,9 @@ registerRoutes.post(
           evento_id: Number(eventSelectedId),
         },
         select:{
-          descricao: true
+          id:true,
+          descricao: true,
+          valor:true
         },
       });
 
@@ -123,14 +125,25 @@ registerRoutes.post(
 
       console.log(validInscriptionTypes)
 
+      //Controlador do return
+      let hasErrors = false;
       const errors = {};
 
+      // // Arrays para armazenar dados validos
+      // const namesArray = []; //array para armazenar nomes válidos
+      // const birthDatesArray = []; //array para armazenar datas de nascimento válidas
+      // const gendersArray = []; //array para armazenar gêneros válidos
+      // const registrationTypesArray = []; //array para armazenar tipos de inscrição válidos
+
+      const validEntries = [];
+
+      // Arrays para armazenar erros
       const missingData = []; //array para armazenar linhas com dados ausentes
       const invalidNames = []; //array para armazenar nomes inválidos
       const invalidBirthDates = []; //array para armazenar datas de nascimento inválidas
       const invalidRegistrationTypes = []; //array para armazenar tipos de inscrição inválidos
-
-      const seenNames = new Set();
+      
+      const seenNames = new Set(); // Set para rastrear nomes já vistos
 
       jsonData.forEach((item, index) => {
         const fullName = item["Nome Completo"]?.trim();
@@ -155,36 +168,35 @@ registerRoutes.post(
           });
         }
 
-        // Verifica se o nome completo está presente e se não está duplicado
-        if(fullName) {
+        // Regex para verificar se o nome está no formato correto
+        const nameRegex = /^[A-Za-zÀ-ÿ]+(?: [A-Za-zÀ-ÿ]+)+$/;
 
-          // Regex para verificar se o nome está no formato correto
-          const nameRegex = /^[A-Za-zÀ-ÿ]+(?: [A-Za-zÀ-ÿ]+)+$/;
+        const isValidName = nameRegex.test(fullName) // Verifica se o nome está no formato correto
+        const isDuplicated = seenNames.has(fullName); // Verifica se o nome já foi visto
 
-          const isValidName = nameRegex.test(fullName) // Verifica se o nome está no formato correto
-          const isDuplicated = seenNames.has(fullName); // Verifica se o nome já foi visto
-          
-          if(!isValidName || isDuplicated) {
-            logWarn(`Linha ${index + 5}, Nome inválido ou duplicado: ${fullName}`);
-            invalidNames.push({
-              row: index + 5,
-              name: fullName
-            });
-          }
+        if (!isValidName || isDuplicated) {
+          logWarn(`Linha ${index + 5}, Nome inválido ou duplicado: ${fullName}`);
+          invalidNames.push({
+            row: index + 5,
+            name: fullName
+          });
 
-          seenNames.add(fullName);
+          hasErrors = true;
         }
+        seenNames.add(fullName);
 
         const age = calculateAge(birthDateRaw);
+        const birthDate = excelSerialDateToJSDate(birthDateRaw);
 
         // Verifica se a data de nascimento é válida
         if(age === null, age < 0 || age > 120) {
           logWarn(`Linha ${index + 5}, Data de nascimento inválida: ${birthDateRaw}`);
-          const birthDate = excelSerialDateToJSDate(birthDateRaw);
           invalidBirthDates.push({
             row: index + 5,
             field: birthDate.toLocaleDateString('pt-BR', {year: 'numeric', month: '2-digit', day: '2-digit'})
           });
+
+          hasErrors = true;
         }
         
         // Verifica se o tipo de inscrição é válido
@@ -194,8 +206,24 @@ registerRoutes.post(
             row: index + 5,
             field: registrationType
           });
+
+          hasErrors = true;
         };
 
+        if(missingFields.length === 0 && 
+          isValidName && 
+          age !== null && 
+          age >= 0 && 
+          age <= 120 && 
+          validInscriptionTypes.has(registrationType)) {
+          
+          validEntries.push({
+            namesFull: fullName,
+            birthDate: birthDate.toLocaleDateString('pt-BR', {year: 'numeric', month: '2-digit', day: '2-digit'}),
+            gender: gender,
+            registrationType: registrationType
+          })
+        }
       });
 
       if(invalidRegistrationTypes.length > 0) {
@@ -214,9 +242,16 @@ registerRoutes.post(
         errors.invalidBirthDates = invalidBirthDates;
       }
 
+      if(hasErrors) {
+        return res.status(200).json({
+          message: "Arquivo foi processado mas encontrou erros.",
+          errors
+        });
+      };
+
       return res.status(200).json({
         message: "Arquivo processado com sucesso.",
-        errors
+        validEntries
       });
 
     } catch (error) {
