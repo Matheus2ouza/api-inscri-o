@@ -183,7 +183,7 @@ registerRoutes.post(
           const birthDate = excelSerialDateToJSDate(birthDateRaw);
           invalidBirthDates.push({
             row: index + 5,
-            field: birthDate
+            field: birthDate.toLocaleDateString('pt-BR', {year: 'numeric', month: '2-digit', day: '2-digit'})
           });
         }
         
