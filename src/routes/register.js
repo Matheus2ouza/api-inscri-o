@@ -126,7 +126,7 @@ registerRoutes.post(
 
       const typeToValueMap = {};
       inscriptionType.forEach(item => {
-        inscriptionType[item.descricao.trim().toUpperCase()] = item.valor;
+        typeToValueMap[item.descricao.trim().toUpperCase()] = item.valor;
       });
 
       console.log(validInscriptionTypes)
