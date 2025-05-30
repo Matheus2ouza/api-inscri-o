@@ -75,7 +75,7 @@ registerRoutes.post(
       const responsible = req.body.responsible;
       console.log(responsible);
 
-      if (!eventSelected || !responsible) {
+      if (!eventSelectedId || !responsible) {
         return res.status(400).json({ message: "Required fields are missing or invalid." })
       };
 
