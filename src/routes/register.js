@@ -69,7 +69,8 @@ registerRoutes.post(
       const user = req.user;
       console.log(user);
 
-      const eventSelected = JSON.parse(req.body.eventSelected);
+      const eventSelectedId = req.body.eventSelectedId;
+      console.log(eventSelectedId);
 
       console.log(eventSelected);
 
@@ -103,12 +104,12 @@ registerRoutes.post(
         console.warn(`[AVISO] ${message}:`);
       }
 
-      console.log(eventSelected.id);
-      console.log(typeof eventSelected);
+      console.log(eventSelectedId);
+      console.log(typeof eventSelectedId);
 
       const inscriptionType = await prisma.tipo_inscricao.findMany({
         where: {
-          evento_id: eventSelected.id,
+          evento_id: eventSelectedId,
         },
         select:{
           descricao: true
