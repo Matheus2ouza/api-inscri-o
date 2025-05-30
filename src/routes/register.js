@@ -103,7 +103,7 @@ registerRoutes.post(
       }
 
       console.log(eventSelected.id);
-      console.log(typeof eventSelected.id);
+      console.log(typeof eventSelected);
 
       const inscriptionType = await prisma.tipo_inscricao.findMany({
         where: {
