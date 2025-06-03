@@ -255,7 +255,13 @@ registerRoutes.post(
           participants: participants
         });
 
-        await redis.set(key, value, 'EX', 60 * 60) // Expira em 1 hora
+        const redisResult = await redis.set(key, value, 'EX', 60 * 60) // Expira em 1 hora
+
+        if (redisResult === 'OK') {
+          console.log("Dados salvos no Redis com sucesso.");
+        } else {
+          console.error("Erro ao salvar dados no Redis:", redisResult);
+        }
 
         return res.status(200).json({
           message: "O arquivo foi processado com sucesso.",
