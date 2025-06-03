@@ -7,8 +7,6 @@ const { authenticateToken } = require("../middlewares/authMiddleware");
 const prisma = new PrismaClient();
 const { v4: uuidv4 } = require("uuid");
 const { redis } = require("../lib/redis");
-const { rows } = require("pg/lib/defaults");
-const { list } = require("pdfkit");
 
 const registerRoutes = express.Router();
 
@@ -132,15 +130,7 @@ registerRoutes.post(
       console.log(validInscriptionTypes)
       console.log(typeToValueMap);
 
-      //Controlador do return
-      let hasErrors = false;
-
       const errors = {};
-      const validEntries = [];
-
-      // Arrays com dados validos
-      const dataInscriptions = [];
-      const summaryByType = {};
 
       // Arrays para armazenar erros
       const missingData = []; //array para armazenar linhas com dados ausentes
@@ -151,8 +141,6 @@ registerRoutes.post(
       const seenNames = new Set(); // Set para rastrear nomes já vistos
 
       jsonData.forEach((item, index) => {
-        hasErrors = false; // Reseta o hasErrors para cada linha
-
         const fullName = item["Nome Completo"]?.trim();
         const birthDateRaw = item["Data de nascimento"];
         const gender  = item["Sexo"]?.trim();
@@ -187,8 +175,6 @@ registerRoutes.post(
             row: index + 5,
             name: fullName
           });
-
-          hasErrors = true;
         }
         seenNames.add(fullName);
 
@@ -196,23 +182,14 @@ registerRoutes.post(
         const birthDate = excelSerialDateToJSDate(birthDateRaw);
 
         // Verifica se a data de nascimento é válida
-        if(age === null, age < 0 || age > 120) {
+        if(age === null || age < 0 || age > 120) {
           logWarn(`Linha ${index + 5}, Data de nascimento inválida: ${birthDateRaw}`);
           invalidBirthDates.push({
             row: index + 5,
             field: birthDate.toLocaleDateString('pt-BR', {year: 'numeric', month: '2-digit', day: '2-digit'})
           });
-
-          hasErrors = true;
         }
 
-        if(!hasErrors) {
-          dataInscriptions.push({
-            name: fullName,
-            age: age
-          });
-        }
-        
         // Verifica se o tipo de inscrição é válido
         if (registrationType && !validInscriptionTypes.has(registrationType)) {
           logWarn(`Linha ${index + 5}, Tipo de Inscrição inválido: ${registrationType}`);
@@ -220,27 +197,7 @@ registerRoutes.post(
             row: index + 5,
             field: registrationType
           });
-
-          hasErrors = true;
         };
-
-        if(missingFields.length === 0 && 
-          isValidName && 
-          age !== null && 
-          age >= 0 && 
-          age <= 120 && 
-          validInscriptionTypes.has(registrationType)) {
-          
-          if (!summaryByType[registrationType]) {
-            summaryByType[registrationType] = {
-              count: 1,
-              totalValue: typeToValueMap[registrationType] || 0
-            }
-          } else {
-            summaryByType[registrationType].count += 1;
-            summaryByType[registrationType].totalValue += typeToValueMap[registrationType] || 0
-          }
-        }
       });
 
       if(invalidRegistrationTypes.length > 0) {
@@ -259,19 +216,59 @@ registerRoutes.post(
         errors.invalidBirthDates = invalidBirthDates;
       }
 
-      if(hasErrors) {
-        return res.status(200).json({
-          message: "Arquivo foi processado mas encontrou erros.",
-          errors
-        });
-      };
+      const hasErrors = Object.keys(errors).length > 0;
 
-      return res.status(200).json({
-        message: "Arquivo processado com sucesso.",
-        validEntries,
-        summaryByType,
-        dataInscriptions: dataInscriptions
-      });
+      if (!hasErrors) {
+        const participants = {};
+
+        jsonData.forEach(item =>{
+          const fullname = item["Nome Completo"]?.trim();
+          const birthDateRaw = item["Data de nascimento"];
+          const gender = item["Sexo"]?.trim();
+          const registrationType = item["Tipo de Inscrição"]?.trim().toUpperCase();
+          
+          const age = calculateAge(birthDateRaw);
+          const birthDate = excelSerialDateToJSDate(birthDateRaw);
+          
+          participants[fullname] = {
+            birthDate: birthDate.toLocaleDateString('pt-BR', {year: 'numeric', month: '2-digit', day: '2-digit'}),
+            age: age,
+            gender: gender,
+            registrationType: registrationType,
+          }
+
+          return participants;
+        });
+
+        const validatedData	= {
+          userid: user.id,
+          eventId: eventSelectedId,
+          responsible: responsible,
+          participants: participants
+        }
+
+        const key = `inscription:${eventSelectedId}:${user.id}:${new Date().toISOString().split('T')[0]}`;
+        const value = JSON.stringify({
+          eventId: Number(eventSelectedId),
+          responsible: responsible,
+          timestamp: new Date().toISOString(),
+          participants: participants
+        });
+
+        await redis.set(key, value, 'EX', 60 * 60) // Expira em 1 hora
+
+        return res.status(200).json({
+          message: "O arquivo foi processado com sucesso.",
+          data: validatedData
+        });
+      }
+
+      if (hasErrors) {
+        return res.status(200).json({
+          message: "O arquivo foi processado, mas foram encontrados erros nos dados.",
+          errors: errors
+        });
+      }
 
     } catch (error) {
       console.log("Erro interno no servidor", error);
