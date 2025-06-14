@@ -6,7 +6,7 @@ export const redis = new Redis({
        timeout: 10000, // 10 seconds
        enableTelemetry: false,
        retryStrategy: (attempt) =>{
-              if (attempt > 3) return null;
+              if (attempt > 1) return null;
               return attempt * 1000; // Retry after 1 second, 2 seconds, etc.
        }
 })

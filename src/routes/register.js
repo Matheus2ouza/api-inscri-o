@@ -75,7 +75,7 @@ registerRoutes.post(
       console.log(responsible);
 
       if (!eventSelectedId || !responsible) {
-        return res.status(400).json({ message: "Required fields are missing or invalid." })
+        return res.status(400).json({ message: "Campos obrigatórios estão ausentes ou são inválidos." })
       };
 
       // Lê o arquivo Excel a partir da memória
@@ -100,9 +100,6 @@ registerRoutes.post(
       function logWarn(message) {
         console.warn(`[AVISO] ${message}:`);
       }
-
-      console.log(eventSelectedId);
-      console.log(typeof eventSelectedId);
 
       const inscriptionType = await prisma.tipo_inscricao.findMany({
         where: {
@@ -220,6 +217,7 @@ registerRoutes.post(
 
       if (!hasErrors) {
         const participants = {};
+        const uuid = uuidv4();
 
         jsonData.forEach(item =>{
           const fullname = item["Nome Completo"]?.trim();
@@ -241,13 +239,14 @@ registerRoutes.post(
         });
 
         const validatedData	= {
+          uuid: uuid,
           userid: user.id,
           eventId: eventSelectedId,
           responsible: responsible,
           participants: participants
         }
 
-        const key = `inscription:${eventSelectedId}:${user.id}:${new Date().toISOString().split('T')[0]}`;
+        const key = `inscription:${eventSelectedId}:${user.id}:${uuid}`;
         const value = JSON.stringify({
           eventId: Number(eventSelectedId),
           responsible: responsible,
@@ -255,7 +254,7 @@ registerRoutes.post(
           participants: participants
         });
 
-        const redisResult = await redis.set(key, value, {ex: 60 * 60}) // Expira em 1 hora
+        const redisResult = await redis.set(key, value, {ex: 60 * 30}) // Expira em 30 minutos
 
         if (redisResult === 'OK') {
           console.log("Dados salvos no Redis com sucesso.");
@@ -288,7 +287,25 @@ registerRoutes.post(
   authenticateToken,
   uploadLimiter,
   async (req, res) =>{
+    const user = req.user;
 
+    const {eventId, responsible, uuid} = req.body;
+
+    if (!eventId || !responsible || !uuid) {
+      return res.status(400).json({ message: "Campos obrigatórios estão ausentes ou são inválidos." });
+    }
+
+    const key = `inscription:${eventId}:${user.id}:${uuid}`;
+
+    const registerData =  await redis.get(key);
+
+    if (!registerData) {
+      return res.status(404).json({ message: "Dados de inscrição não encontrados ou expirados." });
+    }
+
+    const parsedData = JSON.parse(registerData);
+
+    
   }
 );
 
