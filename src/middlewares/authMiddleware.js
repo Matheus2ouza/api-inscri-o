@@ -75,12 +75,29 @@ function authenticateToken(req, res, next) {
  */
 function authorizeRole(rolePermitido) {
     return (req, res, next) => {
-        if (req.user && req.user.role === rolePermitido) {
+        console.log("🔐 Verificando permissão de acesso...");
+        console.log("🔑 Role exigido:", rolePermitido);
+
+        if (!req.user) {
+            console.warn("❌ Nenhum usuário autenticado encontrado no request.");
+            return res.status(401).json({ message: "Usuário não autenticado." });
+        }
+
+        console.log("👤 Usuário autenticado:", {
+            id: req.user.id,
+            nome: req.user.nome,
+            role: req.user.role
+        });
+
+        if (req.user.role === rolePermitido) {
+            console.log("✅ Permissão concedida.");
             next();
         } else {
+            console.warn(`🚫 Acesso negado. Role '${req.user.role}' não é '${rolePermitido}'.`);
             return res.status(403).json({ message: "Acesso negado. Permissão insuficiente." });
         }
     };
 }
+
 
 module.exports = { generateTokenAuth, authenticateToken, authorizeRole }

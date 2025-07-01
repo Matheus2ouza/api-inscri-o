@@ -3,10 +3,10 @@ const express = require("express");
 const { body, validationResult } = require("express-validator");
 const { PrismaClient } = require('@prisma/client');
 const prisma = new PrismaClient();
-const { generateTokenAuth, authenticateToken } = require("../middlewares/authMiddleware")
+const { generateTokenAuth, authenticateToken, authorizeRole } = require("../middlewares/authMiddleware")
 const { generateTokenEmail } = require("../utils/tokenConfig");
 const {createHash, verifyPassword} = require("../utils/hashConfig");
-const { sendVerifyEmail } = require("../routes/notification")
+const { sendVerifyEmail } = require("./notification")
 const jwt = require('jsonwebtoken');
 const rateLimit = require("express-rate-limit");
 

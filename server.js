@@ -59,8 +59,12 @@ app.get('/', (req, res) => {
     res.send('Bem-vindo à minha API! ❤️');
 });
 
+const localityRouter = require('./src/routes/localityRouter.js')
+
+app.use('/locality', localityRouter)
+
 // Importação e uso de rotas
-app.use('/user', require('./src/routes/authentication.js'));
+app.use('/user', require('./src/routes/authenticationRoutes.js'));
 app.use('/register', require('./src/routes/register.js'));
 app.use('/dados', require('./src/routes/basicData.js'));
 app.use('/registroServ', require('./src/routes/registerServ.js'));
