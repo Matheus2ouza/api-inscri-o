@@ -49,7 +49,10 @@ async function loginService(locality, password) {
     role: verifyLocality.role
   })
 
-  return accessToken
+  return {
+  accessToken,
+  role: verifyLocality.role
+};
 }
 
 module.exports = {

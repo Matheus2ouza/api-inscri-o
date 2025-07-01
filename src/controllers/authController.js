@@ -19,12 +19,11 @@ exports.login = async (req, res) => {
   const { locality, password } = req.body;
   try {
 
-    const accessToken = await authService.loginService(locality, password)
-
-
+    const {accessToken, role} = await authService.loginService(locality, password)
 
     return res.status(200).json({
       success: true,
+      role: role,
       accessToken: accessToken
     })
 
