@@ -22,8 +22,7 @@ const loginLimiter = rateLimit({
 /**
  * Rota para Login
  */
-registerRoutes.post(
-    "/login",
+registerRoutes.post("/login",
     loginLimiter, // 🔥 Adiciona proteção contra brute-force
     [
         body("locality").isString().withMessage("User não encontrado"),
@@ -84,7 +83,8 @@ registerRoutes.post(
 
             return res.status(200).json({ 
                 message: "Login realizado com sucesso!",
-                accessToken: accessToken
+                accessToken: accessToken,
+                role: role
             });
 
         } catch (error) {
@@ -97,8 +97,7 @@ registerRoutes.post(
 /**
  * Rota para registrar o Usuario
  */
-registerRoutes.post(
-    "/register",
+registerRoutes.post("/register",
     [
         body("locality").isString().withMessage("Localidade não encontrada"),
         body("email").isEmail().withMessage("Email inválido"),
