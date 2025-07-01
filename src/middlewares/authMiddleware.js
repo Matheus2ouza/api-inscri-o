@@ -69,4 +69,18 @@ function authenticateToken(req, res, next) {
     }
 }
 
-module.exports = { generateTokenAuth, authenticateToken }
+/**
+ * Middleware para autorizar usuários com base no papel (role).
+ * @param {string} rolePermitido
+ */
+function authorizeRole(rolePermitido) {
+    return (req, res, next) => {
+        if (req.user && req.user.role === rolePermitido) {
+            next();
+        } else {
+            return res.status(403).json({ message: "Acesso negado. Permissão insuficiente." });
+        }
+    };
+}
+
+module.exports = { generateTokenAuth, authenticateToken, authorizeRole }

@@ -260,8 +260,15 @@ registerRoutes.get('/verify-token', authenticateToken, async (req, res) => {
         "Expires": "0"
     });
 
-    res.status(200).json({ message: "Token valido" });
+    // Adicione os dados do usuário retornados do token
+    res.status(200).json({
+        message: "Token válido",
+        id: req.user.id,
+        nome: req.user.nome,
+        role: req.user.role
+    });
 });
+
 
 /**
  * Rota para atualizar o accessToken
