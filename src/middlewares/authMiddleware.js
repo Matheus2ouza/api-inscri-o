@@ -78,6 +78,8 @@ function authorizeRole(rolePermitido) {
         console.log("🔐 Verificando permissão de acesso...");
         console.log("🔑 Role exigido:", rolePermitido);
 
+        console.log(req.user)
+
         if (!req.user) {
             console.warn("❌ Nenhum usuário autenticado encontrado no request.");
             return res.status(401).json({ message: "Usuário não autenticado." });
