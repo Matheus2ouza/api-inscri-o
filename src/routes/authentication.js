@@ -84,7 +84,7 @@ registerRoutes.post("/login",
             return res.status(200).json({ 
                 message: "Login realizado com sucesso!",
                 accessToken: accessToken,
-                role: role
+                role: verificationLocality.role
             });
 
         } catch (error) {
