@@ -45,7 +45,7 @@ async function loginService(locality, password) {
 
   const { accessToken } = generateTokenAuth({
     id: verifyLocality.id,
-    locality: verifyLocality.nome,
+    nome: verifyLocality.nome,
     role: verifyLocality.role
   })
 
