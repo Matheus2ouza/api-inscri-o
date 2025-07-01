@@ -4,11 +4,9 @@ const { body, validationResult } = require("express-validator");
 const { PrismaClient } = require('@prisma/client');
 const prisma = new PrismaClient();
 const { generateTokenAuth, authenticateToken, authorizeRole } = require("../middlewares/authMiddleware")
-const { generateTokenEmail } = require("../utils/tokenConfig");
-const {createHash, verifyPassword} = require("../utils/hashConfig");
-const { sendVerifyEmail } = require("./notification")
 const jwt = require('jsonwebtoken');
 const rateLimit = require("express-rate-limit");
+const authController = require("../controllers/authController");
 
 const registerRoutes = express.Router();
 
@@ -23,63 +21,11 @@ const loginLimiter = rateLimit({
  * Rota para Login
  */
 registerRoutes.post("/login",
-    loginLimiter, // 🔥 Adiciona proteção contra brute-force
+    loginLimiter,
     [
-        body("locality").isString().withMessage("User não encontrado"),
+        body("locality").isString().withMessage("Localidade não encontrado"),
         body("password").isString().withMessage("Password não encontrado")
-    ],
-    async (req, res) => {
-        try {
-            const { locality, password } = req.body;
-
-            // Verificação da localidade
-            const verificationLocality = await prisma.localidades.findFirst({
-                where: { nome: locality },
-                select: { id: true, nome: true, role: true, status: true }
-            });
-
-            if (!verificationLocality) { 
-                return res.status(404).json({ message: "Usuário não encontrado" });
-            }
-
-            if (!verificationLocality.status) {
-                return res.status(403).json({ message: "Localidade inativa" });
-            }
-
-            // Verifica se há autenticação vinculada
-            const verificationPassword = await prisma.autenticacao_localidades.findFirst({
-                where: { localidade_id: verificationLocality.id }
-            });
-
-            if (!verificationPassword) {
-                return res.status(401).json({ message: "Nenhuma autenticação encontrada" });
-            }
-
-            // Verifica senha usando bcrypt
-            const matchPassword = await verifyPassword(password, verificationPassword.salt, verificationPassword.senha_hash);
-
-            if (!matchPassword) {
-                return res.status(401).json({ message: "Senha incorreta" });
-            }
-
-            // Gera tokens
-            const { accessToken } = generateTokenAuth({
-                id: verificationLocality.id,
-                nome: verificationLocality.nome,
-                role: verificationLocality.role
-            });
-
-            return res.status(200).json({ 
-                message: "Login realizado com sucesso!",
-                accessToken: accessToken,
-                role: verificationLocality.role
-            });
-
-        } catch (error) {
-            console.error("Erro ao realizar login:", error);
-            return res.status(500).json({ message: "Erro interno no servidor" });
-        }
-    }
+    ], authController.login
 );
 
 /**
@@ -126,7 +72,7 @@ registerRoutes.post('/refresh-token', async (req, res) => {
             return res.status(403).json({ message: "Token de atualização inválido ou expirado" });
         }
 
-        const locality = await prisma.localidades.findFirst({ 
+        const locality = await prisma.localidades.findFirst({
             where: { id: decoded.id }
         });
 

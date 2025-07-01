@@ -16,6 +16,8 @@ router.post('/activeLocality',
       .isString().withMessage('Senha deve ser uma string')
       .isLength({ min: 6 }).withMessage('Senha deve ter no mínimo 6 caracteres')
   ],
+  authenticateToken,
+  authorizeRole("admin"),
   localityController.activeLocality
 );
 

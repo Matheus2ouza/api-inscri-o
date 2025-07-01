@@ -60,11 +60,11 @@ app.get('/', (req, res) => {
 });
 
 const localityRouter = require('./src/routes/localityRouter.js')
+const authRouter = require('./src/routes/authRoutes.js')
 
 app.use('/locality', localityRouter)
+app.use('/user', authRouter)
 
-// Importação e uso de rotas
-app.use('/user', require('./src/routes/authenticationRoutes.js'));
 app.use('/register', require('./src/routes/register.js'));
 app.use('/dados', require('./src/routes/basicData.js'));
 app.use('/registroServ', require('./src/routes/registerServ.js'));
