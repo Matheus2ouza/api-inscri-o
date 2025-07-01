@@ -33,10 +33,10 @@ exports.activeLocality = async (req, res) => {
     });
   }
 
-  const { localityId } = req.body;
+  const { localityId, password } = req.body;
 
   try {
-    await localityService.activeLocality(localityId);
+    await localityService.activeLocality(localityId, password);
 
     return res.status(200).json({
       success: true,

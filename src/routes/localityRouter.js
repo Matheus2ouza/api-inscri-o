@@ -10,9 +10,15 @@ router.get('/ListLocality',authenticateToken, authorizeRole("admin"), localityCo
 
 router.post('/activeLocality',
   [
-    body('localityId').notEmpty().withMessage('Id da localidade é obrigatorio')
+    body('localityId').notEmpty().withMessage('Id da localidade é obrigatório'),
+    body('password')
+      .notEmpty().withMessage('Senha é obrigatória')
+      .isString().withMessage('Senha deve ser uma string')
+      .isLength({ min: 6 }).withMessage('Senha deve ter no mínimo 6 caracteres')
   ],
-  localityController.activeLocality)
+  localityController.activeLocality
+);
+
 
 
 module.exports = router
