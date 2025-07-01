@@ -14,16 +14,9 @@ function generateTokenAuth(payload) {
         { expiresIn: "2h" }
     );
 
-    const refreshToken = jwt.sign(
-        { id: payload.id },
-        process.env.JWT_SECRET_REFRESH,
-        { expiresIn: "7h" }
-    );
-
     console.log("Access Token Gerado:", accessToken);
-    console.log("Refresh Token Gerado:", refreshToken);
 
-    return { accessToken, refreshToken };
+    return { accessToken };
 }
 
 /**
@@ -77,8 +70,6 @@ function authorizeRole(rolePermitido) {
     return (req, res, next) => {
         console.log("🔐 Verificando permissão de acesso...");
         console.log("🔑 Role exigido:", rolePermitido);
-
-        console.log(req.user)
 
         if (!req.user) {
             console.warn("❌ Nenhum usuário autenticado encontrado no request.");

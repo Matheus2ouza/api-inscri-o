@@ -8,5 +8,7 @@ const router = express.Router();
 
 router.get('/ListLocality',authenticateToken, authorizeRole("admin"), localityController.listLocality)
 
+router.post('/activeLocality', )
+
 
 module.exports = router
