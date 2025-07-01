@@ -1,5 +1,6 @@
 const { validationResult } = require('express-validator');
 const authService = require('../services/authService')
+const { generateTokenAuth } = require('../middlewares/authMiddleware')
 
 exports.login = async (req, res) => {
   const errors = validationResult(req);
