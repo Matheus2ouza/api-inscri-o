@@ -1,5 +1,5 @@
 const { validationResult } = require('express-validator');
-const { authService } = require('../services/authService')
+const authService = require('../services/authService')
 
 exports.login = async (req, res) => {
   const errors = validationResult(req);
@@ -19,7 +19,7 @@ exports.login = async (req, res) => {
   const { locality, password } = req.body;
   try {
 
-    const verifiedLocation = await authService.login(locality, password)
+    const verifiedLocation = await authService.loginService(locality, password)
 
     const { accessToken } = generateTokenAuth({
       id: verifiedLocation.id,

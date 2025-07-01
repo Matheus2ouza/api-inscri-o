@@ -2,7 +2,7 @@ const { PrismaClient } = require('@prisma/client');
 const prisma = new PrismaClient();
 const { verifyPassword } = require('../utils/hashConfig');
 
-async function login(locality, password) {
+async function loginService(locality, password) {
 
   const verifyLocality = await prisma.localidades.findFirst({
     where: {
@@ -46,5 +46,5 @@ async function login(locality, password) {
 }
 
 module.exports = {
-  login,
+  loginService,
 }
