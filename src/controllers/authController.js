@@ -1,6 +1,5 @@
 const { validationResult } = require('express-validator');
 const authService = require('../services/authService')
-const { generateTokenAuth } = require('../middlewares/authMiddleware')
 
 exports.login = async (req, res) => {
   const errors = validationResult(req);
@@ -20,13 +19,9 @@ exports.login = async (req, res) => {
   const { locality, password } = req.body;
   try {
 
-    const verifiedLocation = await authService.loginService(locality, password)
+    const accessToken = await authService.loginService(locality, password)
 
-    const { accessToken } = generateTokenAuth({
-      id: verifiedLocation.id,
-      locality: verifiedLocation.nome,
-      role: verifiedLocation.role
-    })
+
 
     return res.status(200).json({
       success: true,

@@ -1,6 +1,7 @@
 const { PrismaClient } = require('@prisma/client');
 const prisma = new PrismaClient();
 const { verifyPassword } = require('../utils/hashConfig');
+const { generateTokenAuth } = require('../middlewares/authMiddleware')
 
 async function loginService(locality, password) {
 
@@ -42,7 +43,13 @@ async function loginService(locality, password) {
     throw new Error("Senha incorreta, tente novamente");
   }
 
-  return verifyLocality
+  const { accessToken } = generateTokenAuth({
+    id: verifyLocality.id,
+    locality: verifyLocality.nome,
+    role: verifyLocality.role
+  })
+
+  return accessToken
 }
 
 module.exports = {
