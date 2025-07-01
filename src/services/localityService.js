@@ -21,7 +21,7 @@ async function listLocality() {
   }
 }
 
-async function activeLocality(localityId, password) {
+async function activeLocality(localityId, password, status) {
   try {
     console.log(`[LocalityService] Iniciando ativação da localidade ID=${localityId}`);
 
@@ -48,7 +48,7 @@ async function activeLocality(localityId, password) {
 
       await prismaTx.localidades.update({
         where: { id: localityId },
-        data: { status: true }
+        data: { status: status }
       });
 
       console.log(`[LocalityService] Upsert na tabela autenticacao_localidades`);

@@ -10,16 +10,23 @@ router.get('/ListLocality',authenticateToken, authorizeRole("admin"), localityCo
 
 router.post('/activeLocality',
   [
-    body('localityId').notEmpty().withMessage('Id da localidade é obrigatório'),
+    body('localityId')
+      .notEmpty().withMessage('Id da localidade é obrigatório'),
+
     body('password')
       .notEmpty().withMessage('Senha é obrigatória')
       .isString().withMessage('Senha deve ser uma string')
-      .isLength({ min: 6 }).withMessage('Senha deve ter no mínimo 6 caracteres')
+      .isLength({ min: 6 }).withMessage('Senha deve ter no mínimo 6 caracteres'),
+
+    body('status')
+      .notEmpty().withMessage('Status é obrigatório')
+      .isBoolean().withMessage('Status deve ser true ou false')
   ],
   authenticateToken,
   authorizeRole("admin"),
   localityController.activeLocality
 );
+
 
 
 

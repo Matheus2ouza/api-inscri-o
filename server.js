@@ -62,8 +62,8 @@ app.get('/', (req, res) => {
 const localityRouter = require('./src/routes/localityRouter.js')
 const authRouter = require('./src/routes/authRoutes.js')
 
-app.use('/locality', localityRouter)
 app.use('/user', authRouter)
+app.use('/locality', localityRouter)
 
 app.use('/register', require('./src/routes/register.js'));
 app.use('/dados', require('./src/routes/basicData.js'));
