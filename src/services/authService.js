@@ -1,7 +1,6 @@
 const { PrismaClient } = require('@prisma/client');
 const prisma = new PrismaClient();
 const { verifyPassword } = require('../utils/hashConfig');
-const { generateTokenAuth } = require('../middlewares/authMiddleware');
 
 async function login(locality, password) {
 
