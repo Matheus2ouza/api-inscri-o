@@ -23,7 +23,7 @@ async function listLocality() {
 async function activeLocality(localityId) {
   try{
     const checkedLocality = await prisma.localidades.findUnique({
-      where: {localityId}
+      where: {id: localityId}
     })
 
     if(!checkedLocality) {
@@ -37,6 +37,8 @@ async function activeLocality(localityId) {
         status: true
       }
     })
+    
+    return result
   } catch (err) {
     console.error("[LocalityService] Erro ao ativar localidade:", err);
     throw err;
