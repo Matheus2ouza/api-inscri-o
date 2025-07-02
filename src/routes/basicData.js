@@ -9,8 +9,11 @@ router.get('/localidades', async (req, res) => {
         const locations = await prisma.localidades.findMany({
             where: {
                 nome: {
-                    notIn: ['ADMIN', 'CEAPE'] // <- Correto!
+                    notIn: ['ADMIN', 'CEAPE']
                 }
+            },
+            orderBy: {
+                id: 'asc' // <-- Ordena por ID de forma crescente
             }
         });
 
