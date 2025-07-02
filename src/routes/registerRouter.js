@@ -6,7 +6,6 @@ const registerController = require("../controllers/registerController");
 const registerRoutes = express.Router();
 
 // Configuração do multer
-const multer = require("multer");
 const storage = multer.memoryStorage(); // 👈 armazena o arquivo na memória
 const upload = multer({ storage, limits: { fileSize: 10 * 1024 * 1024 } });
 
