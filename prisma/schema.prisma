@@ -38,9 +38,23 @@ model eventos {
   data_limite       DateTime            @db.Date @map("data_limite")
   inscricoesAvulsas inscricao_avulsa[]
   tiposInscricao    tipo_inscricao[]
+  eventRules        event_rules[]
   vendasAlimentacao venda_alimentacao[]
 
   @@map("eventos")
+}
+
+model event_rules {
+  id           Int      @id @default(autoincrement()) @map("id")
+  evento_id    Int      @map("evento_id")
+  min_age      Int?     @map("min_age")
+  max_age      Int?     @map("max_age")
+  allow_male   Boolean? @default(true) @map("allow_male")
+  allow_female Boolean? @default(true) @map("allow_female")
+
+  evento       eventos  @relation(fields: [evento_id], references: [id], onDelete: Cascade)
+
+  @@map("event_rules")
 }
 
 model tipo_inscricao {
