@@ -101,6 +101,7 @@ async function deactivatedService(localityId) {
       data: {status: false}
     })
 
+    console.log(`[LocalityService]A localidade ${checkedLocality.nome} teve seu status atualizado para false`)
     return result
   }catch (err) {
     console.error("[LocalityService] Erro ao ativar localidade:", err);
