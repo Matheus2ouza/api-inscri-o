@@ -61,12 +61,13 @@ app.get('/', (req, res) => {
 
 const localityRouter = require('./src/routes/localityRouter.js')
 const authRouter = require('./src/routes/authRoutes.js')
+const basicData = require('./src/routes/basicDataRouter.js')
 
 app.use('/user', authRouter)
 app.use('/locality', localityRouter)
+app.use('/data', basicData);
 
 app.use('/register', require('./src/routes/register.js'));
-app.use('/dados', require('./src/routes/basicData.js'));
 app.use('/registroServ', require('./src/routes/registerServ.js'));
 app.use('/registroJovem', require('./src/routes/registerJovem.js'));
 app.use('/pagamento', require('./src/routes/payment.js'));

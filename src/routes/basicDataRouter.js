@@ -3,6 +3,7 @@ const router = express.Router();
 const { pool } = require('../db/dbConnection')
 const { PrismaClient } = require('@prisma/client');
 const prisma = new PrismaClient();
+const basicDataController = require('../controllers/basicDataController')
 
 router.get('/localidades', async (req, res) => {
     try {
@@ -30,40 +31,7 @@ router.get('/localidades', async (req, res) => {
     }
 });
 
-router.get('/eventos', async (req, res) => {
-    try {
-        // Busca todos os eventos usando o Prisma
-        const events = await prisma.eventos.findMany({
-            include: {
-                tiposInscricao: {
-                    where: {
-                        valor: {
-                            gt: 0
-                        }
-                    },
-                    select: {
-                        descricao: true,
-                        valor: true
-                    }
-                },
-            },
-        });
-
-
-        if (events.length === 0) {
-            console.warn('Nenhum evento encontrado');
-            return res.status(404).json({ message: 'Nenhum evento encontrado' });
-        }
-
-        console.log('Consulta de eventos feita com sucesso');
-        res.status(200).json(events);
-    } catch (err) {
-        console.error(`Erro ao buscar os eventos: ${err.message}`);
-        res.status(400).json({ error: `Erro na busca de eventos: ${err.message}` });
-    } finally {
-        await prisma.$disconnect(); // Encerra a conexão
-    }
-});
+router.get('/eventos', basicDataController.events);
 
 router.get('/eventData', async (req, res) => {
     try {
