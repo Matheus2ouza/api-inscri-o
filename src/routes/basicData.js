@@ -35,7 +35,7 @@ router.get('/eventos', async (req, res) => {
         // Busca todos os eventos usando o Prisma
         const events = await prisma.eventos.findMany({
             include: {
-                tipo_inscricao: {
+                tiposInscricao: {
                     where: {
                         valor: {
                             gt: 0
@@ -43,11 +43,12 @@ router.get('/eventos', async (req, res) => {
                     },
                     select: {
                         descricao: true,
-                        valor: true,
+                        valor: true
                     }
                 },
             },
         });
+
 
         if (events.length === 0) {
             console.warn('Nenhum evento encontrado');
@@ -66,29 +67,29 @@ router.get('/eventos', async (req, res) => {
 
 router.get('/eventData', async (req, res) => {
     try {
-      const eventos = await prisma.eventos.findMany({
-        include: {
-          tipo_inscricao: {
-            select: {
-                descricao: true,
-                valor: true
+        const eventos = await prisma.eventos.findMany({
+            include: {
+                tipo_inscricao: {
+                    select: {
+                        descricao: true,
+                        valor: true
+                    }
+                }
+            },
+            orderBy: {
+                data_limite: 'asc'
             }
-          }
-        },
-        orderBy: {
-          data_limite: 'asc'
-        }
-      });
-  
-      res.status(200).json(eventos);
+        });
+
+        res.status(200).json(eventos);
     } catch (error) {
-      console.error(error);
-      res.status(500).json({ message: 'Erro ao buscar os eventos.' });
+        console.error(error);
+        res.status(500).json({ message: 'Erro ao buscar os eventos.' });
     }
 });
 
-router.get('/inscricaoData', async(req, res) =>{
-    try{
+router.get('/inscricaoData', async (req, res) => {
+    try {
         const inscricaoData = await pool.query(`
         SELECT 
             l.nome AS localidade_nome,
@@ -132,16 +133,16 @@ router.get('/inscricaoData', async(req, res) =>{
 
         const result = inscricaoData.rows
 
-        if(result.length === 0) {
+        if (result.length === 0) {
             console.warn('Nenhuma inscrição encontrada');
-            res.status(401).json({message: 'Nenhuma inscrição encontrada'});
+            res.status(401).json({ message: 'Nenhuma inscrição encontrada' });
         } else {
             console.warn('Busca de inscrições feita com sucesso...');
             res.status(201).json(result);
         }
-    }catch (err){
+    } catch (err) {
         console.error(`Erro ao buscar os inscrições: ${err}`);
-        res.status(500).json({ error: `Erro na busca de inscrições ${err}`});
+        res.status(500).json({ error: `Erro na busca de inscrições ${err}` });
     }
 })
 module.exports = router;
