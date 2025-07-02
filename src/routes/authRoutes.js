@@ -5,23 +5,14 @@ const { PrismaClient } = require('@prisma/client');
 const prisma = new PrismaClient();
 const { generateTokenAuth, authenticateToken, authorizeRole } = require("../middlewares/authMiddleware")
 const jwt = require('jsonwebtoken');
-const rateLimit = require("express-rate-limit");
 const authController = require("../controllers/authController");
 
 const registerRoutes = express.Router();
-
-
-const loginLimiter = rateLimit({
-    windowMs: 15 * 60 * 1000, // 15 minutos
-    max: 10, // Máximo de 5 tentativas falhas
-    message: { message: "Muitas tentativas de login. Tente novamente mais tarde." }
-});
 
 /**
  * Rota para Login
  */
 registerRoutes.post("/login",
-    loginLimiter,
     [
         body("locality").isString().withMessage("Localidade não encontrado"),
         body("password").isString().withMessage("Password não encontrado")
