@@ -11,6 +11,9 @@ async function listLocality() {
         nome: true,
         saldo_devedor: true,
         status: true
+      },
+      orderBy: {
+        id: 'asc'
       }
     })
 
