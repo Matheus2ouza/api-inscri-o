@@ -52,3 +52,36 @@ exports.activeLocality = async (req, res) => {
     });
   }
 };
+
+exports.deactivated = async (req, res) => {
+  const errors = validationResult(req);
+
+  if (!errors.isEmpty()) {
+    console.warn('[ConfigurationParking] Dados inválidos na requisição:', errors.array());
+    return res.status(400).json({
+      success: false,
+      message: 'Erro de validação',
+      fields: errors.array().reduce((acc, err) => {
+        acc[err.path] = err.msg;
+        return acc;
+      }, {}),
+    });
+  }
+
+  const { localityId } = req.body
+
+  try{
+    await localityService.deactivatedService(Number(localityId))
+
+    return res.status(200).json({
+      success: true,
+    });
+  } catch (error) {
+    console.error('[localityController] Erro ao tentar ativar a localidade:', error);
+
+    return res.status(400).json({
+      success: false,
+      message: error.message || 'Erro ao ativar a localidade'
+    });
+  }
+}

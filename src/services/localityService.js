@@ -83,8 +83,33 @@ async function activeLocality(localityId, password, status) {
   }
 }
 
+async function deactivatedService(localityId) {
+  try{
+    const checkedLocality = await prisma.localidades.findUnique({
+      where: {
+        id: localityId
+      }
+    });
+
+    if(!checkedLocality) {
+      console.error(`[LocalityService] Localidade ID=${localityId} não encontrada no banco de dados`);
+      throw new Error("Localidade não encontrada");
+    }
+
+    const result = await prisma.localidades.update({
+      where: {id: localityId},
+      data: {status: false}
+    })
+
+    return result
+  }catch (err) {
+    console.error("[LocalityService] Erro ao ativar localidade:", err);
+    throw err;
+  }
+}
 
 module.exports = {
   listLocality,
-  activeLocality
+  activeLocality,
+  deactivatedService
 };

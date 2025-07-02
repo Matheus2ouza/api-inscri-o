@@ -1,12 +1,12 @@
 
 const express = require('express');
 const { body } = require('express-validator');
-const { authorizeRole, authenticateToken} = require('../middlewares/authMiddleware')
+const { authorizeRole, authenticateToken } = require('../middlewares/authMiddleware')
 const localityController = require('../controllers/localityController')
 
 const router = express.Router();
 
-router.get('/ListLocality',authenticateToken, authorizeRole("admin"), localityController.listLocality)
+router.get('/ListLocality', authenticateToken, authorizeRole("admin"), localityController.listLocality)
 
 router.post('/activeLocality',
   [
@@ -27,7 +27,15 @@ router.post('/activeLocality',
   localityController.activeLocality
 );
 
-
+router.post('/deactivated',
+  [
+    body('localityId')
+      .notEmpty().withMessage('Id da localidade é obrigatório'),
+  ],
+  authenticateToken,
+  authorizeRole("admin"),
+  localityController.deactivated
+)
 
 
 module.exports = router
