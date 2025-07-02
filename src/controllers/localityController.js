@@ -40,6 +40,7 @@ exports.activeLocality = async (req, res) => {
 
     return res.status(200).json({
       success: true,
+      localityId: localityId,
       message: 'Localidade ativada com sucesso'
     });
   } catch (error) {
