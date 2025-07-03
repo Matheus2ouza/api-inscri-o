@@ -1,6 +1,7 @@
 const xlsx = require("xlsx");
 const { validationResult } = require("express-validator");
 const registerService = require("../services/registerService");
+const { redis } = require("../lib/redis");
 
 function excelSerialDateToJSDate(serial) {
   const excelEpoch = new Date(1899, 11, 30);
@@ -82,6 +83,7 @@ exports.uploadFile = async (req, res) => {
 
     const lineError = [];
     const participants = [];
+    let outstandingBalance = 0;
 
     for (let index = 0; index < jsonData.length; index++) {
       const item = jsonData[index];
@@ -203,6 +205,15 @@ exports.uploadFile = async (req, res) => {
         continue;
       }
 
+      // Encontrar o tipo de inscrição correspondente
+      const tipoInscricaoObj = rulesEvent.tipos_inscricao.find(
+        tipo => tipo.descricao.trim().toLowerCase() === registrationType.trim().toLowerCase()
+      );
+
+      if (tipoInscricaoObj?.valor) {
+        outstandingBalance += parseFloat(tipoInscricaoObj.valor); // soma o valor ao saldo
+      }
+
       // Participante válido
       participants.push({
         nome_completo: nameLine.trim(),
@@ -213,7 +224,6 @@ exports.uploadFile = async (req, res) => {
 
       console.log(`Linha ${linhaExcel} adicionada ao participants`);
     }
-
 
     if (lineError.length > 0) {
       console.log("Erros encontrados no processamento:", lineError);
@@ -228,13 +238,12 @@ exports.uploadFile = async (req, res) => {
       message: "Arquivo processado com sucesso.",
       participants: participants,
       rulesEvent,
+      outstandingBalance: outstandingBalance,
     });
   } catch (error) {
     console.error("Erro ao processar o arquivo Excel:", error);
     return res.status(500).json({ message: "Erro ao processar o arquivo Excel." });
   }
 };
-
-
 
 exports.confirmRegister = async (req, res) => { };
