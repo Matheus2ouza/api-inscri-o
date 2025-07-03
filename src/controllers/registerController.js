@@ -50,11 +50,10 @@ exports.uploadFile = async (req, res) => {
   }
 
   const { eventSelectedId, responsible } = req.body;
-  console.log("eventSelectedId:", typeof(eventSelectedId));
 
   let rulesEvent;
   try {
-    rulesEvent = await registerService.rulesEvent(eventSelectedId);
+    rulesEvent = await registerService.rulesEvent(Number(eventSelectedId));
   } catch (err) {
     return res.status(400).json({ message: "Erro ao obter regras do evento." });
   }
