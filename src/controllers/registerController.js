@@ -244,7 +244,7 @@ exports.uploadFile = async (req, res) => {
     }
 
     const cacheKey = `register:${userId}:${eventSelectedId}:${uniqueId}`;
-    await redis.set(cacheKey, JSON.stringify(data), 'EX', 3600); //
+    await redis.set(cacheKey, JSON.stringify(data), { ex: 3600 });
 
     return res.status(200).json({
       message: "Arquivo processado com sucesso.",
