@@ -89,8 +89,20 @@ exports.uploadFile = async (req, res) => {
       const sexo = item["Sexo"];
       const tipoInscricao = item["Tipo de Inscrição"];
 
-      console.log(nome, nascimento, sexo, tipoInscricao);
+      if(!nome || !nascimento || !sexo || !tipoInscricao) {
+        lineError.push(index + 3);
+        return;
+      }
+      
     });
+
+
+    if(lineError.length > 0) {
+      return res.status(400).json({
+        message: "Erro de validação nos dados do arquivo.",
+        errors: lineError
+      });
+    }
 
     return res.status(200).json({
       message: "Arquivo processado com sucesso.",
