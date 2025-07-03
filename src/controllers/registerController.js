@@ -148,13 +148,17 @@ exports.uploadFile = async (req, res) => {
             line: linhaExcel,
             message: "Data de nascimento inválida. Use uma data válida: DD/MM/AAAA.",
           });
-        } else {
-          const age = calculateAge(dateFormatted);
-          if (age === null || rulesEvent.min_age > age || age > rulesEvent.max_age) {
-            console.warn(`Linha ${linhaExcel} - Idade fora da faixa:`, age);
-            lineError.push({ line: linhaExcel, message: "Idade fora da faixa etária esperada" });
-          }
         }
+
+        const age = calculateAge(dateBirthLine);
+        if (rulesEvent.min_age > age || age > rulesEvent.max_age) {
+          console.warn(`Linha ${linhaExcel} - Idade fora do intervalo permitido:`, age);
+          lineError.push({
+            line: linhaExcel,
+            message: `Idade deve estar entre ${rulesEvent.min_age} e ${rulesEvent.max_age} anos.`,
+          });
+        }
+
       }
 
       // Validação de sexo
