@@ -90,6 +90,9 @@ exports.uploadFile = async (req, res) => {
       const sexLine = item["Sexo"];
       const registrationType = item["Tipo de Inscrição"];
 
+      const age = calculateAge(dateBirthLine);
+      const convertedDate = excelSerialDateToJSDate(dateBirthLine);
+
       console.log ( nameLine, dateBirthLine, sexLine, registrationType );
       const emptyFields = [
         { valor: nameLine, mensagem: "Campo 'Nome Completo' está vazio." },
@@ -128,15 +131,12 @@ exports.uploadFile = async (req, res) => {
       }
       
       if(!dateBirthLine) {
-        const convertedDate = excelSerialDateToJSDate(dateBirthLine);
-
         const regexData = /^(0[1-9]|[12][0-9]|3[01])\/(0[1-9]|1[0-2])\/\d{4}$/;
         if (convertedDate && !regexData.test(convertedDate)) {
           console.error("Data de nascimento inválida:", convertedDate);
           lineError.push({ line: linhaExcel, message: "Data de nascimento inválida. Use o formato DD/MM/AAAA." });
         }
   
-        const age = calculateAge(dateBirthLine);
         if (age === null || rulesEvent.min_age > age || age > rulesEvent.max_age) {
           console.error("Idade fora da faixa etária esperada:", age);
           lineError.push({ line: linhaExcel, message: "Idade fora da faixa etária esperada" });
