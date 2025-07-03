@@ -76,7 +76,7 @@ exports.uploadFile = async (req, res) => {
     const participants = [];
 
     jsonData.forEach((item, index) => {
-      const linhaExcel = index + 4; // linha real no Excel
+      const linhaExcel = index + 5; // linha real no Excel
       const nameLine = item["Nome Completo"];
       const dateBirthLine = item["Data de nascimento"];
       const sexLine = item["Sexo"];
