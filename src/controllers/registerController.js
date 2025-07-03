@@ -80,98 +80,23 @@ exports.uploadFile = async (req, res) => {
 
     }).slice(1); //Ignora a 4 linha (índice 3)
 
-    const headers = jsonData[0];
-    const dataRows = jsonData.slice(2);
-
     const lineError = [];
     const participantes = [];
 
-    dataRows.forEach((row, index) => {
-      const lineNumber = index + 5;
+    jsonData.forEach((item, index) => {
+      const nome = item["Nome Completo"];
+      const nascimento = item["Data de nascimento"];
+      const sexo = item["Sexo"];
+      const tipoInscricao = item["Tipo de Inscrição"];
 
-      const participante = {};
-      headers.forEach((key, i) => {
-        participante[key] = row[i];
-      });
-
-      const fullname = participante["Nome Completo"]?.trim();
-      const birthDate = participante["Data de nascimento"];
-      const gender = participante["Sexo"]?.trim();
-      const registrationType = participante["Tipo de inscrição"]?.trim();
-
-      if (!fullname || !birthDate || !gender || !registrationType) {
-        lineError.push({
-          line: lineNumber,
-          error: "Campos obrigatórios ausentes",
-        });
-        return;
-      }
-
-      const regexName = /^[A-Za-zÀ-ÖØ-öø-ÿ]+(?: [A-Za-zÀ-ÖØ-öø-ÿ]+)+$/;
-      if (!regexName.test(fullname)) {
-        lineError.push({
-          line: lineNumber,
-          error: "Nome fora do formato esperado (Nome e Sobrenome, sem caracteres especiais)",
-        });
-      }
-
-      const age = calculateAge(birthDate);
-      if (age === null) {
-        lineError.push({
-          line: lineNumber,
-          error: "Data de nascimento inválida",
-        });
-      } else if (age < rulesEvent.min_age || age > rulesEvent.max_age) {
-        lineError.push({
-          line: lineNumber,
-          error: `Idade fora do intervalo permitido (${rulesEvent.min_age} - ${rulesEvent.max_age})`,
-        });
-      }
-
-      const genderNormalized = gender.toLowerCase();
-      const isMale = genderNormalized === "masculino" || genderNormalized === "m";
-      const isFemale = genderNormalized === "feminino" || genderNormalized === "f";
-
-      if (!rulesEvent.allow_male && isMale) {
-        lineError.push({
-          line: lineNumber,
-          error: "Sexo masculino não permitido para este evento",
-        });
-      }
-
-      if (!rulesEvent.allow_female && isFemale) {
-        lineError.push({
-          line: lineNumber,
-          error: "Sexo feminino não permitido para este evento",
-        });
-      }
-
-      const isValidType = rulesEvent.tipos_inscricao.some(t => t.descricao === registrationType);
-      if (!isValidType) {
-        lineError.push({
-          line: lineNumber,
-          error: `Tipo de inscrição inválido: "${registrationType}"`,
-        });
-      }
-
-      participantes.push(participante);
+      console.log(nome, nascimento, sexo, tipoInscricao);
     });
 
-    if (lineError.length > 0) {
-      return res.status(400).json({
-        message: "Erros de validação encontrados no arquivo.",
-        errors: lineError,
-      });
-    }
-
-    // Calcular total com base nos tipos de inscrição e valor
-    let total = 0;
-    participantes.forEach(p => {
-      const tipo = rulesEvent.tipos_inscricao.find(t => t.descricao === p["Tipo de inscrição"]);
-      total += tipo?.valor || 0;
+    return res.status(200).json({
+      message: "Arquivo processado com sucesso.",
+      participantes: jsonData,
+      rulesEvent,
     });
-
-    return res.status(200).json({ data: participantes, total });
   } catch (error) {
     console.error("Erro ao processar o arquivo Excel:", error);
     return res.status(500).json({ message: "Erro ao processar o arquivo Excel." });
