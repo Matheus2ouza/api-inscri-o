@@ -90,8 +90,7 @@ exports.uploadFile = async (req, res) => {
       const tipoInscricao = item["Tipo de Inscrição"];
 
       if(!nome || !nascimento || !sexo || !tipoInscricao) {
-        lineError.push(index + 5);
-        return;
+        lineError.push(index + 4);
       }
       
     });
