@@ -150,7 +150,7 @@ exports.uploadFile = async (req, res) => {
         continue;
       }
 
-      const age = calculateAge(dateFormatted);
+      const age = calculateAge(dateBirthLine);
       console.log(`Linha ${linhaExcel} - Idade calculada:`, age);
       if (rulesEvent.min_age > age || age > rulesEvent.max_age) {
         console.warn(`Linha ${linhaExcel} - Idade fora do intervalo permitido:`, age);
