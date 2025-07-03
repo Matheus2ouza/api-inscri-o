@@ -140,8 +140,7 @@ exports.uploadFile = async (req, res) => {
 
       // Validação de data
       if (dateBirthLine) {
-        const dateBirth = new Date(dateBirthLine);
-        const isValidDate = dateBirth instanceof Date && !isNaN(dateBirth.getTime());
+        const isValidDate = dateFormatted instanceof Date && !isNaN(dateFormatted.getTime());
 
         if (!isValidDate) {
           console.warn(`Linha ${linhaExcel} - Data inválida:`, dateBirthLine);
@@ -150,7 +149,7 @@ exports.uploadFile = async (req, res) => {
             message: "Data de nascimento inválida. Use uma data válida: DD/MM/AAAA.",
           });
         } else {
-          const age = calculateAge(dateBirth);
+          const age = calculateAge(dateFormatted);
           if (age === null || rulesEvent.min_age > age || age > rulesEvent.max_age) {
             console.warn(`Linha ${linhaExcel} - Idade fora da faixa:`, age);
             lineError.push({ line: linhaExcel, message: "Idade fora da faixa etária esperada" });
