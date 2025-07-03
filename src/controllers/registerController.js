@@ -133,15 +133,17 @@ exports.uploadFile = async (req, res) => {
         }
       }
 
-      const tipoInscricaoValido = rulesEvent.tipos_inscricao.some(
-        tipo => tipo.descricao.trim().toLowerCase() === registrationType?.trim().toLowerCase()
-      );
+      if (!registrationType) {
+        const tipoInscricaoValido = rulesEvent.tipos_inscricao.some(
+          tipo => tipo.descricao.trim().toLowerCase() === registrationType?.trim().toLowerCase()
+        );
 
-      if (!tipoInscricaoValido) {
-        lineError.push({
-          line: linhaExcel,
-          message: `Tipo de inscrição "${registrationType}" não é válido para este evento.`
-        });
+        if (!tipoInscricaoValido) {
+          lineError.push({
+            line: linhaExcel,
+            message: `Tipo de inscrição "${registrationType}" não é válido para este evento.`
+          });
+        }
       }
 
       if (!lineError.some(error => error.line === linhaExcel)) {
