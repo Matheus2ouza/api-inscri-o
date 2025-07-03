@@ -251,7 +251,7 @@ exports.uploadFile = async (req, res) => {
       participants: participants,
       typeInscription: rulesEvent.tipos_inscricao,
       outstandingBalance: outstandingBalance,
-      cacheKey: cacheKey,
+      uniqueId: uniqueId,
     });
   } catch (error) {
     console.error("Erro ao processar o arquivo Excel:", error);
