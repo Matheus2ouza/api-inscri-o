@@ -77,7 +77,7 @@ async function register(data, eventSelectedId, userId) {
 
       const registerDetails = await prisma.registration_details.create({
         data: {
-          evento_id: evenStSelectedId,
+          evento_id: eventSelectedId,
           localidade_id: userId,
           responsavel: responsible,
           quantidade_inscritos: totalparticipants,
