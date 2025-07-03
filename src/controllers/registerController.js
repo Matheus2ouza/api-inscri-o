@@ -101,10 +101,12 @@ exports.uploadFile = async (req, res) => {
         const nameVerification = registerService.nameVerification(nameLine.toLowerCase(), userId);
 
         if (!regexFirstNameLastName.test(nameLine) || regexCharacters.test(nameLine)) {
+          console.error("Nome inválido:", nameLine);
           lineError.push({ line: linhaExcel, message: "A coluna do nome tem que ser o nome e o sobrenome, sem caracteres especiais" });
         }
 
         if (nameVerification?.exists) {
+          console.error("Nome já cadastrado:", nameLine);
           lineError.push({ line: linhaExcel, message: "Nome já cadastrado." });
         }
       }
@@ -112,12 +114,14 @@ exports.uploadFile = async (req, res) => {
       if (!dateBirthLine) {
         const regexData = /^(0[1-9]|[12][0-9]|3[01])\/(0[1-9]|1[0-2])\/\d{4}$/;
         if (!regexData.test(dateBirthLine)) {
+          console.error("Data de nascimento inválida:", dateBirthLine);
           lineError.push({ line: linhaExcel, message: "Data de nascimento inválida. Use o formato DD/MM/AAAA." });
         }
       }
 
       const age = calculateAge(dateBirthLine);
       if (age === null || rulesEvent.min_age > age || age > rulesEvent.max_age) {
+        console.error("Idade fora da faixa etária esperada:", age);
         lineError.push({ line: linhaExcel, message: "Idade fora da faixa etária esperada" });
       }
 
@@ -125,10 +129,12 @@ exports.uploadFile = async (req, res) => {
         const sex = sexLine.toLowerCase();
 
         if (sex === "masculino" && !rulesEvent.allow_male) {
+          console.error("Sexo masculino não permitido");
           lineError.push({ line: linhaExcel, message: "Sexo masculino não é permitido." });
         }
 
         if (sex === "feminino" && !rulesEvent.allow_female) {
+          console.error("Sexo feminino não permitido");
           lineError.push({ line: linhaExcel, message: "Sexo feminino não é permitido." });
         }
       }
@@ -139,6 +145,8 @@ exports.uploadFile = async (req, res) => {
         );
 
         if (!tipoInscricaoValido) {
+          console.error("Tipo de inscrição inválido:", registrationType);
+
           lineError.push({
             line: linhaExcel,
             message: `Tipo de inscrição "${registrationType}" não é válido para este evento.`
