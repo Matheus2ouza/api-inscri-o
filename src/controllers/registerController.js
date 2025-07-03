@@ -220,6 +220,7 @@ exports.uploadFile = async (req, res) => {
       participants.push({
         nome_completo: nameLine.trim(),
         idade: age,
+        tipo_inscricao_id: tipoInscricaoObj.id,
         tipo_inscricao: registrationType.trim(),
         sexo: sex,
       });
@@ -243,16 +244,14 @@ exports.uploadFile = async (req, res) => {
     }
 
     const cacheKey = `register:${userId}:${eventSelectedId}:${uniqueId}`;
-    // await redis.set(cacheKey, JSON.stringify(data), 'EX', 3600); //
-
-    console.log(data);
-    console.log(cacheKey)
+    await redis.set(cacheKey, JSON.stringify(data), 'EX', 3600); //
 
     return res.status(200).json({
       message: "Arquivo processado com sucesso.",
       participants: participants,
       typeInscription: rulesEvent.tipos_inscricao,
       outstandingBalance: outstandingBalance,
+      cacheKey: cacheKey,
     });
   } catch (error) {
     console.error("Erro ao processar o arquivo Excel:", error);
@@ -260,4 +259,49 @@ exports.uploadFile = async (req, res) => {
   }
 };
 
-exports.confirmRegister = async (req, res) => { };
+exports.confirmRegister = async (req, res) => {
+  const errors = validationResult(req);
+
+  if (!errors.isEmpty()) {
+    return res.status(400).json({
+      success: false,
+      message: 'Erro de validação',
+      fields: errors.array().reduce((acc, err) => {
+        acc[err.path] = err.msg;
+        return acc;
+      }, {}),
+    });
+  }
+
+  const { eventSelectedId, uniqueId } = req.body;
+  const userId = req.user.id;
+
+  const cacheKey = `register:${userId}:${eventSelectedId}:${uniqueId}`;
+  const cachedData = await redis.get(cacheKey);
+
+  if (!cachedData) {
+    console.warn("Dados não encontrados no cache.");
+    return res.status(404).json({ message: "Dados não encontrados no cache ou expirados." });
+  }
+
+  const data = JSON.parse(cachedData);
+  console.log("Dados recuperados do cache:", data);
+
+  try{
+    const result = await registerService.register(data, eventSelectedId, userId)
+
+    console.log("Registro realizado com sucesso:", result);
+
+    // Limpa o cache após o registro bem-sucedido
+    await redis.del(cacheKey);
+
+    return res.status(200).json({
+      success: true,
+      message: "Registro realizado com sucesso.",
+      data: result,
+    });
+  } catch (error) {
+    console.error("Erro ao confirmar registro:", error);
+    return res.status(500).json({ message: "Erro ao confirmar registro." });
+  }
+};

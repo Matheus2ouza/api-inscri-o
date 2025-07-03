@@ -65,6 +65,7 @@ model tipo_inscricao {
   valor                 Decimal?         @db.Decimal(10, 2) @map("valor")
   evento_id             Int?             @map("evento_id")
   eventos               eventos?         @relation(fields: [evento_id], references: [id], onDelete: NoAction)
+  inscription_lists     inscription_list[]
 
   @@map("tipo_inscricao")
 }
@@ -73,6 +74,7 @@ model registration_details {
   id                   Int                @id @default(autoincrement()) @map("id")
   evento_id            Int                @map("evento_id")
   localidade_id        Int                @map("localidade_id")
+  responsavel          String             @map("responsavel")
   quantidade_inscritos Int                @map("quantidade_inscritos")
   saldo_devedor        Decimal?           @db.Decimal(10, 2) @map("saldo_devedor")
   status               RegistrationStatus @default(pendente)

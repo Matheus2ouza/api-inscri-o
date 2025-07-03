@@ -67,7 +67,51 @@ async function nameVerification(name, userId) {
   }
 }
 
+async function register(data, eventSelectedId, userId) {
+  try {
+    const { responsible, outstandingBalance, totalparticipants, participants } = data;
+
+    const result = prisma.$transaction(async (prismaTx) => {
+      console.log(`[RegisterService] Iniciando transação para registrar participantes`);
+
+      const registerDetails = await prisma.registration_details.create({
+        data: {
+          evento_id: evenStSelectedId,
+          localidade_id: userId,
+          responsavel: responsible,
+          quantidade_inscritos: totalparticipants,
+          saldo_devedor: outstandingBalance,
+          status: 'pendente',
+          data_criacao: new Date(),
+        }
+      })
+
+      console.log(`[RegisterService] Registro de detalhes da inscrição criado`);
+
+      await prisma.inscription_list.createMany({
+        data: {
+          data: participants.map(p => ({
+            registration_details_id: registerDetails.id,
+            nome_completo: p.nome_completo,
+            idade: p.idade,
+            tipo_inscricao_id: p.tipo_inscricao_id,
+            sexo: p.sexo,
+          })),
+        }
+      });
+
+      console.log(`[RegisterService] Lista de inscrições criada com sucesso`);
+      return true
+    });
+    return result;
+  } catch (error) {
+    console.error("[RegisterService] Erro ao registrar participantes:", error);
+    throw new Error("Erro ao registrar participantes.");
+  }
+}
+
 module.exports = {
   rulesEvent,
-  nameVerification
+  nameVerification,
+  register
 }
