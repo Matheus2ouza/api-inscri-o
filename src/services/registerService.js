@@ -83,7 +83,7 @@ async function register(data, eventSelectedId, userId) {
           quantidade_inscritos: totalparticipants,
           saldo_devedor: outstandingBalance,
           status: 'pendente',
-          data_criacao: new Date(),
+          data_inscricao: new Date(),
         }
       })
 
