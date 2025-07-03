@@ -2,7 +2,7 @@ const xlsx = require("xlsx");
 const { validationResult } = require("express-validator");
 const registerService = require("../services/registerService");
 const { redis } = require("../lib/redis");
-const uniqueId = uuidv4();
+const { v4: uuidv4 } = require('uuid');
 
 function excelSerialDateToJSDate(serial) {
   const excelEpoch = new Date(1899, 11, 30);
@@ -35,6 +35,7 @@ function calculateAge(birthDate) {
 }
 
 exports.uploadFile = async (req, res) => {
+  const uniqueId = uuidv4();
   const errors = validationResult(req);
 
   if (!errors.isEmpty()) {
