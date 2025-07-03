@@ -52,48 +52,49 @@ exports.uploadFile = async (req, res) => {
   let rulesEvent;
   try {
     rulesEvent = await registerService.rulesEvent(Number(eventSelectedId));
+    console.log("Regras do evento carregadas:", rulesEvent);
   } catch (err) {
+    console.error("Erro ao obter regras do evento:", err);
     return res.status(400).json({ message: "Erro ao obter regras do evento." });
   }
 
   try {
     const fileBuffer = req.file?.buffer;
-
     if (!fileBuffer) {
       return res.status(400).json({ message: "Arquivo não enviado corretamente." });
     }
 
-    const workbook = xlsx.read(req.file.buffer, { type: 'buffer' });
+    const workbook = xlsx.read(fileBuffer, { type: 'buffer' });
     const sheetName = workbook.SheetNames[0];
     const worksheet = workbook.Sheets[sheetName];
 
-    // Captura os cabeçalhos da linha 3 (índice 2)
     const headers = xlsx.utils.sheet_to_json(worksheet, {
       range: 2,
       header: 1,
     })[0];
+    console.log("Cabeçalhos capturados:", headers);
 
-    // Lê os dados a partir da linha 5 (índice 4), com os headers corretos
     const jsonData = xlsx.utils.sheet_to_json(worksheet, {
       range: 4,
       header: headers,
       defval: null,
     });
+    console.log("Dados extraídos do Excel:", jsonData);
 
     const lineError = [];
     const participants = [];
 
-    jsonData.forEach((item, index) => {
+    for (let index = 0; index < jsonData.length; index++) {
+      const item = jsonData[index];
       const linhaExcel = index + 5;
+
       const nameLine = item["Nome Completo"];
       const dateBirthLine = item["Data de nascimento"];
       const sexLine = item["Sexo"];
       const registrationType = item["Tipo de Inscrição"];
 
-      const age = calculateAge(dateBirthLine);
-      const convertedDate = excelSerialDateToJSDate(dateBirthLine);
+      console.log(`Linha ${linhaExcel}:`, item);
 
-      console.log ( nameLine, dateBirthLine, sexLine, registrationType );
       const emptyFields = [
         { valor: nameLine, mensagem: "Campo 'Nome Completo' está vazio." },
         { valor: dateBirthLine, mensagem: "Campo 'Data de nascimento' está vazio." },
@@ -103,87 +104,106 @@ exports.uploadFile = async (req, res) => {
 
       emptyFields.forEach(({ valor, mensagem }) => {
         if (!valor) {
+          console.warn(`Linha ${linhaExcel} - ${mensagem}`);
           lineError.push({ line: linhaExcel, message: mensagem });
         }
       });
 
+      // Validação do nome
       if (nameLine) {
         const regexFirstNameLastName = /^[A-Za-zÀ-ÖØ-öø-ÿ]+(?: [A-Za-zÀ-ÖØ-öø-ÿ]+)+$/;
         const regexCharacters = /[^A-Za-zÀ-ÖØ-öø-ÿ\s]/;
-        
+
         if (!regexFirstNameLastName.test(nameLine) || regexCharacters.test(nameLine)) {
-          console.error("Nome inválido:", nameLine);
-          lineError.push({ line: linhaExcel, message: "A coluna do nome tem que ser o nome e o sobrenome, sem caracteres especiais" });
+          console.warn(`Linha ${linhaExcel} - Nome inválido:`, nameLine);
+          lineError.push({
+            line: linhaExcel,
+            message: "A coluna do nome tem que ser o nome e o sobrenome, sem caracteres especiais",
+          });
+        }
+
+        try {
+          const nameVerification = await registerService.nameVerification(nameLine.toLowerCase(), userId);
+          if (nameVerification?.exists) {
+            console.warn(`Linha ${linhaExcel} - Nome duplicado:`, nameLine);
+            lineError.push({ line: linhaExcel, message: "Nome já cadastrado." });
+          }
+        } catch (err) {
+          console.error(`Linha ${linhaExcel} - Erro ao verificar nome duplicado:`, err);
         }
       }
 
-      // Verifica nome duplicado no banco
-      if (nameLine) {
-        registerService.nameVerification(nameLine.toLowerCase(), userId)
-          .then(nameVerification => {
-            if (nameVerification?.exists) {
-              lineError.push({ line: linhaExcel, message: "Nome já cadastrado." });
-            }
-          })
-          .catch(err => {
-            console.error("Erro na verificação do nome:", err);
-          });
-      }
-      
-      if(!dateBirthLine) {
+      // Validação de data
+      if (dateBirthLine) {
         const regexData = /^(0[1-9]|[12][0-9]|3[01])\/(0[1-9]|1[0-2])\/\d{4}$/;
-        if (convertedDate && !regexData.test(convertedDate)) {
-          console.error("Data de nascimento inválida:", convertedDate);
-          lineError.push({ line: linhaExcel, message: "Data de nascimento inválida. Use o formato DD/MM/AAAA." });
+        if (!regexData.test(dateBirthLine)) {
+          console.warn(`Linha ${linhaExcel} - Data inválida:`, dateBirthLine);
+          lineError.push({
+            line: linhaExcel,
+            message: "Data de nascimento inválida. Use o formato DD/MM/AAAA.",
+          });
         }
-  
+
+        const age = calculateAge(dateBirthLine);
         if (age === null || rulesEvent.min_age > age || age > rulesEvent.max_age) {
-          console.error("Idade fora da faixa etária esperada:", age);
+          console.warn(`Linha ${linhaExcel} - Idade fora da faixa:`, age);
           lineError.push({ line: linhaExcel, message: "Idade fora da faixa etária esperada" });
         }
       }
 
+      // Validação de sexo
       if (sexLine) {
         const sex = sexLine.toLowerCase();
 
         if (sex === "masculino" && !rulesEvent.allow_male) {
+          console.warn(`Linha ${linhaExcel} - Sexo masculino não permitido`);
           lineError.push({ line: linhaExcel, message: "Sexo masculino não é permitido." });
         }
 
         if (sex === "feminino" && !rulesEvent.allow_female) {
+          console.warn(`Linha ${linhaExcel} - Sexo feminino não permitido`);
           lineError.push({ line: linhaExcel, message: "Sexo feminino não é permitido." });
         }
       }
 
-      const tipoInscricaoValido = registrationType &&
-        rulesEvent.tipos_inscricao.some(
+      // Validação do tipo de inscrição
+      if (registrationType) {
+        const tipoInscricaoValido = rulesEvent.tipos_inscricao.some(
           tipo => tipo.descricao.trim().toLowerCase() === registrationType.trim().toLowerCase()
         );
 
-      if (!tipoInscricaoValido) {
-        lineError.push({
-          line: linhaExcel,
-          message: `Tipo de inscrição "${registrationType}" não é válido para este evento.`
-        });
+        if (!tipoInscricaoValido) {
+          console.warn(`Linha ${linhaExcel} - Tipo de inscrição inválido:`, registrationType);
+          lineError.push({
+            line: linhaExcel,
+            message: `Tipo de inscrição "${registrationType}" não é válido para este evento.`
+          });
+        }
       }
 
+      // Se nenhuma validação falhou para esta linha, adiciona aos participantes
       if (!lineError.some(error => error.line === linhaExcel)) {
+        const age = dateBirthLine ? calculateAge(dateBirthLine) : null;
         participants.push({
-          nome_completo: nameLine.trim(),
+          nome_completo: nameLine?.trim(),
           idade: age,
-          tipo_inscricao: registrationType.trim(),
-          sexo: sexLine.trim().toLowerCase()
+          tipo_inscricao: registrationType?.trim(),
+          sexo: sexLine?.trim()?.toLowerCase()
         });
+
+        console.log(`Linha ${linhaExcel} adicionada ao participants`);
       }
-    });
+    }
 
     if (lineError.length > 0) {
+      console.log("Erros encontrados no processamento:", lineError);
       return res.status(400).json({
         message: "Erro de validação nos dados do arquivo.",
-        errors: lineError
+        errors: lineError,
       });
     }
 
+    console.log("Participantes válidos:", participants);
     return res.status(200).json({
       message: "Arquivo processado com sucesso.",
       participantes: participants,
@@ -194,5 +214,7 @@ exports.uploadFile = async (req, res) => {
     return res.status(500).json({ message: "Erro ao processar o arquivo Excel." });
   }
 };
+
+
 
 exports.confirmRegister = async (req, res) => { };
