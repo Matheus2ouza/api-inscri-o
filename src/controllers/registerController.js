@@ -95,18 +95,18 @@ exports.uploadFile = async (req, res) => {
         }
       });
 
-      console.log(nameLine)
-
-      const regexFirstNameLastName = /^[A-Za-zÀ-ÖØ-öø-ÿ]+(?: [A-Za-zÀ-ÖØ-öø-ÿ]+)+$/;
-      const regexCharacters = /[^A-Za-zÀ-ÖØ-öø-ÿ\s]/;
-      const nameVerification = registerService.nameVerification(nameLine.toLowerCase(), userId);
-
-      if (!regexFirstNameLastName.test(nameLine) || regexCharacters.test(nameLine)) {
-        lineError.push({ line: linhaExcel, message: "O Nome tem que ser Nome e sobre nome, sem caracteres especiais" });
-      }
-
-      if (nameVerification?.exists) {
-        lineError.push({ line: linhaExcel, message: "Nome já cadastrado." });
+      if (nameLine){
+        const regexFirstNameLastName = /^[A-Za-zÀ-ÖØ-öø-ÿ]+(?: [A-Za-zÀ-ÖØ-öø-ÿ]+)+$/;
+        const regexCharacters = /[^A-Za-zÀ-ÖØ-öø-ÿ\s]/;
+        const nameVerification = registerService.nameVerification(nameLine.toLowerCase(), userId);
+  
+        if (!regexFirstNameLastName.test(nameLine) || regexCharacters.test(nameLine)) {
+          lineError.push({ line: linhaExcel, message: "O Nome tem que ser Nome e sobre nome, sem caracteres especiais" });
+        }
+  
+        if (nameVerification?.exists) {
+          lineError.push({ line: linhaExcel, message: "Nome já cadastrado." });
+        }
       }
 
       const age = calculateAge(dateBirthLine);
