@@ -162,20 +162,33 @@ exports.uploadFile = async (req, res) => {
       }
 
       // Validação de sexo
-      const sex = sexLine.toLowerCase();
+      if (sexLine) {
+        const sex = sexLine.trim().toLowerCase();
+        console.log(sex, `Linha ${linhaExcel} - Sexo informado`);
 
-      console.log(sex, `Linha ${linhaExcel} - Sexo informado`);
-      if (sex === "masculino" && !rulesEvent.allow_male) {
-        console.warn(`Linha ${linhaExcel} - Sexo masculino não permitido`);
-        lineError.push({ line: linhaExcel, message: "Sexo masculino não é permitido." });
-        continue;
+        if (sex === "masculino") {
+          if (!rulesEvent.allow_male) {
+            console.warn(`Linha ${linhaExcel} - Sexo masculino não permitido`);
+            lineError.push({ line: linhaExcel, message: "Sexo masculino não é permitido." });
+            continue;
+          }
+        } else if (sex === "feminino") {
+          if (!rulesEvent.allow_female) {
+            console.warn(`Linha ${linhaExcel} - Sexo feminino não permitido`);
+            lineError.push({ line: linhaExcel, message: "Sexo feminino não é permitido." });
+            continue;
+          }
+        } else {
+          // Caso o sexo não seja nem "masculino" nem "feminino"
+          console.warn(`Linha ${linhaExcel} - Sexo inválido:`, sexLine);
+          lineError.push({
+            line: linhaExcel,
+            message: "Sexo inválido. Deve ser exatamente 'Masculino' ou 'Feminino'.",
+          });
+          continue;
+        }
       }
 
-      if (sex === "feminino" && !rulesEvent.allow_female) {
-        console.warn(`Linha ${linhaExcel} - Sexo feminino não permitido`);
-        lineError.push({ line: linhaExcel, message: "Sexo feminino não é permitido." });
-        continue;
-      }
 
       // Validação do tipo de inscrição
       const tipoInscricaoValido = rulesEvent.tipos_inscricao.some(
