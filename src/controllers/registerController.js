@@ -92,13 +92,13 @@ exports.uploadFile = async (req, res) => {
       const dateBirthLine = item["Data de nascimento"];
       const sexLine = item["Sexo"];
       const registrationType = item["Tipo de Inscrição"];
-      
+
       const dateFormatted = dateBirthLine ? excelSerialDateToJSDate(dateBirthLine) : null;
 
       console.log(`Linha ${linhaExcel}:`, item);
       console.log(dateBirthLine)
       console.log(dateFormatted)
-      
+
 
       const emptyFields = [
         { valor: nameLine, mensagem: "Campo 'Nome Completo' está vazio." },
@@ -140,19 +140,21 @@ exports.uploadFile = async (req, res) => {
 
       // Validação de data
       if (dateBirthLine) {
-        const regexData = /^(0[1-9]|[12][0-9]|3[01])\/(0[1-9]|1[0-2])\/\d{4}$/;
-        if (!regexData.test(dateFormatted)) {
+        const dateBirth = new Date(dateBirthLine);
+        const isValidDate = dateBirth instanceof Date && !isNaN(dateBirth.getTime());
+
+        if (!isValidDate) {
           console.warn(`Linha ${linhaExcel} - Data inválida:`, dateBirthLine);
           lineError.push({
             line: linhaExcel,
-            message: "Data de nascimento inválida. Use o formato DD/MM/AAAA.",
+            message: "Data de nascimento inválida. Use uma data válida: DD/MM/AAAA.",
           });
-        }
-
-        const age = calculateAge(dateBirthLine);
-        if (age === null || rulesEvent.min_age > age || age > rulesEvent.max_age) {
-          console.warn(`Linha ${linhaExcel} - Idade fora da faixa:`, age);
-          lineError.push({ line: linhaExcel, message: "Idade fora da faixa etária esperada" });
+        } else {
+          const age = calculateAge(dateBirth);
+          if (age === null || rulesEvent.min_age > age || age > rulesEvent.max_age) {
+            console.warn(`Linha ${linhaExcel} - Idade fora da faixa:`, age);
+            lineError.push({ line: linhaExcel, message: "Idade fora da faixa etária esperada" });
+          }
         }
       }
 
