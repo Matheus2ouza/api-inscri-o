@@ -248,7 +248,7 @@ exports.uploadFile = async (req, res) => {
     return res.status(200).json({
       message: "Arquivo processado com sucesso.",
       participants: participants,
-      rulesEvent,
+      typeInscription: rulesEvent.tipos_inscricao,
       outstandingBalance: outstandingBalance,
     });
   } catch (error) {
