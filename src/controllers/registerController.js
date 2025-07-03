@@ -225,6 +225,7 @@ exports.uploadFile = async (req, res) => {
         sexo: sex,
       });
 
+      console.log(participants);
       console.log(`Linha ${linhaExcel} adicionada ao participants`);
     }
 
@@ -317,7 +318,7 @@ exports.confirmRegister = async (req, res) => {
     });
   } catch (error) {
     console.error("Erro ao confirmar registro:", error);
-    return res.status(500).json({ message: "Erro ao confirmar registro." });
+    return res.status(500).json({ success: false, message: "Erro ao confirmar registro." });
   }
 };
 

@@ -19,6 +19,7 @@ async function rulesEvent(eventId) {
     const typesInscription = await prisma.tipo_inscricao.findMany({
       where: { evento_id: eventId },
       select: {
+        id: true,
         descricao: true,
         valor: true,
       }
