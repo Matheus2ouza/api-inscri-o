@@ -68,5 +68,6 @@ async function nameVerification(name, userId) {
 }
 
 module.exports = {
-  rulesEvent
+  rulesEvent,
+  nameVerification
 }
