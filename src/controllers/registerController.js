@@ -2,6 +2,7 @@ const xlsx = require("xlsx");
 const { validationResult } = require("express-validator");
 const registerService = require("../services/registerService");
 const { redis } = require("../lib/redis");
+const uniqueId = uuidv4();
 
 function excelSerialDateToJSDate(serial) {
   const excelEpoch = new Date(1899, 11, 30);
@@ -240,10 +241,11 @@ exports.uploadFile = async (req, res) => {
       participants: participants,
     }
 
-    const result = redis.set(
-      `register`,
-      JSON.stringify()
-    );
+    const cacheKey = `register:${userId}:${eventSelectedId}:${uniqueId}`;
+    // await redis.set(cacheKey, JSON.stringify(data), 'EX', 3600); //
+
+    console.log(data);
+    console.log(cacheKey)
 
     return res.status(200).json({
       message: "Arquivo processado com sucesso.",
