@@ -80,13 +80,10 @@ exports.uploadFile = async (req, res) => {
 
     }).slice(1); //Ignora a 4 linha (índice 3)
 
-    const headers = jsonData[0];
-    const dataRows = jsonData.slice(2);
-
     const lineError = [];
     const participantes = [];
 
-    dataRows.forEach((row, index) => {
+    jsonData.forEach((row, index) => {
       const lineNumber = index + 5;
 
       const participante = {};
