@@ -92,6 +92,7 @@ exports.uploadFile = async (req, res) => {
       const sexLine = item["Sexo"];
       const registrationType = item["Tipo de Inscrição"];
 
+      let sex = sexLine.trim().toLowerCase();
       console.log(`Linha ${linhaExcel}:`, item);
 
       const emptyFields = [
@@ -163,7 +164,6 @@ exports.uploadFile = async (req, res) => {
 
       // Validação de sexo
       if (sexLine) {
-        const sex = sexLine.trim().toLowerCase();
         console.log(sex, `Linha ${linhaExcel} - Sexo informado`);
 
         if (sex === "masculino") {
