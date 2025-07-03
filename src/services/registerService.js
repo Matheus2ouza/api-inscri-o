@@ -72,10 +72,10 @@ async function register(data, eventSelectedId, userId) {
   try {
     const { responsible, outstandingBalance, totalparticipants, participants } = data;
 
-    const result = prisma.$transaction(async (prismaTx) => {
+    const result = await prisma.$transaction(async (tx) => {
       console.log(`[RegisterService] Iniciando transação para registrar participantes`);
 
-      const registerDetails = await prisma.registration_details.create({
+      const registerDetails = await tx.registration_details.create({
         data: {
           evento_id: eventSelectedId,
           localidade_id: userId,
@@ -85,11 +85,11 @@ async function register(data, eventSelectedId, userId) {
           status: 'pendente',
           data_inscricao: new Date(),
         }
-      })
+      });
 
       console.log(`[RegisterService] Registro de detalhes da inscrição criado`);
 
-      await prisma.inscription_list.createMany({
+      await tx.inscription_list.createMany({
         data: participants.map(p => ({
           registration_details_id: registerDetails.id,
           nome_completo: p.nome_completo,
@@ -97,11 +97,14 @@ async function register(data, eventSelectedId, userId) {
           tipo_inscricao_id: p.tipo_inscricao_id,
           sexo: p.sexo,
         })),
+        skipDuplicates: true,
       });
 
       console.log(`[RegisterService] Lista de inscrições criada com sucesso`);
-      return true
+
+      return registerDetails; // ou true
     });
+
     return result;
   } catch (error) {
     console.error("[RegisterService] Erro ao registrar participantes:", error);

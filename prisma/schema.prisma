@@ -91,14 +91,15 @@ model registration_details {
 model inscription_list {
   id                      Int                   @id @default(autoincrement()) @map("id")
   registration_details_id Int                   @map("registration_details_id")
-  nome_completo           String                @db.VarChar(255)         @map("nome_completo")
+  nome_completo           String                @db.VarChar(255) @map("nome_completo")
   idade                   Int                   @map("idade")
-  sexo                    String                @db.VarChar(20)          @map("sexo")
+  sexo                    String                @db.VarChar(20)              @map("sexo")
   tipo_inscricao_id       Int                   @map("tipo_inscricao_id")
 
   registration_details   registration_details  @relation(fields: [registration_details_id], references: [id], onDelete: Cascade)
   tipo_inscricao         tipo_inscricao        @relation(fields: [tipo_inscricao_id], references: [id], onDelete: NoAction)
 
+  @@unique([registration_details_id, nome_completo])
   @@map("inscription_list")
 }
 
