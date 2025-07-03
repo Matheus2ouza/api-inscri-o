@@ -189,3 +189,5 @@ exports.uploadFile = async (req, res) => {
     return res.status(500).json({ message: "Erro ao processar o arquivo Excel." });
   }
 };
+
+exports.confirmRegister = async (req, res) => { };
