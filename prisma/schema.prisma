@@ -9,14 +9,15 @@ datasource db {
 }
 
 model localidades {
-  id                 Int                      @id @default(autoincrement()) @map("id")
-  nome               String                   @db.VarChar(100) @map("nome")
-  saldo_devedor      Decimal?                 @default(0.00) @db.Decimal(10, 2) @map("saldo_devedor")
-  status             Boolean?                 @default(false) @map("status")
-  role               String?                  @default("user") @db.VarChar(50) @map("role")
-  autenticacao       autenticacao_localidades? 
-  comprovantes       comprovantes[]
-  inscricao_avulsa   inscricao_avulsa[]
+  id                    Int                      @id @default(autoincrement()) @map("id")
+  nome                  String                   @db.VarChar(100) @map("nome")
+  saldo_devedor         Decimal?                 @default(0.00) @db.Decimal(10, 2) @map("saldo_devedor")
+  status                Boolean?                 @default(false) @map("status")
+  role                  String?                  @default("user") @db.VarChar(50) @map("role")
+  autenticacao          autenticacao_localidades? 
+  registrationDetails   registration_details[]
+  comprovantes          comprovantes[]
+  inscricao_avulsa      inscricao_avulsa[]
 
   @@map("localidades")
 }
@@ -33,13 +34,14 @@ model autenticacao_localidades {
 }
 
 model eventos {
-  id                Int                 @id @default(autoincrement()) @map("id")
-  descricao         String              @db.VarChar(200) @map("descricao")
-  data_limite       DateTime            @db.Date @map("data_limite")
-  inscricoesAvulsas inscricao_avulsa[]
-  tiposInscricao    tipo_inscricao[]
-  eventRules        event_rules[]
-  vendasAlimentacao venda_alimentacao[]
+  id                    Int                 @id @default(autoincrement()) @map("id")
+  descricao             String              @db.VarChar(200) @map("descricao")
+  data_limite           DateTime            @db.Date @map("data_limite")
+  inscricoesAvulsas     inscricao_avulsa[]
+  tiposInscricao        tipo_inscricao[]
+  registrationDetails   registration_details[]
+  eventRules            event_rules[]
+  vendasAlimentacao     venda_alimentacao[]
 
   @@map("eventos")
 }
@@ -65,6 +67,35 @@ model tipo_inscricao {
   eventos               eventos?         @relation(fields: [evento_id], references: [id], onDelete: NoAction)
 
   @@map("tipo_inscricao")
+}
+
+model registration_details {
+  id                   Int                @id @default(autoincrement()) @map("id")
+  evento_id            Int                @map("evento_id")
+  localidade_id        Int                @map("localidade_id")
+  quantidade_inscritos Int                @map("quantidade_inscritos")
+  saldo_devedor        Decimal?           @db.Decimal(10, 2) @map("saldo_devedor")
+  status               RegistrationStatus @default(pendente)
+  data_inscricao       DateTime           @db.Date           @map("data_inscricao")
+
+  evento               eventos            @relation(fields: [evento_id], references: [id], onDelete: Cascade)
+  localidade           localidades        @relation(fields: [localidade_id], references: [id], onDelete: Cascade)
+
+  inscritos            inscription_list[]
+
+  @@map("registration_details")
+}
+
+model inscription_list {
+  id                      Int                   @id @default(autoincrement()) @map("id")
+  registration_details_id Int                   @map("registration_details_id")
+  nome_completo           String                @db.VarChar(255)         @map("nome_completo")
+  idade                   Int                   @map("idade")
+  sexo                    String                @db.VarChar(20)          @map("sexo")
+
+  registration_details   registration_details  @relation(fields: [registration_details_id], references: [id], onDelete: Cascade)
+
+  @@map("inscription_list")
 }
 
 model caixa {
@@ -147,4 +178,11 @@ model venda_alimentacao {
   evento                eventos                 @relation(fields: [evento_id], references: [id], onDelete: Cascade)
 
   @@map("venda_alimentacao")
+}
+
+
+enum RegistrationStatus {
+  pendente
+  pago
+  cancelado
 }

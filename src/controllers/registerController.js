@@ -47,6 +47,7 @@ exports.uploadFile = async (req, res) => {
   }
 
   const { eventSelectedId, responsible } = req.body;
+  const userId = req.user.id;
 
   let rulesEvent;
   try {
@@ -72,34 +73,78 @@ exports.uploadFile = async (req, res) => {
     });
 
     const lineError = [];
-    const participantes = [];
+    const participants = [];
 
-jsonData.forEach((item, index) => {
-  const linhaExcel = index + 4; // linha real no Excel
-  const nome = item["Nome Completo"];
-  const nascimento = item["Data de nascimento"];
-  const sexo = item["Sexo"];
-  const tipoInscricao = item["Tipo de Inscrição"];
+    jsonData.forEach((item, index) => {
+      const linhaExcel = index + 4; // linha real no Excel
+      const nameLine = item["Nome Completo"];
+      const dateBirthLine = item["Data de nascimento"];
+      const sexLine = item["Sexo"];
+      const registrationType = item["Tipo de Inscrição"];
 
-  const emptyFields = [
-    { valor: nome, mensagem: "Campo 'Nome Completo' está vazio." },
-    { valor: nascimento, mensagem: "Campo 'Data de nascimento' está vazio." },
-    { valor: sexo, mensagem: "Campo 'Sexo' está vazio." },
-    { valor: tipoInscricao, mensagem: "Campo 'Tipo de Inscrição' está vazio." },
-  ];
+      const emptyFields = [
+        { valor: nameLine, mensagem: "Campo 'Nome Completo' está vazio." },
+        { valor: dateBirthLine, mensagem: "Campo 'Data de nascimento' está vazio." },
+        { valor: sexLine, mensagem: "Campo 'Sexo' está vazio." },
+        { valor: registrationType, mensagem: "Campo 'Tipo de Inscrição' está vazio." },
+      ];
 
-  emptyFields.forEach(({ valor, mensagem }) => {
-    if (!valor) {
-      lineError.push({ line: linhaExcel, message: mensagem });
-    }
-  });
+      emptyFields.forEach(({ valor, mensagem }) => {
+        if (!valor) {
+          lineError.push({ line: linhaExcel, message: mensagem });
+        }
+      });
 
-  const age = calculateAge(nascimento);
-  if (age === null || rulesEvent.min_age > age || age > rulesEvent.max_age) {
-    lineError.push({ line: linhaExcel, message: "Idade fora da faixa etária do" });
-  }
+      const regexFirstNameLastName = /^[A-Za-zÀ-ÖØ-öø-ÿ]+(?: [A-Za-zÀ-ÖØ-öø-ÿ]+)+$/;
+      const regexCharacters = /[^A-Za-zÀ-ÖØ-öø-ÿ\s]/;
+      const nameVerification = registerService.nameVerification(nameLine.toLowerCase(), userId);
 
-});
+      if (!regexFirstNameLastName.test(nameLine) || regexCharacters.test(nameLine)) {
+        lineError.push({ line: linhaExcel, message: "O Nome tem que ser Nome e sobre nome, sem caracteres especiais" });
+      }
+
+      if (nameVerification?.exists) {
+        lineError.push({ line: linhaExcel, message: "Nome já cadastrado." });
+      }
+
+      const age = calculateAge(dateBirthLine);
+      if (age === null || rulesEvent.min_age > age || age > rulesEvent.max_age) {
+        lineError.push({ line: linhaExcel, message: "Idade fora da faixa etária esperada" });
+      }
+
+      if (sexLine) {
+        const sex = sexLine.toLowerCase();
+
+        if (sex === "masculino" && !rulesEvent.allow_male) {
+          lineError.push({ line: linhaExcel, message: "Sexo masculino não é permitido." });
+        }
+
+        if (sex === "feminino" && !rulesEvent.allow_female) {
+          lineError.push({ line: linhaExcel, message: "Sexo feminino não é permitido." });
+        }
+      }
+
+      const tipoInscricaoValido = rulesEvent.tipos_inscricao.some(
+        tipo => tipo.descricao.trim().toLowerCase() === registrationType?.trim().toLowerCase()
+      );
+
+      if (!tipoInscricaoValido) {
+        lineError.push({
+          line: linhaExcel,
+          message: `Tipo de inscrição "${registrationType}" não é válido para este evento.`
+        });
+      }
+
+      if (!lineError.some(error => error.line === linhaExcel)) {
+        participants.push({
+          nome_completo: nameLine.trim(),
+          idade: age,
+          tipo_inscricao: registrationType.trim(),
+          sexo: sexLine.trim().toLowerCase()
+        });
+      }
+
+    });
 
     if (lineError.length > 0) {
       return res.status(400).json({
@@ -119,4 +164,4 @@ jsonData.forEach((item, index) => {
   }
 };
 
-exports.confirmRegister = async (req, res) => {};
+exports.confirmRegister = async (req, res) => { };
