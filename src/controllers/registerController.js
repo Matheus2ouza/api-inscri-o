@@ -95,17 +95,24 @@ exports.uploadFile = async (req, res) => {
         }
       });
 
-      if (nameLine){
+      if (nameLine) {
         const regexFirstNameLastName = /^[A-Za-zÀ-ÖØ-öø-ÿ]+(?: [A-Za-zÀ-ÖØ-öø-ÿ]+)+$/;
         const regexCharacters = /[^A-Za-zÀ-ÖØ-öø-ÿ\s]/;
         const nameVerification = registerService.nameVerification(nameLine.toLowerCase(), userId);
-  
+
         if (!regexFirstNameLastName.test(nameLine) || regexCharacters.test(nameLine)) {
-          lineError.push({ line: linhaExcel, message: "O Nome tem que ser Nome e sobre nome, sem caracteres especiais" });
+          lineError.push({ line: linhaExcel, message: "A coluna do nome tem que ser o nome e o sobrenome, sem caracteres especiais" });
         }
-  
+
         if (nameVerification?.exists) {
           lineError.push({ line: linhaExcel, message: "Nome já cadastrado." });
+        }
+      }
+
+      if (!dateBirthLine) {
+        const regexData = /^(0[1-9]|[12][0-9]|3[01])\/(0[1-9]|1[0-2])\/\d{4}$/;
+        if (!regexData.test(dateBirthLine)) {
+          lineError.push({ line: linhaExcel, message: "Data de nascimento inválida. Use o formato DD/MM/AAAA." });
         }
       }
 
