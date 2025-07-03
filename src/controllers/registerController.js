@@ -95,6 +95,8 @@ exports.uploadFile = async (req, res) => {
         }
       });
 
+      console.log(nameLine)
+
       const regexFirstNameLastName = /^[A-Za-zÀ-ÖØ-öø-ÿ]+(?: [A-Za-zÀ-ÖØ-öø-ÿ]+)+$/;
       const regexCharacters = /[^A-Za-zÀ-ÖØ-öø-ÿ\s]/;
       const nameVerification = registerService.nameVerification(nameLine.toLowerCase(), userId);
