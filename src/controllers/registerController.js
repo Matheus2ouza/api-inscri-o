@@ -189,7 +189,6 @@ exports.uploadFile = async (req, res) => {
         }
       }
 
-
       // Validação do tipo de inscrição
       const tipoInscricaoValido = rulesEvent.tipos_inscricao.some(
         tipo => tipo.descricao.trim().toLowerCase() === registrationType.trim().toLowerCase()
@@ -227,7 +226,7 @@ exports.uploadFile = async (req, res) => {
     console.log("Participantes válidos:", participants);
     return res.status(200).json({
       message: "Arquivo processado com sucesso.",
-      participantes: participants,
+      participants: participants,
       rulesEvent,
     });
   } catch (error) {
