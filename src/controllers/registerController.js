@@ -63,17 +63,34 @@ exports.uploadFile = async (req, res) => {
       return res.status(400).json({ message: "Arquivo não enviado corretamente." });
     }
 
-    const workbook = xlsx.read(req.file.buffer, { type: 'buffer' });
+    const workbook = xlsx.read(fileBuffer, { type: 'buffer' });
     const sheetName = workbook.SheetNames[0];
     const worksheet = workbook.Sheets[sheetName];
 
-    const jsonData = xlsx.utils.sheet_to_json(worksheet, {
-      range: 2,
-      defval: null,
-    });
+    // CORREÇÃO: Ler cabeçalho da linha 3 (índice 2)
+    const headerRange = xlsx.utils.decode_range(worksheet['!ref']);
+    headerRange.s.r = 2; // Linha 3 (0-indexed: 0=linha1, 1=linha2, 2=linha3)
+    const headerRef = xlsx.utils.encode_range(headerRange);
+    const headerWorksheet = { ...worksheet, '!ref': headerRef };
 
+    const headers = xlsx.utils.sheet_to_json(headerWorksheet, {
+      header: 1,
+      defval: null,
+    })[0]; // Pega a primeira linha do range (linha 3)
+
+    // CORREÇÃO: Ler dados a partir da linha 5 (índice 4)
+    const dataRange = xlsx.utils.decode_range(worksheet['!ref']);
+    dataRange.s.r = 4; // Linha 5 (0-indexed: 4=linha5)
+    const dataRef = xlsx.utils.encode_range(dataRange);
+    const dataWorksheet = { ...worksheet, '!ref': dataRef };
     const lineError = [];
     const participants = [];
+
+    const jsonData = xlsx.utils.sheet_to_json(dataWorksheet, {
+      header: headers, // Usa os cabeçalhos que pegamos
+      defval: null,
+      range: 0, // Já definimos o range acima
+    });
 
     jsonData.forEach((item, index) => {
       const linhaExcel = index + 5; // linha real no Excel
