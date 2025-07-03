@@ -1,5 +1,6 @@
 const xlsx = require("xlsx");
 const { validationResult } = require("express-validator");
+const registerService = require("../services/registerService");
 
 
 function excelSerialDateToJSDate(serial) {
