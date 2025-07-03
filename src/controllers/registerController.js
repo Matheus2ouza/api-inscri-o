@@ -218,7 +218,7 @@ exports.uploadFile = async (req, res) => {
 
       // Participante válido
       participants.push({
-        nome_completo: nameLine.trim(),
+        nome_completo: nameLine.trim().toLowerCase(),
         idade: age,
         tipo_inscricao_id: tipoInscricaoObj.id,
         tipo_inscricao: registrationType.trim(),
