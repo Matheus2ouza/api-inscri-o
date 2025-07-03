@@ -78,7 +78,7 @@ exports.uploadFile = async (req, res) => {
       range: 2, // Começa a ler a partir da terceira linha (índice 2)
       defval: null, // Define valor padrão para células vazias,
 
-    }).slice(1); //Ignora a 4 linha (índice 3)
+    })
 
     const lineError = [];
     const participantes = [];
