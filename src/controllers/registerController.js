@@ -1,4 +1,8 @@
 const xlsx = require("xlsx");
+const { validationResult } = require("express-validator");
+const redis = require("../config/redisConfig");
+const registerService = require("../services/registerService");
+
 
 function excelSerialDateToJSDate(serial) {
   const excelEpoch = new Date(1899, 11, 30); // Excel começa em 30/12/1899
@@ -34,6 +38,28 @@ function calculateAge(birthDate) {
 }
 
 exports.uploadFile = async (req, res) => {
+  const errors = validationResult(req);
+
+  if (!errors.isEmpty()) {
+    return res.status(400).json({
+      success: false,
+      message: 'Erro de validação',
+      fields: errors.array().reduce((acc, err) => {
+        acc[err.path] = err.msg;
+        return acc;
+      }, {}),
+    });
+  }
+
+  const { eventSelectedId, responsible } = req.body;
+
+  let rulesEvent;
+  try {
+    rulesEvent = await registerService.rulesEvent(eventSelectedId);
+  } catch (err) {
+    return res.status(400).json({ message: "Erro ao obter regras do evento." });
+  }
+
   try {
     const fileBuffer = req.file?.buffer;
 
@@ -41,17 +67,107 @@ exports.uploadFile = async (req, res) => {
       return res.status(400).json({ message: "Arquivo não enviado corretamente." });
     }
 
-    // Lê o arquivo Excel da memória
     const workbook = xlsx.read(fileBuffer, { type: "buffer" });
-
-    // Pega a primeira aba (sheet)
     const sheetName = workbook.SheetNames[0];
     const sheet = workbook.Sheets[sheetName];
 
-    // Converte a aba em JSON
-    const jsonData = xlsx.utils.sheet_to_json(sheet);
+    const jsonData = xlsx.utils.sheet_to_json(sheet, {
+      header: 1,
+      range: 2,
+    });
 
-    return res.status(200).json({ data: jsonData });
+    const headers = jsonData[0];
+    const dataRows = jsonData.slice(2);
+
+    const lineError = [];
+    const participantes = [];
+
+    dataRows.forEach((row, index) => {
+      const lineNumber = index + 5;
+
+      const participante = {};
+      headers.forEach((key, i) => {
+        participante[key] = row[i];
+      });
+
+      const fullname = participante["Nome Completo"]?.trim();
+      const birthDate = participante["Data de nascimento"];
+      const gender = participante["Sexo"]?.trim();
+      const registrationType = participante["Tipo de inscrição"]?.trim();
+
+      if (!fullname || !birthDate || !gender || !registrationType) {
+        lineError.push({
+          line: lineNumber,
+          error: "Campos obrigatórios ausentes",
+        });
+        return;
+      }
+
+      const regexName = /^[A-Za-zÀ-ÖØ-öø-ÿ]+(?: [A-Za-zÀ-ÖØ-öø-ÿ]+)+$/;
+      if (!regexName.test(fullname)) {
+        lineError.push({
+          line: lineNumber,
+          error: "Nome fora do formato esperado (Nome e Sobrenome, sem caracteres especiais)",
+        });
+      }
+
+      const age = calculateAge(birthDate);
+      if (age === null) {
+        lineError.push({
+          line: lineNumber,
+          error: "Data de nascimento inválida",
+        });
+      } else if (age < rulesEvent.min_age || age > rulesEvent.max_age) {
+        lineError.push({
+          line: lineNumber,
+          error: `Idade fora do intervalo permitido (${rulesEvent.min_age} - ${rulesEvent.max_age})`,
+        });
+      }
+
+      const genderNormalized = gender.toLowerCase();
+      const isMale = genderNormalized === "masculino" || genderNormalized === "m";
+      const isFemale = genderNormalized === "feminino" || genderNormalized === "f";
+
+      if (!rulesEvent.allow_male && isMale) {
+        lineError.push({
+          line: lineNumber,
+          error: "Sexo masculino não permitido para este evento",
+        });
+      }
+
+      if (!rulesEvent.allow_female && isFemale) {
+        lineError.push({
+          line: lineNumber,
+          error: "Sexo feminino não permitido para este evento",
+        });
+      }
+
+      const isValidType = rulesEvent.tipos_inscricao.some(t => t.descricao === registrationType);
+      if (!isValidType) {
+        lineError.push({
+          line: lineNumber,
+          error: `Tipo de inscrição inválido: "${registrationType}"`,
+        });
+      }
+
+      participantes.push(participante);
+    });
+
+    if (lineError.length > 0) {
+      return res.status(400).json({
+        message: "Erros de validação encontrados no arquivo.",
+        errors: lineError,
+      });
+    }
+
+    // Calcular total com base nos tipos de inscrição e valor
+    let total = 0;
+    participantes.forEach(p => {
+      const tipo = rulesEvent.tipos_inscricao.find(t => t.descricao === p["Tipo de inscrição"]);
+      total += tipo?.valor || 0;
+    });
+
+    return res.status(200).json({ data: participantes, total });
   } catch (error) {
     console.error("Erro ao processar o arquivo Excel:", error);
     return res.status(500).json({ message: "Erro ao processar o arquivo Excel." });

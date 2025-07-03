@@ -2,6 +2,7 @@ const express = require("express");
 const multer = require("multer");
 const { authenticateToken } = require("../middlewares/authMiddleware");
 const registerController = require("../controllers/registerController");
+const { body } = require("express-validator");
 
 const registerRoutes = express.Router();
 
@@ -14,6 +15,10 @@ registerRoutes.post(
   "/upload-file",
   authenticateToken,
   upload.single("file"),
+  [
+    body("eventSelectedId").notEmpty().withMessage("O ID do evento é obrigatório."),
+    body("responsible").notEmpty().withMessage("O responsável é obrigatório."),
+  ],
   registerController.uploadFile
 );
 
