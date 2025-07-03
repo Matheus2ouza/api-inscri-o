@@ -90,15 +90,13 @@ async function register(data, eventSelectedId, userId) {
       console.log(`[RegisterService] Registro de detalhes da inscrição criado`);
 
       await prisma.inscription_list.createMany({
-        data: {
-          data: participants.map(p => ({
-            registration_details_id: registerDetails.id,
-            nome_completo: p.nome_completo,
-            idade: p.idade,
-            tipo_inscricao_id: p.tipo_inscricao_id,
-            sexo: p.sexo,
-          })),
-        }
+        data: participants.map(p => ({
+          registration_details_id: registerDetails.id,
+          nome_completo: p.nome_completo,
+          idade: p.idade,
+          tipo_inscricao_id: p.tipo_inscricao_id,
+          sexo: p.sexo,
+        })),
       });
 
       console.log(`[RegisterService] Lista de inscrições criada com sucesso`);
