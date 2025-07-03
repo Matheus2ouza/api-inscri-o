@@ -233,7 +233,18 @@ exports.uploadFile = async (req, res) => {
       });
     }
 
-    console.log("Participantes válidos:", participants);
+    const data = {
+      responsible: responsible,
+      outstandingBalance: outstandingBalance,
+      totalparticipants: participants.length,
+      participants: participants,
+    }
+
+    const result = redis.set(
+      `register`,
+      JSON.stringify()
+    );
+
     return res.status(200).json({
       message: "Arquivo processado com sucesso.",
       participants: participants,

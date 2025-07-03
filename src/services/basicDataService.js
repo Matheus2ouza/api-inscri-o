@@ -6,11 +6,6 @@ async function eventService() {
     const events = await prisma.eventos.findMany({
       include: {
         tiposInscricao: {
-          where: {
-            valor: {
-              gt: 0
-            }
-          },
           select: {
             descricao: true,
             valor: true
