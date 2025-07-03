@@ -1,7 +1,5 @@
 const xlsx = require("xlsx");
 const { validationResult } = require("express-validator");
-const redis = require("../config/redisConfig");
-const registerService = require("../services/registerService");
 
 
 function excelSerialDateToJSDate(serial) {
@@ -175,25 +173,4 @@ exports.uploadFile = async (req, res) => {
 };
 
 exports.confirmRegister = async (req, res) => {
-  async (req, res) => {
-    const user = req.user;
-
-    const { eventId, responsible, uuid } = req.body;
-
-    if (!eventId || !responsible || !uuid) {
-      return res.status(400).json({ message: "Campos obrigatórios estão ausentes ou são inválidos." });
-    }
-
-    const key = `inscription:${eventId}:${user.id}:${uuid}`;
-
-    const registerData = await redis.get(key);
-
-    if (!registerData) {
-      return res.status(404).json({ message: "Dados de inscrição não encontrados ou expirados." });
-    }
-
-    const parsedData = JSON.parse(registerData);
-
-
-  }
 }
