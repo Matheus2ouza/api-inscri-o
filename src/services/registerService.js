@@ -13,6 +13,8 @@ async function rulesEvent(eventId) {
       }
     });
 
+    console.log(rulesEvent)
+
     const typesInscription = await prisma.tipo_inscricao.findMany({
       where: { evento_id: eventId },
       select: {
@@ -20,6 +22,8 @@ async function rulesEvent(eventId) {
         valor: true,
       }
     });
+
+    console.log(typesInscription)
 
     if (!rulesEvent) {
       throw new Error("Regras do evento não encontradas.");
