@@ -111,7 +111,7 @@ exports.uploadFile = async (req, res) => {
         }
       });
 
-      if (hasEmpty) continue; // ❗️ Pula para a próxima linha se houver campo obrigatório vazio
+      if (hasEmpty) continue;
 
       // Validação do nome
       const regexFirstNameLastName = /^[A-Za-zÀ-ÖØ-öø-ÿ]+(?: [A-Za-zÀ-ÖØ-öø-ÿ]+)+$/;
@@ -151,6 +151,7 @@ exports.uploadFile = async (req, res) => {
       }
 
       const age = calculateAge(dateFormatted);
+      console.log(`Linha ${linhaExcel} - Idade calculada:`, age);
       if (rulesEvent.min_age > age || age > rulesEvent.max_age) {
         console.warn(`Linha ${linhaExcel} - Idade fora do intervalo permitido:`, age);
         lineError.push({
