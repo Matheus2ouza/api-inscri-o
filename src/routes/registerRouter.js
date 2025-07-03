@@ -26,7 +26,7 @@ registerRoutes.post(
 registerRoutes.post(
   "/confirm-register",
   [
-    body("evenStSelectedId").notEmpty().withMessage("O ID do evento selecionado é obrigatório."),
+    body("eventSelectedId").notEmpty().withMessage("O ID do evento selecionado é obrigatório."),
     body("uniqueId").notEmpty().withMessage("O uniqueId é obrigatório."),
   ],
   authenticateToken,
