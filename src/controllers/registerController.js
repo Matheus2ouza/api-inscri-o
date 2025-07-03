@@ -279,16 +279,31 @@ exports.confirmRegister = async (req, res) => {
   const cacheKey = `register:${userId}:${eventSelectedId}:${uniqueId}`;
   const cachedData = await redis.get(cacheKey);
 
+  console.log(cachedData)
+  console.log(typeof(cachedData))
+
   if (!cachedData) {
     console.warn("Dados não encontrados no cache.");
     return res.status(404).json({ message: "Dados não encontrados no cache ou expirados." });
   }
 
-  const data = JSON.parse(cachedData);
+  // Ajuste para lidar com string JSON ou objeto direto
+  let data;
+  if (typeof cachedData === 'string') {
+    try {
+      data = JSON.parse(cachedData);
+    } catch (parseError) {
+      console.error("Erro ao fazer parse do dado do Redis:", parseError);
+      return res.status(500).json({ message: "Erro ao processar os dados do cache." });
+    }
+  } else {
+    data = cachedData; // já objeto
+  }
+
   console.log("Dados recuperados do cache:", data);
 
-  try{
-    const result = await registerService.register(data, eventSelectedId, userId)
+  try {
+    const result = await registerService.register(data, eventSelectedId, userId);
 
     console.log("Registro realizado com sucesso:", result);
 
@@ -305,3 +320,4 @@ exports.confirmRegister = async (req, res) => {
     return res.status(500).json({ message: "Erro ao confirmar registro." });
   }
 };
+
