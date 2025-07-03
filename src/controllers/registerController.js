@@ -67,8 +67,16 @@ exports.uploadFile = async (req, res) => {
     const sheetName = workbook.SheetNames[0];
     const worksheet = workbook.Sheets[sheetName];
 
-    const jsonData = xlsx.utils.sheet_to_json(worksheet, {
+    // Captura os cabeçalhos da linha 3 (índice 2)
+    const headers = xlsx.utils.sheet_to_json(worksheet, {
       range: 2,
+      header: 1,
+    })[0];
+
+    // Lê os dados a partir da linha 5 (índice 4), com os headers corretos
+    const jsonData = xlsx.utils.sheet_to_json(worksheet, {
+      range: 4,
+      header: headers,
       defval: null,
     });
 
@@ -76,13 +84,11 @@ exports.uploadFile = async (req, res) => {
     const participants = [];
 
     jsonData.forEach((item, index) => {
-      const linhaExcel = index + 5; // linha real no Excel
+      const linhaExcel = index + 5;
       const nameLine = item["Nome Completo"];
       const dateBirthLine = item["Data de nascimento"];
       const sexLine = item["Sexo"];
       const registrationType = item["Tipo de Inscrição"];
-
-      console.log(nameLine, dateBirthLine, sexLine, registrationType);
 
       const emptyFields = [
         { valor: nameLine, mensagem: "Campo 'Nome Completo' está vazio." },
@@ -100,25 +106,30 @@ exports.uploadFile = async (req, res) => {
       if (nameLine) {
         const regexFirstNameLastName = /^[A-Za-zÀ-ÖØ-öø-ÿ]+(?: [A-Za-zÀ-ÖØ-öø-ÿ]+)+$/;
         const regexCharacters = /[^A-Za-zÀ-ÖØ-öø-ÿ\s]/;
-        const nameVerification = registerService.nameVerification(nameLine.toLowerCase(), userId);
-
+        
         if (!regexFirstNameLastName.test(nameLine) || regexCharacters.test(nameLine)) {
           console.error("Nome inválido:", nameLine);
           lineError.push({ line: linhaExcel, message: "A coluna do nome tem que ser o nome e o sobrenome, sem caracteres especiais" });
         }
-
-        if (nameVerification?.exists) {
-          console.error("Nome já cadastrado:", nameLine);
-          lineError.push({ line: linhaExcel, message: "Nome já cadastrado." });
-        }
       }
 
-      if (!dateBirthLine) {
-        const regexData = /^(0[1-9]|[12][0-9]|3[01])\/(0[1-9]|1[0-2])\/\d{4}$/;
-        if (!regexData.test(dateBirthLine)) {
-          console.error("Data de nascimento inválida:", dateBirthLine);
-          lineError.push({ line: linhaExcel, message: "Data de nascimento inválida. Use o formato DD/MM/AAAA." });
-        }
+      // Verifica nome duplicado no banco
+      if (nameLine) {
+        registerService.nameVerification(nameLine.toLowerCase(), userId)
+          .then(nameVerification => {
+            if (nameVerification?.exists) {
+              lineError.push({ line: linhaExcel, message: "Nome já cadastrado." });
+            }
+          })
+          .catch(err => {
+            console.error("Erro na verificação do nome:", err);
+          });
+      }
+
+      const regexData = /^(0[1-9]|[12][0-9]|3[01])\/(0[1-9]|1[0-2])\/\d{4}$/;
+      if (dateBirthLine && !regexData.test(dateBirthLine)) {
+        console.error("Data de nascimento inválida:", dateBirthLine);
+        lineError.push({ line: linhaExcel, message: "Data de nascimento inválida. Use o formato DD/MM/AAAA." });
       }
 
       const age = calculateAge(dateBirthLine);
@@ -131,29 +142,24 @@ exports.uploadFile = async (req, res) => {
         const sex = sexLine.toLowerCase();
 
         if (sex === "masculino" && !rulesEvent.allow_male) {
-          console.error("Sexo masculino não permitido");
           lineError.push({ line: linhaExcel, message: "Sexo masculino não é permitido." });
         }
 
         if (sex === "feminino" && !rulesEvent.allow_female) {
-          console.error("Sexo feminino não permitido");
           lineError.push({ line: linhaExcel, message: "Sexo feminino não é permitido." });
         }
       }
 
-      if (!registrationType) {
-        const tipoInscricaoValido = rulesEvent.tipos_inscricao.some(
-          tipo => tipo.descricao.trim().toLowerCase() === registrationType?.trim().toLowerCase()
+      const tipoInscricaoValido = registrationType &&
+        rulesEvent.tipos_inscricao.some(
+          tipo => tipo.descricao.trim().toLowerCase() === registrationType.trim().toLowerCase()
         );
 
-        if (!tipoInscricaoValido) {
-          console.error("Tipo de inscrição inválido:", registrationType);
-
-          lineError.push({
-            line: linhaExcel,
-            message: `Tipo de inscrição "${registrationType}" não é válido para este evento.`
-          });
-        }
+      if (!tipoInscricaoValido) {
+        lineError.push({
+          line: linhaExcel,
+          message: `Tipo de inscrição "${registrationType}" não é válido para este evento.`
+        });
       }
 
       if (!lineError.some(error => error.line === linhaExcel)) {
@@ -164,7 +170,6 @@ exports.uploadFile = async (req, res) => {
           sexo: sexLine.trim().toLowerCase()
         });
       }
-
     });
 
     if (lineError.length > 0) {
@@ -176,7 +181,7 @@ exports.uploadFile = async (req, res) => {
 
     return res.status(200).json({
       message: "Arquivo processado com sucesso.",
-      participantes: jsonData,
+      participantes: participants,
       rulesEvent,
     });
   } catch (error) {
@@ -184,5 +189,3 @@ exports.uploadFile = async (req, res) => {
     return res.status(500).json({ message: "Erro ao processar o arquivo Excel." });
   }
 };
-
-exports.confirmRegister = async (req, res) => { };
