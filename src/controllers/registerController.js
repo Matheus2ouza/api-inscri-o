@@ -70,10 +70,11 @@ exports.uploadFile = async (req, res) => {
     const sheetName = workbook.SheetNames[0];
     const sheet = workbook.Sheets[sheetName];
 
-    const jsonData = xlsx.utils.sheet_to_json(sheet, {
-      header: 1,
-      range: 2,
-    });
+    const jsonData = xlsx.utils.sheet_to_json(worksheet, {
+      range: 2, // Começa a ler a partir da terceira linha (índice 2)
+      defval: null, // Define valor padrão para células vazias,
+
+    }).slice(1); //Ignora a 4 linha (índice 3)
 
     const headers = jsonData[0];
     const dataRows = jsonData.slice(2);
