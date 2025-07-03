@@ -94,9 +94,12 @@ jsonData.forEach((item, index) => {
     }
   });
 
-  
-});
+  const age = calculateAge(nascimento);
+  if (age === null || rulesEvent.min_age > age || age > rulesEvent.max_age) {
+    lineError.push({ line: linhaExcel, message: "Idade fora da faixa etária do" });
+  }
 
+});
 
     if (lineError.length > 0) {
       return res.status(400).json({
