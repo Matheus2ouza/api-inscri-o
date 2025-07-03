@@ -44,23 +44,24 @@ async function rulesEvent(eventId) {
 
 async function nameVerification(name, userId) {
   try {
-    const inscription = await prisma.registration_details.findFirst({
-      where: { localidade_id: userId }
-    })
-
-    if (!inscription) {
-      return
-    }
-
     const existingParticipant = await prisma.inscription_list.findFirst({
-      where: { nome_completo: name },
-    })
+      where: {
+        nome_completo: name,
+        registration_details: {
+          localidade_id: userId,
+        },
+      },
+    });
 
     if (existingParticipant) {
       return {
         exists: true,
       };
     }
+
+    return {
+      exists: false,
+    };
 
   } catch (error) {
     console.error("Erro ao verificar nome:", error);

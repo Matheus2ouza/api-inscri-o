@@ -135,7 +135,7 @@ exports.uploadFile = async (req, res) => {
         const nameVerification = await registerService.nameVerification(nameLine.toLowerCase(), userId);
         if (nameVerification?.exists) {
           console.warn(`Linha ${linhaExcel} - Nome duplicado:`, nameLine);
-          lineError.push({ line: linhaExcel, message: "Nome já cadastrado." });
+          lineError.push({ line: linhaExcel, message: `O nome ${nameLine} já foi cadastrado` });
           continue;
         }
       } catch (err) {
