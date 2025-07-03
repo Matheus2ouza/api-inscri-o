@@ -50,6 +50,7 @@ exports.uploadFile = async (req, res) => {
   }
 
   const { eventSelectedId, responsible } = req.body;
+  console.log("eventSelectedId:", eventSelectedId);
 
   let rulesEvent;
   try {
