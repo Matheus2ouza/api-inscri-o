@@ -163,8 +163,8 @@ exports.uploadFile = async (req, res) => {
 
       // Validação de sexo
       const sex = sexLine.toLowerCase();
-      console.log(`Linha ${linhaExcel} - Sexo informado`)
-      
+
+      console.log(sex, `Linha ${linhaExcel} - Sexo informado`);
       if (sex === "masculino" && !rulesEvent.allow_male) {
         console.warn(`Linha ${linhaExcel} - Sexo masculino não permitido`);
         lineError.push({ line: linhaExcel, message: "Sexo masculino não é permitido." });
