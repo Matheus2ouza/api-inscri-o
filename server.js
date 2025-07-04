@@ -67,7 +67,7 @@ const register = require('./src/routes/registerRouter.js')
 app.use('/user', authRouter)
 app.use('/locality', localityRouter)
 app.use('/data', basicData);
-app.use('/register/', register)
+app.use('/register', register)
 
 app.use('/pagamento', require('./src/routes/paymentRouter.js'));
 app.use('/hospedagem', require('./src/routes/hospedagem.js'));
