@@ -9,7 +9,7 @@ function excelSerialDateToJSDate(serial) {
   return new Date(excelEpoch.getTime() + serial * 86400000);
 }
 
-function calculateAge(birthDate) {
+function calculateAgeToexcel(birthDate) {
   if (typeof birthDate === "number") {
     birthDate = excelSerialDateToJSDate(birthDate);
   } else {
@@ -28,6 +28,34 @@ function calculateAge(birthDate) {
     (today.getMonth() === birthDate.getMonth() &&
       today.getDate() < birthDate.getDate())
   ) {
+    age--;
+  }
+
+  return age;
+}
+
+function calculateAgeFromString(dateStr) {
+  // Valida formato dd/mm/aaaa
+  const regexDate = /^(0[1-9]|[12][0-9]|3[01])\/(0[1-9]|1[0-2])\/(19|20)\d{2}$/;
+  if (!regexDate.test(dateStr)) return null;
+
+  const [day, month, year] = dateStr.split('/').map(Number);
+
+  // Cria a data e verifica se é válida (ex: 31/02/2020 é inválido)
+  const birthDate = new Date(year, month - 1, day);
+  const isValidDate =
+    birthDate.getDate() === day &&
+    birthDate.getMonth() === month - 1 &&
+    birthDate.getFullYear() === year;
+
+  if (!isValidDate) return null;
+
+  const today = new Date();
+  let age = today.getFullYear() - birthDate.getFullYear();
+  const monthDiff = today.getMonth() - birthDate.getMonth();
+  const dayDiff = today.getDate() - birthDate.getDate();
+
+  if (monthDiff < 0 || (monthDiff === 0 && dayDiff < 0)) {
     age--;
   }
 
@@ -155,7 +183,7 @@ exports.uploadFile = async (req, res) => {
         continue;
       }
 
-      const age = calculateAge(dateBirthLine);
+      const age = calculateAgeToexcel(dateBirthLine);
       console.log(`Linha ${linhaExcel} - Idade calculada:`, age);
       if (rulesEvent.min_age > age || age > rulesEvent.max_age) {
         console.warn(`Linha ${linhaExcel} - Idade fora do intervalo permitido:`, age);
@@ -360,18 +388,17 @@ exports.registerUnique = async (req, res) => {
       erros.push(`O nome ${name} já foi cadastrado.`);
     }
 
-    const regexDate = /^(0[1-9]|[12][0-9]|3[01])\/(0[1-9]|1[0-2])\/(19|20)\d{2}$/;
+    const age = calculateAgeFromString(dateBirth);
 
-    if (!regexDate.test(dateBirth)) {
-      console.warn(`Formato de data inválido:`, dateBirth);
-      erros.push("Data de nascimento inválida. Use o formato DD/MM/AAAA.");
-    }
-
-    const age = calculateAge(dateBirth);
-    console.log(`Idade calculada:`, age);
-    if (rulesEvent.min_age > age || age > rulesEvent.max_age) {
-      console.warn(`Idade fora do intervalo permitido:`, age);
-      erros.push(`Idade deve estar entre ${rulesEvent.min_age} e ${rulesEvent.max_age} anos.`);
+    if (age === null) {
+      console.warn(`Data de nascimento inválida:`, dateBirth);
+      erros.push("Data de nascimento inválida. Use uma data real no formato DD/MM/AAAA.");
+    } else {
+      console.log(`Idade calculada:`, age);
+      if (rulesEvent.min_age > age || age > rulesEvent.max_age) {
+        console.warn(`Idade fora do intervalo permitido:`, age);
+        erros.push(`Idade deve estar entre ${rulesEvent.min_age} e ${rulesEvent.max_age} anos.`);
+      }
     }
 
     if (gender === "masculino") {
