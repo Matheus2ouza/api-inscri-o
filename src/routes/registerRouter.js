@@ -37,7 +37,7 @@ registerRoutes.post("/register-unique",
     body("responsible").notEmpty().withMessage("O responsável é obrigatório."),
     body("dateBirth").notEmpty().withMessage("A data de nascimento é obrigatória."),
     body("typeInscription").notEmpty().withMessage("O tipo de inscrição é obrigatório."),
-    body("sex").notEmpty().withMessage("O sexo é obrigatório."),
+    body("gender").notEmpty().withMessage("O sexo é obrigatório."),
   ],
   authenticateToken,
   registerController.registerUnique

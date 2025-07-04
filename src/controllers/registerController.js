@@ -337,7 +337,7 @@ exports.registerUnique = async (req, res) => {
     });
   }
 
-  const { eventSelectedId, name, responsible, dateBirth, typeInscription, sex } = req.body;
+  const { eventSelectedId, name, responsible, dateBirth, typeInscription, gender } = req.body;
   const userId = req.user.id;
 
   const rulesEvent = await registerService.rulesEventService(Number(eventSelectedId));
@@ -374,14 +374,14 @@ exports.registerUnique = async (req, res) => {
       erros.push(`Idade deve estar entre ${rulesEvent.min_age} e ${rulesEvent.max_age} anos.`);
     }
 
-    if (sex === "masculino") {
+    if (gender === "masculino") {
       if (!rulesEvent.allow_male) {
         console.warn(`Sexo masculino não permitido`);
         erros.push("Sexo masculino não é permitido.");
       }
     }
 
-    if (sex === "feminino") {
+    if (gender === "feminino") {
       if (!rulesEvent.allow_female) {
         console.warn(`Sexo feminino não permitido`);
         erros.push("Sexo feminino não é permitido.");
@@ -413,6 +413,7 @@ exports.registerUnique = async (req, res) => {
       const participant = {
         nome_completo: name.trim().toLowerCase(),
         idade: age,
+        gender: gender,
         tipo_inscricao_id: typeInscriptionId,
         tipo_inscricao: registrationType.trim(),
       }
