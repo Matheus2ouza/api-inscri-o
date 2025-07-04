@@ -322,3 +322,25 @@ exports.confirmRegister = async (req, res) => {
   }
 };
 
+exports.listRegister = async (req, res) => {
+  const userId = req.user.id;
+
+  try {
+    const registrations = await registerService.listRegister(userId);
+
+    if (!registrations || registrations.length === 0) {
+      return res.status(404).json({
+        success: false,
+        message: "Nenhum registro encontrado.",
+      });
+    }
+    
+    return res.status(200).json({
+      success: true,
+      registrations: registrations,
+    });
+  } catch (error) {
+    console.error("Erro ao listar registros:", error);
+    return res.status(500).json({ success: false, message: "Erro ao listar registros." });
+  }
+}

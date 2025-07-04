@@ -1,5 +1,4 @@
 const { PrismaClient } = require('@prisma/client');
-const e = require('express');
 const prisma = new PrismaClient();
 
 async function rulesEvent(eventId) {
@@ -113,8 +112,28 @@ async function register(data, eventSelectedId, userId) {
   }
 }
 
+async function listRegister(userId) {
+  try {
+    const registrations = await prisma.registration_details.findMany({
+      where: { localidade_id: userId },
+      include: {
+        inscription_list: true,
+        evento: true,
+      },
+      orderBy: { data_inscricao: 'desc' }
+    });
+
+    return registrations;
+  } catch (error) {
+    console.error("Erro ao listar registros:", error);
+    throw new Error("Erro ao listar registros.");
+  }
+  
+}
+
 module.exports = {
   rulesEvent,
   nameVerification,
-  register
+  register,
+  listRegister
 }

@@ -33,4 +33,10 @@ registerRoutes.post(
   registerController.confirmRegister
 );
 
+registerRoutes.get(
+  '/list-Register',
+  authenticateToken,
+  registerController.listRegister
+);
+
 module.exports = registerRoutes;

@@ -69,9 +69,7 @@ app.use('/locality', localityRouter)
 app.use('/data', basicData);
 app.use('/register/', register)
 
-app.use('/registroServ', require('./src/routes/registerServ.js'));
-app.use('/registroJovem', require('./src/routes/registerJovem.js'));
-app.use('/pagamento', require('./src/routes/payment.js'));
+app.use('/pagamento', require('./src/routes/paymentRouter.js'));
 app.use('/hospedagem', require('./src/routes/hospedagem.js'));
 app.use('/dashboard', require('./src/routes/dashboard.js'));
 app.use('/loginAdmin', require('./src/routes/loginAdmin.js'));
