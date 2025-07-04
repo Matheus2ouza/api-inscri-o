@@ -313,7 +313,7 @@ exports.confirmRegisterGroup = async (req, res) => {
 
   if (!cachedData) {
     console.warn("Dados não encontrados no cache.");
-    return res.status(404).json({ message: "Dados não encontrados no cache ou expirados." });
+    return res.status(404).json({ success: false, message: "Dados não encontrados no cache ou expirados." });
   }
 
   // Ajuste para lidar com string JSON ou objeto direto
@@ -323,7 +323,7 @@ exports.confirmRegisterGroup = async (req, res) => {
       data = JSON.parse(cachedData);
     } catch (parseError) {
       console.error("Erro ao fazer parse do dado do Redis:", parseError);
-      return res.status(500).json({ message: "Erro ao processar os dados do cache." });
+      return res.status(500).json({ success: false, message: "Erro ao processar os dados do cache." });
     }
   } else {
     data = cachedData;
@@ -440,7 +440,7 @@ exports.registerUnique = async (req, res) => {
       const participant = {
         nome_completo: name.trim().toLowerCase(),
         idade: age,
-        gender: gender,
+        sexo: gender,
         tipo_inscricao_id: tipoInscricaoObj.id,
         tipo_inscricao: typeInscription.trim(),
       }
@@ -505,7 +505,7 @@ exports.confirmRegisterUnique = async (req, res) => {
 
   if (!cachedData) {
     console.warn("Dados não encontrados no cache.");
-    return res.status(404).json({ message: "Dados não encontrados no cache ou expirados." });
+    return res.status(404).json({ success: false, message: "Dados não encontrados no cache ou expirados." });
   }
 
   let data;
@@ -514,7 +514,7 @@ exports.confirmRegisterUnique = async (req, res) => {
       data = JSON.parse(cachedData);
     } catch (parseError) {
       console.error("Erro ao fazer parse do dado do Redis:", parseError);
-      return res.status(500).json({ message: "Erro ao processar os dados do cache." });
+      return res.status(500).json({ success: false, message: "Erro ao processar os dados do cache." });
     }
   } else {
     data = cachedData;
