@@ -117,7 +117,7 @@ async function listRegister(userId) {
     const registrations = await prisma.registration_details.findMany({
       where: { localidade_id: userId },
       include: {
-        inscription_list: true,
+        inscription_lists: true,
         evento: true,
       },
       orderBy: { data_inscricao: 'desc' }
