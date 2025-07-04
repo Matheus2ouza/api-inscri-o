@@ -334,10 +334,10 @@ exports.listRegister = async (req, res) => {
         message: "Nenhum registro encontrado.",
       });
     }
-    
+
     return res.status(200).json({
       success: true,
-      registrations: registrations,
+      registrations
     });
   } catch (error) {
     console.error("Erro ao listar registros:", error);
