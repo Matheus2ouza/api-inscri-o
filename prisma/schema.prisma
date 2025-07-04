@@ -84,6 +84,7 @@ model registration_details {
   localidade           localidades        @relation(fields: [localidade_id], references: [id], onDelete: Cascade)
 
   inscritos            inscription_list[]
+  comprovantes         comprovantes[]            
 
   @@map("registration_details")
 }
@@ -115,12 +116,14 @@ model caixa {
 }
 
 model comprovantes {
-  id                Int          @id @default(autoincrement()) @map("id")
-  localidade_id     Int          @map("localidade_id")
-  comprovante_imagem Bytes        @map("comprovante_imagem")
-  tipo_arquivo      String?      @db.VarChar(100) @map("tipo_arquivo")
-  valor_pago        Decimal      @db.Decimal(10, 2) @map("valor_pago")
-  localidade        localidades  @relation(fields: [localidade_id], references: [id], onDelete: Cascade)
+  id                        Int                   @id @default(autoincrement()) @map("id")
+  localidade_id             Int                   @map("localidade_id")
+  registration_details_id   Int                   @map("registration_details_id")
+  comprovante_imagem        Bytes                 @map("comprovante_imagem")
+  tipo_arquivo              String?               @db.VarChar(100) @map("tipo_arquivo")
+  valor_pago                Decimal               @db.Decimal(10, 2) @map("valor_pago")
+  localidade                localidades           @relation(fields: [localidade_id], references: [id], onDelete: NoAction)
+  registration_details      registration_details  @relation(fields: [registration_details_id], references: [id], onDelete: NoAction)
 
   @@map("comprovantes")
 }
