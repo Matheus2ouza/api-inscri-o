@@ -462,18 +462,19 @@ exports.registerUnique = async (req, res) => {
 
       console.log(data)
 
-      // const cacheKey = `register:${userId}:${eventSelectedId}:${uniqueId}`;
-      // const cacheData = JSON.stringify(data);
+      const cacheKey = `register:${userId}:${eventSelectedId}:${uniqueId}`;
+      const cacheData = JSON.stringify(data);
 
-      // await redis.set(cacheKey, cacheData, { ex: 3600 });
+      await redis.set(cacheKey, cacheData, { ex: 3600 });
 
       return res.status(200).json({
         success: true,
         message: "Participante adicionado com sucesso.",
         participant: participant,
+        responsible: responsible,
         typeInscription: rulesEvent.tipos_inscricao,
         outstandingBalance: outstandingBalance,
-        // uniqueId: uniqueId,
+        uniqueId: uniqueId,
       });
   } catch (error) {
     console.error("Erro ao processar o registro individual:", error);
