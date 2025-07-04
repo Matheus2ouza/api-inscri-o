@@ -54,7 +54,7 @@ exports.uploadFile = async (req, res) => {
 
   let rulesEvent;
   try {
-    rulesEvent = await registerService.rulesEvent(Number(eventSelectedId));
+    rulesEvent = await registerService.rulesEventService(Number(eventSelectedId));
   } catch (err) {
     console.error("Erro ao obter regras do evento:", err);
     return res.status(400).json({ message: "Erro ao obter regras do evento." });
@@ -119,8 +119,8 @@ exports.uploadFile = async (req, res) => {
       if (hasEmpty) continue;
 
       // Validação do nome
-      const regexFirstNameLastName = /^[A-Za-zÀ-ÖØ-öø-ÿ]+(?: [A-Za-zÀ-ÖØ-öø-ÿ]+)+$/;
-      const regexCharacters = /[^A-Za-zÀ-ÖØ-öø-ÿ\s]/;
+      const regexFirstNameLastName = /^[A-Za-zÀ-ÖØ-öø-ÿ]+(?:[-' ]?[A-Za-zÀ-ÖØ-öø-ÿ]+)+$/;
+      const regexCharacters = /[^A-Za-zÀ-ÖØ-öø-ÿ\s\-']/;
 
       if (!regexFirstNameLastName.test(nameLine) || regexCharacters.test(nameLine)) {
         console.warn(`Linha ${linhaExcel} - Nome inválido:`, nameLine);
@@ -132,7 +132,7 @@ exports.uploadFile = async (req, res) => {
       }
 
       try {
-        const nameVerification = await registerService.nameVerification(nameLine.toLowerCase(), userId);
+        const nameVerification = await registerService.nameVerificationService(nameLine.toLowerCase(), userId);
         if (nameVerification?.exists) {
           console.warn(`Linha ${linhaExcel} - Nome duplicado:`, nameLine);
           lineError.push({ line: linhaExcel, message: `O nome ${nameLine} já foi cadastrado` });
@@ -260,7 +260,7 @@ exports.uploadFile = async (req, res) => {
   }
 };
 
-exports.confirmRegister = async (req, res) => {
+exports.confirmRegisterGroup = async (req, res) => {
   const errors = validationResult(req);
 
   if (!errors.isEmpty()) {
@@ -281,7 +281,7 @@ exports.confirmRegister = async (req, res) => {
   const cachedData = await redis.get(cacheKey);
 
   console.log(cachedData)
-  console.log(typeof(cachedData))
+  console.log(typeof (cachedData))
 
   if (!cachedData) {
     console.warn("Dados não encontrados no cache.");
@@ -298,13 +298,13 @@ exports.confirmRegister = async (req, res) => {
       return res.status(500).json({ message: "Erro ao processar os dados do cache." });
     }
   } else {
-    data = cachedData; // já objeto
+    data = cachedData;
   }
 
   console.log("Dados recuperados do cache:", data);
 
   try {
-    const result = await registerService.register(data, eventSelectedId, userId);
+    const result = await registerService.registerService(data, eventSelectedId, userId);
 
     console.log("Registro realizado com sucesso:", result);
 
@@ -322,11 +322,200 @@ exports.confirmRegister = async (req, res) => {
   }
 };
 
+exports.registerUnique = async (req, res) => {
+  const errors = validationResult(req);
+  const uniqueId = uuidv4();
+
+  if (!errors.isEmpty()) {
+    return res.status(400).json({
+      success: false,
+      message: 'Erro de validação',
+      fields: errors.array().reduce((acc, err) => {
+        acc[err.path] = err.msg;
+        return acc;
+      }, {}),
+    });
+  }
+
+  const { eventSelectedId, name, responsible, dateBirth, typeInscription, sex } = req.body;
+  const userId = req.user.id;
+
+  const rulesEvent = await registerService.rulesEventService(Number(eventSelectedId));
+
+  const erros = [];
+  let outstandingBalance = 0;
+  try {
+
+    const regexFirstNameLastName = /^[A-Za-zÀ-ÖØ-öø-ÿ]+(?:[-' ]?[A-Za-zÀ-ÖØ-öø-ÿ]+)+$/;
+    const regexCharacters = /[^A-Za-zÀ-ÖØ-öø-ÿ\s\-']/;
+
+    if (!regexFirstNameLastName.test(name) || regexCharacters.test(name)) {
+      console.warn(`Nome inválido:`, name);
+      erros.push("O nome deve conter pelo menos um nome e um sobrenome, sem caracteres especiais.");
+    }
+
+    const nameVerification = await registerService.nameVerificationService(name.toLowerCase(), userId);
+    if (nameVerification?.exists) {
+      console.warn(`Nome duplicado:`, name);
+      erros.push(`O nome ${name} já foi cadastrado.`);
+    }
+
+    const regexDate = /^(0[1-9]|[12][0-9]|3[01])\/(0[1-9]|1[0-2])\/(19|20)\d{2}$/;
+
+    if (!regexDate.test(dateBirth)) {
+      console.warn(`Formato de data inválido:`, dateBirth);
+      erros.push("Data de nascimento inválida. Use o formato DD/MM/AAAA.");
+    }
+
+    const age = calculateAge(dateBirth);
+    console.log(`Idade calculada:`, age);
+    if (rulesEvent.min_age > age || age > rulesEvent.max_age) {
+      console.warn(`Idade fora do intervalo permitido:`, age);
+      erros.push(`Idade deve estar entre ${rulesEvent.min_age} e ${rulesEvent.max_age} anos.`);
+    }
+
+    if (sex === "masculino") {
+      if (!rulesEvent.allow_male) {
+        console.warn(`Sexo masculino não permitido`);
+        erros.push("Sexo masculino não é permitido.");
+      }
+    }
+
+    if (sex === "feminino") {
+      if (!rulesEvent.allow_female) {
+        console.warn(`Sexo feminino não permitido`);
+        erros.push("Sexo feminino não é permitido.");
+      }
+    }
+
+    // Validação do tipo de inscrição
+      const tipoInscricaoValido = rulesEvent.tipos_inscricao.some(
+        tipo => tipo.descricao.trim().toLowerCase() === typeInscription.trim().toLowerCase()
+      );
+
+      if (!tipoInscricaoValido) {
+        console.warn(`Linha ${linhaExcel} - Tipo de inscrição inválido:`, typeInscription);
+        lineError.push({
+          line: linhaExcel,
+          message: `Tipo de inscrição "${registrationType}" não é válido para este evento.`,
+        });
+      }
+
+      // Encontrar o tipo de inscrição correspondente
+      const tipoInscricaoObj = rulesEvent.tipos_inscricao.find(
+        tipo => tipo.descricao.trim().toLowerCase() === typeInscription.trim().toLowerCase()
+      );
+
+      if (tipoInscricaoObj?.valor) {
+        outstandingBalance = parseFloat(tipoInscricaoObj.valor); // soma o valor ao saldo
+      }
+
+      const participant = {
+        nome_completo: name.trim().toLowerCase(),
+        idade: age,
+        tipo_inscricao_id: typeInscriptionId,
+        tipo_inscricao: registrationType.trim(),
+      }
+
+      if (erros.length > 0) {
+        return res.status(400).json({
+          success: false,
+          message: "Erro de validação nos dados do participante.",
+          errors: erros,
+        });
+      }
+
+      const data = {
+        responsible: responsible,
+        outstandingBalance: outstandingBalance,
+        totalparticipants: 1,
+        participants: [participant],
+      };
+
+      const cacheKey = `register:${userId}:${eventSelectedId}:${uniqueId}`;
+      const cacheData = JSON.stringify(data);
+
+      await redis.set(cacheKey, cacheData, { ex: 3600 });
+
+      return res.status(200).json({
+        success: true,
+        message: "Participante adicionado com sucesso.",
+        participant: participant,
+        typeInscription: rulesEvent.tipos_inscricao,
+        outstandingBalance: outstandingBalance,
+        uniqueId: uniqueId,
+      });
+  } catch (error) {
+    console.error("Erro ao processar o registro individual:", error);
+    return res.status(500).json({ success: false, message: "Erro ao processar o registro individual." });
+  }
+};
+
+exports.confirmRegisterUnique = async (req, res) => {
+  const errors = validationResult(req);
+
+  if (!errors.isEmpty()) {
+    return res.status(400).json({
+      success: false,
+      message: 'Erro de validação',
+      fields: errors.array().reduce((acc, err) => {
+        acc[err.path] = err.msg;
+        return acc;
+      }, {}),
+    });
+  }
+
+  const { eventSelectedId, uniqueId } = req.body;
+  const userId = req.user.id;
+
+
+  const cacheKey = `register:${userId}:${eventSelectedId}:${uniqueId}`;
+  const cachedData = await redis.get(cacheKey);
+
+  if (!cachedData) {
+    console.warn("Dados não encontrados no cache.");
+    return res.status(404).json({ message: "Dados não encontrados no cache ou expirados." });
+  }
+
+  let data;
+  if (typeof cachedData === 'string') {
+    try {
+      data = JSON.parse(cachedData);
+    } catch (parseError) {
+      console.error("Erro ao fazer parse do dado do Redis:", parseError);
+      return res.status(500).json({ message: "Erro ao processar os dados do cache." });
+    }
+  } else {
+    data = cachedData;
+  }
+
+  console.log("Dados recuperados do cache:", data);
+
+  try{
+    const result = await registerService.registerService(data, eventSelectedId, userId);
+
+    console.log("Registro realizado com sucesso:", result);
+
+    // Limpa o cache após o registro bem-sucedido
+    await redis.del(cacheKey);
+
+    return res.status(200).json({
+      success: true,
+      message: "Registro realizado com sucesso.",
+      data: result,
+    });
+
+  } catch (error) {
+    console.error("Erro ao confirmar registro:", error);
+    return res.status(500).json({ success: false, message: "Erro ao confirmar registro." });
+  }
+}
+
 exports.listRegister = async (req, res) => {
   const userId = req.user.id;
 
   try {
-    const registrations = await registerService.listRegister(userId);
+    const registrations = await registerService.listRegisterService(userId);
 
     if (!registrations || registrations.length === 0) {
       return res.status(404).json({
@@ -343,4 +532,4 @@ exports.listRegister = async (req, res) => {
     console.error("Erro ao listar registros:", error);
     return res.status(500).json({ success: false, message: "Erro ao listar registros." });
   }
-}
+};

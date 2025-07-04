@@ -1,7 +1,7 @@
 const { PrismaClient } = require('@prisma/client');
 const prisma = new PrismaClient();
 
-async function rulesEvent(eventId) {
+async function rulesEventService(eventId) {
   try {
     const rulesEvent = await prisma.event_rules.findFirst({
       where: { evento_id: eventId },
@@ -41,7 +41,7 @@ async function rulesEvent(eventId) {
   }
 }
 
-async function nameVerification(name, userId) {
+async function nameVerificationService(name, userId) {
   try {
     const existingParticipant = await prisma.inscription_list.findFirst({
       where: {
@@ -68,7 +68,7 @@ async function nameVerification(name, userId) {
   }
 }
 
-async function register(data, eventSelectedId, userId) {
+async function registerService(data, eventSelectedId, userId) {
   try {
     const { responsible, outstandingBalance, totalparticipants, participants } = data;
 
@@ -112,7 +112,7 @@ async function register(data, eventSelectedId, userId) {
   }
 }
 
-async function listRegister(userId) {
+async function listRegisterService(userId) {
   try {
     const registrations = await prisma.registration_details.findMany({
       where: { localidade_id: userId },
@@ -131,9 +131,11 @@ async function listRegister(userId) {
   
 }
 
+
+
 module.exports = {
-  rulesEvent,
-  nameVerification,
-  register,
-  listRegister
+  rulesEventService,
+  nameVerificationService,
+  registerService,
+  listRegisterService
 }
