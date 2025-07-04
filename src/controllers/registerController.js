@@ -441,8 +441,8 @@ exports.registerUnique = async (req, res) => {
         nome_completo: name.trim().toLowerCase(),
         idade: age,
         gender: gender,
-        tipo_inscricao_id: typeInscriptionId,
-        tipo_inscricao: registrationType.trim(),
+        tipo_inscricao_id: tipoInscricaoObj.id,
+        tipo_inscricao: typeInscription.trim(),
       }
 
       if (erros.length > 0) {
