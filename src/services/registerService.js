@@ -129,6 +129,7 @@ async function listRegisterService(userId) {
       include: {
         inscritos: true,
         evento: true,
+        comprovantes: true,
       },
       orderBy: { data_inscricao: 'desc' }
     });
