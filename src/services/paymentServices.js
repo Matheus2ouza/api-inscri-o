@@ -30,6 +30,7 @@ async function registerPayment(userId, registrationDetailsId, valuePaid, datePay
       console.log(`[PaymentServices] Comprovante guardado com sucesso`);
 
       await tx.registration_details.update({
+        where: {id: registrationDetailsId},
         data: {
           saldo_devedor: {
             decrement: valuePaid
@@ -40,6 +41,7 @@ async function registerPayment(userId, registrationDetailsId, valuePaid, datePay
       console.log(`[PaymentServices] Valor abatido da inscrição`);
 
       await tx.localidades.update({
+        where: {id: userId},
         data: {
           saldo_devedor: {
             decrement: valuePaid
