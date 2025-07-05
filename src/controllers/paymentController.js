@@ -2,7 +2,7 @@ const { validationResult } = require("express-validator");
 const paymentService = require("../services/paymentServices.js");
 
 exports.uploadPayment = async (req, res) => {
-    const errors = validationResult(req);
+  const errors = validationResult(req);
 
   if (!errors.isEmpty()) {
     return res.status(400).json({
@@ -15,8 +15,8 @@ exports.uploadPayment = async (req, res) => {
     });
   }
 
-  const comprovante_pagamento = req.file ? req.file.buffer : null; // Não precisa mais converter para base64
-  const tipo_arquivo = req.file ? req.file.mimetype : null; // Tipo do arquivo
+  const comprovante_pagamento = req.file ? req.file.buffer : null;
+  const tipo_arquivo = req.file ? req.file.mimetype : null;
 
   // Verifica se o comprovante foi carregado
   if (!comprovante_pagamento) {
@@ -35,25 +35,28 @@ exports.uploadPayment = async (req, res) => {
 
   try {
     const result = await paymentService.registerPayment(
-      userId, 
-      Number(registrationDetailsId), 
+      userId,
+      Number(registrationDetailsId),
       valuePaid,
       datePayment,
-      comprovante_pagamento, 
-      tipo_arquivo);
+      comprovante_pagamento,
+      tipo_arquivo
+    );
 
-      const data = {
-        image: result.comprovante_imagem,
-        type: tipo_arquivo,
-        date: datePayment,
-        amount: Number(valuePaid)
-      }
+    const base64 = result.comprovante_imagem.toString('base64');
 
-      return res.status(201).json({
-        success: true,
-        message: 'Pagamento registrado com sucesso',
-        data: data,
-      });
+    const data = {
+      receipt: `data:${tipo_arquivo};base64,${base64}`,
+      type: tipo_arquivo,
+      date: datePayment.toLocaleDateString('pt-BR'),
+      amount: Number(valuePaid)
+    }
+
+    return res.status(201).json({
+      success: true,
+      message: 'Pagamento registrado com sucesso',
+      data: data,
+    });
 
   } catch (error) {
     console.error('Erro ao registrar pagamento:', error);

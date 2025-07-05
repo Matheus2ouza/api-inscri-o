@@ -1,6 +1,4 @@
 const { PrismaClient } = require('@prisma/client');
-const { verify } = require('jsonwebtoken');
-const { text } = require('pdfkit');
 const prisma = new PrismaClient();
 
 async function registerPayment(userId, registrationDetailsId, valuePaid, datePayment, comprovantePagamento, tipoArquivo) {
