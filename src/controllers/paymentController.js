@@ -36,7 +36,7 @@ exports.uploadPayment = async (req, res) => {
   try {
     const result = await paymentService.registerPayment(
       userId, 
-      registrationDetailsId, 
+      Number(registrationDetailsId), 
       valuePaid,
       datePayment,
       comprovante_pagamento, 
