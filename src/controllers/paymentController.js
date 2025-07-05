@@ -31,12 +31,14 @@ exports.uploadPayment = async (req, res) => {
 
   const { valuePaid, registration_details_id } = req.body;
   const userId = req.user.id;
+  const datePayment = new Date()
 
   try {
     const result = await paymentService.registerPayment(
       userId, 
       registration_details_id, 
       valuePaid,
+      datePayment,
       comprovante_pagamento, 
       tipo_arquivo);
 

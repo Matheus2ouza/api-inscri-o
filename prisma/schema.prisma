@@ -122,7 +122,7 @@ model comprovantes {
   comprovante_imagem        Bytes                 @map("comprovante_imagem")
   tipo_arquivo              String?               @db.VarChar(100) @map("tipo_arquivo")
   valor_pago                Decimal               @db.Decimal(10, 2) @map("valor_pago")
-  
+  date_pagamento            DateTime              @db.Date           @map("data_pagamento")
   localidade                localidades           @relation(fields: [localidade_id], references: [id], onDelete: NoAction)
   registration_details      registration_details  @relation(fields: [registration_details_id], references: [id], onDelete: NoAction)
 

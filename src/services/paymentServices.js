@@ -3,7 +3,7 @@ const { verify } = require('jsonwebtoken');
 const { text } = require('pdfkit');
 const prisma = new PrismaClient();
 
-async function registerPayment(userId, registrationDetailsId, valuePaid, comprovantePagamento, tipoArquivo) {
+async function registerPayment(userId, registrationDetailsId, valuePaid, datePayment, comprovantePagamento, tipoArquivo) {
   try {
     const verifyRegister = await prisma.registration_details.findFirst({
       where: {id: registrationDetailsId}
