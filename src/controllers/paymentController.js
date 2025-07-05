@@ -29,14 +29,14 @@ exports.uploadPayment = async (req, res) => {
     return res.status(400).json({ success: false, message: 'Tipo de arquivo é obrigatório.' });
   }
 
-  const { valuePaid, registration_details_id } = req.body;
+  const { valuePaid, registrationDetailsId } = req.body;
   const userId = req.user.id;
   const datePayment = new Date()
 
   try {
     const result = await paymentService.registerPayment(
       userId, 
-      registration_details_id, 
+      registrationDetailsId, 
       valuePaid,
       datePayment,
       comprovante_pagamento, 
