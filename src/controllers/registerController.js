@@ -555,14 +555,24 @@ exports.listRegister = async (req, res) => {
       });
     }
 
-    // Transformar comprovantes (binário -> base64)
-    const transformed = registrations.map(reg => {
+      const transformed = registrations.map(reg => {
       return {
         ...reg,
-        comprovantes: reg.comprovantes.map(comp => ({
-          ...comp,
-          comprovante_imagem: `data:${comp.tipo_arquivo};base64,${comp.comprovante_imagem.toString('base64')}`
-        }))
+        comprovantes: reg.comprovantes.map(comp => {
+          // Verifique se já é uma string (caso do retorno do upload)
+          if (typeof comp.comprovante_imagem === 'string') {
+            return {
+              ...comp,
+              comprovante_imagem: `data:${comp.tipo_arquivo};base64,${comp.comprovante_imagem}`
+            };
+          }
+          
+          // Converta de Buffer para base64 se necessário
+          return {
+            ...comp,
+            comprovante_imagem: `data:${comp.tipo_arquivo};base64,${comp.comprovante_imagem.toString('base64')}`
+          };
+        })
       };
     });
 

@@ -43,10 +43,9 @@ exports.uploadPayment = async (req, res) => {
       tipo_arquivo
     );
 
-    const base64 = result.comprovante_imagem.toString('base64');
-
     const data = {
-      receipt: `data:${tipo_arquivo};base64,${base64}`,
+      id: result.id,
+      receipt: `data:${tipo_arquivo};base64,${result.comprovante_imagem}`,
       type: tipo_arquivo,
       date: datePayment.toLocaleDateString('pt-BR'),
       amount: Number(valuePaid)

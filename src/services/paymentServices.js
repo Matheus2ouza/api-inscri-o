@@ -51,8 +51,12 @@ async function registerPayment(userId, registrationDetailsId, valuePaid, datePay
       console.log(`[PaymentServices] Transação feita com sucesso`);
       return paymentReceipt
     })
+    const base64Image = Buffer.from(result.comprovante_imagem).toString('base64');
 
-    return result
+    return {
+      comprovante_imagem: base64Image,
+      ...result
+    }
   } catch (error) {
     console.warn(`[PaymentServices] Erro ao registar pagamento`)
     throw error

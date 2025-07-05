@@ -129,7 +129,15 @@ async function listRegisterService(userId) {
       include: {
         inscritos: true,
         evento: true,
-        comprovantes: true,
+        comprovantes: {
+          select: {
+            id: true,
+            valor_pago: true,
+            date_pagamento: true,
+            tipo_arquivo: true,
+            comprovante_imagem: true
+          }
+        },
       },
       orderBy: { data_inscricao: 'desc' }
     });
