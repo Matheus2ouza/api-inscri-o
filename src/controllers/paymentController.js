@@ -42,10 +42,16 @@ exports.uploadPayment = async (req, res) => {
       comprovante_pagamento, 
       tipo_arquivo);
 
+      const data = {
+        image: result,
+        date: datePayment,
+        amount: valuePaid
+      }
+
       return res.status(201).json({
         success: true,
         message: 'Pagamento registrado com sucesso',
-        data: result,
+        data: data,
       });
 
   } catch (error) {
