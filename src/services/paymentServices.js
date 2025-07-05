@@ -21,6 +21,7 @@ async function registerPayment(userId, registrationDetailsId, valuePaid, datePay
           localidade_id: userId,
           registration_details_id: registrationDetailsId,
           comprovante_imagem: comprovantePagamento,
+          date_pagamento: datePayment,
           tipo_arquivo: tipoArquivo,
           valor_pago: valuePaid
         }
