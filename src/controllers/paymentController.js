@@ -43,9 +43,10 @@ exports.uploadPayment = async (req, res) => {
       tipo_arquivo);
 
       const data = {
-        image: result,
+        image: result.comprovante_imagem,
+        type: tipo_arquivo,
         date: datePayment,
-        amount: valuePaid
+        amount: Number(valuePaid)
       }
 
       return res.status(201).json({
