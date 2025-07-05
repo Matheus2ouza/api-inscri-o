@@ -147,7 +147,6 @@ async function listRegisterService(userId) {
     console.error("Erro ao listar registros:", error);
     throw new Error("Erro ao listar registros.");
   }
-  
 }
 
 module.exports = {

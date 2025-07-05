@@ -544,101 +544,47 @@ exports.confirmRegisterUnique = async (req, res) => {
 
 exports.listRegister = async (req, res) => {
   const userId = req.user.id;
-  console.log(`[listRegister] Iniciando listagem para userId: ${userId}`);
 
   try {
     const registrations = await registerService.listRegisterService(userId);
-    console.log(`[listRegister] Registros encontrados: ${registrations.length}`);
 
     if (!registrations || registrations.length === 0) {
-      console.log('[listRegister] Nenhum registro encontrado');
       return res.status(404).json({
         success: false,
         message: "Nenhum registro encontrado.",
       });
     }
 
-    // Log detalhado dos comprovantes
-    registrations.forEach((reg, index) => {
-      console.log(`[listRegister] Registro #${index + 1} - ID: ${reg.id}`);
-      console.log(`  Comprovantes: ${reg.comprovantes.length}`);
-      
-      reg.comprovantes.forEach((comp, compIndex) => {
-        console.log(`  Comprovante #${compIndex + 1}:`);
-        console.log(`    ID: ${comp.id}`);
-        console.log(`    Tipo Arquivo: ${comp.tipo_arquivo}`);
-        console.log(`    Tipo do comprovante_imagem: ${typeof comp.comprovante_imagem}`);
-        
-        if (Buffer.isBuffer(comp.comprovante_imagem)) {
-          console.log(`    É Buffer: SIM`);
-          console.log(`    Tamanho do Buffer: ${comp.comprovante_imagem.length} bytes`);
-          
-          // Verificar se o buffer parece ser uma imagem
-          const header = comp.comprovante_imagem.subarray(0, 4).toString('hex');
-          console.log(`    Header do arquivo: ${header}`);
-          
-          // Verificadores comuns de formatos de imagem
-          const imageHeaders = {
-            '89504e47': 'PNG',
-            'ffd8ffe0': 'JPEG',
-            'ffd8ffe1': 'JPEG',
-            'ffd8ffe2': 'JPEG',
-            'ffd8ffe3': 'JPEG',
-            'ffd8ffe8': 'JPEG',
-            '52494646': 'WEBP', // RIFF
-            '47494638': 'GIF', // GIF8
-          };
-          
-          console.log(`    Possível formato: ${imageHeaders[header] || 'Desconhecido'}`);
-        } else {
-          console.log(`    É Buffer: NÃO`);
-          console.log(`    Valor: ${comp.comprovante_imagem?.substring(0, 30)}...`);
-        }
-      });
-    });
-
     const transformed = registrations.map(reg => {
       return {
         ...reg,
         comprovantes: reg.comprovantes.map(comp => {
-          // Verifique se já é uma string (caso do retorno do upload)
+          // Verificação mais robusta de Buffer
+          const isBuffer = Buffer.isBuffer(comp.comprovante_imagem) || 
+                          (comp.comprovante_imagem instanceof Uint8Array);
+          
+          if (isBuffer) {
+            console.log(`Convertendo Buffer para base64 (ID: ${comp.id})`);
+            return {
+              ...comp,
+              comprovante_imagem: `data:${comp.tipo_arquivo};base64,${Buffer.from(comp.comprovante_imagem).toString('base64')}`
+            };
+          }
+          
+          // Se já for string (base64)
           if (typeof comp.comprovante_imagem === 'string') {
-            console.log(`[Transform] Comprovante ${comp.id} já é string`);
+            console.log(`Comprovante já em string (ID: ${comp.id})`);
             return {
               ...comp,
               comprovante_imagem: `data:${comp.tipo_arquivo};base64,${comp.comprovante_imagem}`
             };
           }
           
-          // Converta de Buffer para base64 se necessário
-          if (Buffer.isBuffer(comp.comprovante_imagem)) {
-            console.log(`[Transform] Comprovante ${comp.id} convertendo Buffer para base64`);
-            try {
-              const base64 = comp.comprovante_imagem.toString('base64');
-              return {
-                ...comp,
-                comprovante_imagem: `data:${comp.tipo_arquivo};base64,${base64}`
-              };
-            } catch (error) {
-              console.error(`[Transform] Erro na conversão do comprovante ${comp.id}:`, error);
-              return {
-                ...comp,
-                comprovante_imagem: 'data:image/png;base64,ERRO_NA_CONVERSAO'
-              };
-            }
-          }
-          
-          console.warn(`[Transform] Comprovante ${comp.id} tipo desconhecido: ${typeof comp.comprovante_imagem}`);
+          console.warn(`Tipo desconhecido para comprovante ${comp.id}:`, typeof comp.comprovante_imagem);
           return comp;
         })
       };
     });
-
-    // Log de amostra após transformação
-    if (transformed.length > 0 && transformed[0].comprovantes.length > 0) {
-      const sample = transformed[0].comprovantes[0].comprovante_imagem;
-      console.log(`[listRegister] Amostra de comprovante transformado (50 primeiros chars): ${sample.substring(0, 50)}`);
-    }
 
     return res.status(200).json({
       success: true,
