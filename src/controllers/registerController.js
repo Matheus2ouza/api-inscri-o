@@ -555,9 +555,20 @@ exports.listRegister = async (req, res) => {
       });
     }
 
+    // Transformar comprovantes (binário -> base64)
+    const transformed = registrations.map(reg => {
+      return {
+        ...reg,
+        comprovantes: reg.comprovantes.map(comp => ({
+          ...comp,
+          comprovante_imagem: `data:${comp.tipo_arquivo};base64,${comp.comprovante_imagem.toString('base64')}`
+        }))
+      };
+    });
+
     return res.status(200).json({
       success: true,
-      registrations
+      registrations: transformed
     });
   } catch (error) {
     console.error("Erro ao listar registros:", error);

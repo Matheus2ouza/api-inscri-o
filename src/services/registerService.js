@@ -142,8 +142,6 @@ async function listRegisterService(userId) {
   
 }
 
-
-
 module.exports = {
   rulesEventService,
   nameVerificationService,
