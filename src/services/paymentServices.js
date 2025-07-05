@@ -1,41 +1,60 @@
 const { PrismaClient } = require('@prisma/client');
+const { verify } = require('jsonwebtoken');
+const { text } = require('pdfkit');
 const prisma = new PrismaClient();
 
 async function registerPayment(userId, registrationDetailsId, valuePaid, comprovantePagamento, tipoArquivo) {
   try {
-    // Verifica se o usuário existe
-    const user = await prisma.user.findUnique({
-      where: { id: userId },
-    });
+    const verifyRegister = await prisma.registration_details.findFirst({
+      where: {id: registrationDetailsId}
+    })
 
-    if (!user) {
-      throw new Error('Usuário não encontrado');
+    if(!verifyRegister) {
+      console.warn(`[PaymentServices] Nenhum registro encontrado com o id: ${registrationDetailsId}`)
     }
 
-    // Verifica se os detalhes da inscrição existem
-    const registrationDetails = await prisma.registration_details.findUnique({
-      where: { id: registrationDetailsId },
-    });
+    const result = await prisma.$transaction( async (tx) => {
+      console.log(`[PaymentServices] Inicianado transação para registrar pagamento`)
 
-    if (!registrationDetails) {
-      throw new Error('Detalhes da inscrição não encontrados');
-    }
+      const paymentReceipt = await tx.comprovantes.create({
+        data: {
+          localidade_id: userId,
+          registration_details_id: registrationDetailsId,
+          comprovante_imagem: comprovantePagamento,
+          tipo_arquivo: tipoArquivo,
+          valor_pago: valuePaid
+        }
+      });
 
-    // Cria o registro de pagamento
-    const payment = await prisma.comprovantes.create({
-      data: {
-        localidade_id: registrationDetails.localidade_id,
-        registration_details_id: registrationDetailsId,
-        comprovante_imagem: comprovantePagamento,
-        tipo_arquivo: tipoArquivo,
-        valor_pago: valuePaid,
-      },
-    });
+      console.log(`[PaymentServices] Comprovante guardado com sucesso`);
 
-    return payment;
+      await tx.registration_details.update({
+        data: {
+          saldo_devedor: {
+            decrement: valuePaid
+          }
+        }
+      });
+
+      console.log(`[PaymentServices] Valor abatido da inscrição`);
+
+      await tx.localidades.update({
+        data: {
+          saldo_devedor: {
+            decrement: valuePaid
+          }
+        }
+      });
+
+      console.log(`[PaymentServices] Valor abatido da localidade`);
+      console.log(`[PaymentServices] Transação feita com sucesso`);
+      return paymentReceipt
+    })
+
+    return result
   } catch (error) {
-    console.error('Erro ao registrar pagamento:', error);
-    throw new Error('Erro ao registrar pagamento: ' + error.message);
+    console.warn(`[PaymentServices] Erro ao registar pagamento`)
+    throw new Error("Erro ao tentar registrar o pagamento")
   }
 }
 

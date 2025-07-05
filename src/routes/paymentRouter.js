@@ -13,10 +13,10 @@ const upload = multer({ storage });
 // Rota para registrar o pagamento
 router.post('/upload-payment',
     authenticateToken,
-    upload.single('comprovante_pagamento'),
+    upload.single('paymenteFile'),
     [
-        body("value_paid").isDecimal({ min: 0 }).withMessage("O valor pago deve ser um número decimal positivo."),
-        body("registration_details_id").notEmpty().withMessage("O ID dos detalhes de inscrição é obrigatório."),
+        body("valuePaid").isDecimal({ min: 0 }).withMessage("O valor pago deve ser um número decimal positivo."),
+        body("registrationDetailsId").notEmpty().withMessage("O ID dos detalhes de inscrição é obrigatório."),
     ],
     paymentController.uploadPayment
 );

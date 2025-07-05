@@ -63,13 +63,14 @@ const localityRouter = require('./src/routes/localityRouter.js')
 const authRouter = require('./src/routes/authRoutes.js')
 const basicData = require('./src/routes/basicDataRouter.js')
 const register = require('./src/routes/registerRouter.js')
+const payment = require('./src/routes/paymentRouter.js')
 
 app.use('/user', authRouter)
 app.use('/locality', localityRouter)
 app.use('/data', basicData);
 app.use('/register', register)
+app.use('/payment', payment)
 
-app.use('/pagamento', require('./src/routes/paymentRouter.js'));
 app.use('/hospedagem', require('./src/routes/hospedagem.js'));
 app.use('/dashboard', require('./src/routes/dashboard.js'));
 app.use('/loginAdmin', require('./src/routes/loginAdmin.js'));

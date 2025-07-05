@@ -29,14 +29,15 @@ exports.uploadPayment = async (req, res) => {
     return res.status(400).json({ success: false, message: 'Tipo de arquivo é obrigatório.' });
   }
 
-  const { value_paid, registration_details_id } = req.body;
+  const { valuePaid, registration_details_id } = req.body;
   const userId = req.user.id;
 
   try {
     const result = await paymentService.registerPayment(
       userId, 
       registration_details_id, 
-      value_paid, comprovante_pagamento, 
+      valuePaid,
+      comprovante_pagamento, 
       tipo_arquivo);
 
       return res.status(201).json({
@@ -44,6 +45,7 @@ exports.uploadPayment = async (req, res) => {
         message: 'Pagamento registrado com sucesso',
         data: result,
       });
+
   } catch (error) {
     console.error('Erro ao registrar pagamento:', error);
     return res.status(500).json({
