@@ -102,7 +102,7 @@ async function registerService(data, eventSelectedId, userId) {
 
       console.log(`[RegisterService] Lista de inscrições criada com sucesso`);
       await tx.localidades.update({
-        where: { localidade_id: userId},
+        where: { id: userId},
         data: { 
           saldo_devedor: {
             increment: outstandingBalance
