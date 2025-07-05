@@ -101,8 +101,18 @@ async function registerService(data, eventSelectedId, userId) {
       });
 
       console.log(`[RegisterService] Lista de inscrições criada com sucesso`);
+      await tx.localidades.update({
+        where: { localidade_id: userId},
+        data: { 
+          saldo_devedor: {
+            increment: outstandingBalance
+          }
+        }
+      })
+      
+      console.log(`[RegisterService] Saldo da localidade atualizado`)
 
-      return registerDetails; // ou true
+      return registerDetails;
     });
 
     return result;
