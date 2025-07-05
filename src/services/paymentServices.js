@@ -55,7 +55,7 @@ async function registerPayment(userId, registrationDetailsId, valuePaid, datePay
     return result
   } catch (error) {
     console.warn(`[PaymentServices] Erro ao registar pagamento`)
-    throw new Error("Erro ao tentar registrar o pagamento")
+    throw error
   }
 }
 
