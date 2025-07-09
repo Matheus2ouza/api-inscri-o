@@ -554,6 +554,7 @@ exports.listRegister = async (req, res) => {
         message: "Nenhum registro encontrado.",
       });
     }
+    console.log(registrations)
 
     const transformed = registrations.map(reg => {
       return {
@@ -585,6 +586,8 @@ exports.listRegister = async (req, res) => {
         })
       };
     });
+
+    console.log(transformed)
 
     return res.status(200).json({
       success: true,
