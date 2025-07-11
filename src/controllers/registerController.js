@@ -147,17 +147,25 @@ exports.uploadFile = async (req, res) => {
       if (hasEmpty) continue;
 
       // Validação do nome
-      const regexFirstNameLastName = /^[A-Za-zÀ-ÖØ-öø-ÿ]+(?:[-' ]?[A-Za-zÀ-ÖØ-öø-ÿ]+)+$/;
+      const regexFullName = /^[A-Za-zÀ-ÖØ-öø-ÿ]+(?:[-' ]?[A-Za-zÀ-ÖØ-öø-ÿ]+)*$/;
       const regexCharacters = /[^A-Za-zÀ-ÖØ-öø-ÿ\s\-']/;
 
-      if (!regexFirstNameLastName.test(nameLine) || regexCharacters.test(nameLine)) {
+      const nameParts = nameLine.trim().split(/\s+/);
+
+      // Valida se tem ao menos duas palavras e se não há caracteres inválidos
+      if (
+        nameParts.length < 2 ||
+        !regexFullName.test(nameLine) ||
+        regexCharacters.test(nameLine)
+      ) {
         console.warn(`Linha ${linhaExcel} - Nome inválido:`, nameLine);
         lineError.push({
           line: linhaExcel,
-          message: "A coluna do nome tem que ser o nome e o sobrenome, sem caracteres especiais",
+          message: "A coluna do nome deve conter ao menos nome e sobrenome, sem caracteres especiais.",
         });
         continue;
       }
+
 
       try {
         const nameVerification = await registerService.nameVerificationService(nameLine.toLowerCase(), userId);
@@ -416,66 +424,66 @@ exports.registerUnique = async (req, res) => {
     }
 
     // Validação do tipo de inscrição
-      const tipoInscricaoValido = rulesEvent.tipos_inscricao.some(
-        tipo => tipo.descricao.trim().toLowerCase() === typeInscription.trim().toLowerCase()
-      );
+    const tipoInscricaoValido = rulesEvent.tipos_inscricao.some(
+      tipo => tipo.descricao.trim().toLowerCase() === typeInscription.trim().toLowerCase()
+    );
 
-      if (!tipoInscricaoValido) {
-        console.warn(`Linha ${linhaExcel} - Tipo de inscrição inválido:`, typeInscription);
-        lineError.push({
-          line: linhaExcel,
-          message: `Tipo de inscrição "${registrationType}" não é válido para este evento.`,
-        });
-      }
-
-      // Encontrar o tipo de inscrição correspondente
-      const tipoInscricaoObj = rulesEvent.tipos_inscricao.find(
-        tipo => tipo.descricao.trim().toLowerCase() === typeInscription.trim().toLowerCase()
-      );
-
-      if (tipoInscricaoObj?.valor) {
-        outstandingBalance = parseFloat(tipoInscricaoObj.valor); // soma o valor ao saldo
-      }
-
-      const participant = {
-        nome_completo: name.trim().toLowerCase(),
-        idade: age,
-        sexo: gender,
-        tipo_inscricao_id: tipoInscricaoObj.id,
-        tipo_inscricao: typeInscription.trim(),
-      }
-
-      if (erros.length > 0) {
-        return res.status(400).json({
-          success: false,
-          message: "Erro de validação nos dados do participante.",
-          errors: erros,
-        });
-      }
-
-      const data = {
-        responsible: responsible,
-        outstandingBalance: outstandingBalance,
-        totalparticipants: 1,
-        participants: [participant],
-      };
-
-      console.log(data)
-
-      const cacheKey = `register:${userId}:${eventSelectedId}:${uniqueId}`;
-      const cacheData = JSON.stringify(data);
-
-      await redis.set(cacheKey, cacheData, { ex: 3600 });
-
-      return res.status(200).json({
-        success: true,
-        message: "Participante adicionado com sucesso.",
-        participant: participant,
-        responsible: responsible,
-        typeInscription: rulesEvent.tipos_inscricao,
-        outstandingBalance: outstandingBalance,
-        uniqueId: uniqueId,
+    if (!tipoInscricaoValido) {
+      console.warn(`Linha ${linhaExcel} - Tipo de inscrição inválido:`, typeInscription);
+      lineError.push({
+        line: linhaExcel,
+        message: `Tipo de inscrição "${registrationType}" não é válido para este evento.`,
       });
+    }
+
+    // Encontrar o tipo de inscrição correspondente
+    const tipoInscricaoObj = rulesEvent.tipos_inscricao.find(
+      tipo => tipo.descricao.trim().toLowerCase() === typeInscription.trim().toLowerCase()
+    );
+
+    if (tipoInscricaoObj?.valor) {
+      outstandingBalance = parseFloat(tipoInscricaoObj.valor); // soma o valor ao saldo
+    }
+
+    const participant = {
+      nome_completo: name.trim().toLowerCase(),
+      idade: age,
+      sexo: gender,
+      tipo_inscricao_id: tipoInscricaoObj.id,
+      tipo_inscricao: typeInscription.trim(),
+    }
+
+    if (erros.length > 0) {
+      return res.status(400).json({
+        success: false,
+        message: "Erro de validação nos dados do participante.",
+        errors: erros,
+      });
+    }
+
+    const data = {
+      responsible: responsible,
+      outstandingBalance: outstandingBalance,
+      totalparticipants: 1,
+      participants: [participant],
+    };
+
+    console.log(data)
+
+    const cacheKey = `register:${userId}:${eventSelectedId}:${uniqueId}`;
+    const cacheData = JSON.stringify(data);
+
+    await redis.set(cacheKey, cacheData, { ex: 3600 });
+
+    return res.status(200).json({
+      success: true,
+      message: "Participante adicionado com sucesso.",
+      participant: participant,
+      responsible: responsible,
+      typeInscription: rulesEvent.tipos_inscricao,
+      outstandingBalance: outstandingBalance,
+      uniqueId: uniqueId,
+    });
   } catch (error) {
     console.error("Erro ao processar o registro individual:", error);
     return res.status(500).json({ success: false, message: "Erro ao processar o registro individual." });
@@ -522,7 +530,7 @@ exports.confirmRegisterUnique = async (req, res) => {
 
   console.log("Dados recuperados do cache:", data);
 
-  try{
+  try {
     const result = await registerService.registerService(data, eventSelectedId, userId);
 
     console.log("Registro realizado com sucesso:", result);
@@ -561,9 +569,9 @@ exports.listRegister = async (req, res) => {
         ...reg,
         comprovantes: reg.comprovantes.map(comp => {
           // Verificação mais robusta de Buffer
-          const isBuffer = Buffer.isBuffer(comp.comprovante_imagem) || 
-                          (comp.comprovante_imagem instanceof Uint8Array);
-          
+          const isBuffer = Buffer.isBuffer(comp.comprovante_imagem) ||
+            (comp.comprovante_imagem instanceof Uint8Array);
+
           if (isBuffer) {
             console.log(`Convertendo Buffer para base64 (ID: ${comp.id})`);
             return {
@@ -571,7 +579,7 @@ exports.listRegister = async (req, res) => {
               comprovante_imagem: `data:${comp.tipo_arquivo};base64,${Buffer.from(comp.comprovante_imagem).toString('base64')}`
             };
           }
-          
+
           // Se já for string (base64)
           if (typeof comp.comprovante_imagem === 'string') {
             console.log(`Comprovante já em string (ID: ${comp.id})`);
@@ -580,7 +588,7 @@ exports.listRegister = async (req, res) => {
               comprovante_imagem: `data:${comp.tipo_arquivo};base64,${comp.comprovante_imagem}`
             };
           }
-          
+
           console.warn(`Tipo desconhecido para comprovante ${comp.id}:`, typeof comp.comprovante_imagem);
           return comp;
         })
