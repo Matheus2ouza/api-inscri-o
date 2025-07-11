@@ -155,8 +155,8 @@ exports.uploadFile = async (req, res) => {
       // Valida se tem ao menos duas palavras e se não há caracteres inválidos
       if (
         nameParts.length < 2 ||
-        !regexFullName.test(nameLine) ||
-        regexCharacters.test(nameLine)
+        !regexFullName.test(nameLine.trim()) ||
+        regexCharacters.test(nameLine.trim())
       ) {
         console.warn(`Linha ${linhaExcel} - Nome inválido:`, nameLine);
         lineError.push({
