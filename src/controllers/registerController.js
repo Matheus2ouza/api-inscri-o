@@ -147,7 +147,7 @@ exports.uploadFile = async (req, res) => {
       if (hasEmpty) continue;
 
       // Validação do nome
-      const regexFullName = /^[A-Za-zÀ-ÖØ-öø-ÿ]+(?:[-' ]?[A-Za-zÀ-ÖØ-öø-ÿ]+)*$/;
+      const regexFullName = /^([A-Za-zÀ-ÖØ-öø-ÿ'-]+\s+){1,}[A-Za-zÀ-ÖØ-öø-ÿ'-]+$/;
       const regexCharacters = /[^A-Za-zÀ-ÖØ-öø-ÿ\s\-']/;
 
       const nameParts = nameLine.trim().split(/\s+/);
