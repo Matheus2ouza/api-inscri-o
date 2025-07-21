@@ -27,7 +27,7 @@ async function registerPayment(userId, registrationDetailsId, valuePaid, datePay
 
       console.log(`[PaymentServices] Comprovante guardado com sucesso`);
 
-      await tx.registration_details.update({
+      const updatedRegistration = await tx.registration_details.update({
         where: {id: registrationDetailsId},
         data: {
           saldo_devedor: {
@@ -45,12 +45,22 @@ async function registerPayment(userId, registrationDetailsId, valuePaid, datePay
             decrement: valuePaid
           }
         }
-      });
+      })
 
       console.log(`[PaymentServices] Valor abatido da localidade`);
-      console.log(`[PaymentServices] Transação feita com sucesso`);
+
+      if(updatedRegistration?.saldo_devedor?.toNumber() <= 0) {
+        await tx.registration_details.update({
+          where: {id: updatedLocalidade.id },
+          data: {
+            status: 'pago'
+          }
+        })
+      }
+
       return paymentReceipt
     })
+
     const base64Image = Buffer.from(result.comprovante_imagem).toString('base64');
 
     return {
