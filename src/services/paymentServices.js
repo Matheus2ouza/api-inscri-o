@@ -51,7 +51,7 @@ async function registerPayment(userId, registrationDetailsId, valuePaid, datePay
 
       if(updatedRegistration?.saldo_devedor?.toNumber() <= 0) {
         await tx.registration_details.update({
-          where: {id: updatedLocalidade.id },
+          where: {id: updatedRegistration.id },
           data: {
             status: 'pago'
           }
