@@ -12,31 +12,43 @@ exports.events = async (req, res) => {
   }
 };
 
-exports.list = async(req, res) => {
-  try{
-    const list = await basicDataService.listService()
+exports.list = async (req, res) => {
+  try {
+    const list = await basicDataService.listService();
 
-    if(!list) {
+    if (!list || Object.keys(list).length === 0) {
       console.error(`[basicDataService] Nenhuma lista encontrada`);
       return res.status(404).json({
         success: false,
         message: 'Nenhuma lista encontrada'
-      })
+      });
     }
 
-    const qtdParticipant = list.length
+    // Calcula a quantidade total de participantes
+    let qtdParticipant = 0;
+    let qtdMasc = 0;
+    let qtdFem = 0;
+
+    for (const localidade in list) {
+      qtdParticipant += list[localidade].total;
+    }
+
+    for (const localidade in list) {
+      qtdMasc += list[localidade].masculino;
+      qtdFem += list[localidade].feminino;
+    }
 
     return res.status(200).json({
       success: true,
       list: list,
       qtd_participant: qtdParticipant
-    })
+    });
   } catch (error) {
-    console.error(`[basicDataService] Erro ao tentar buscar a lista: ${error.message}`)
+    console.error(`[basicDataService] Erro ao tentar buscar a lista: ${error.message}`);
 
     return res.status(500).json({
       success: false,
-      message: "Erro ao tentar bsucar a lista de inscritos"
-    })
+      message: "Erro ao tentar buscar a lista de inscritos"
+    });
   }
-}
+};

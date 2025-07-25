@@ -23,7 +23,7 @@ async function eventService() {
 }
 
 async function listService() {
-  try{
+  try {
     const result = await prisma.inscription_list.findMany({
       select: {
         nome_completo: true,
@@ -38,21 +38,35 @@ async function listService() {
           }
         }
       }
-    })
+    });
 
-    console.log(result)
-
+    // Primeiro, mapeia os dados
     const list = result.map((l) => ({
       nome: l.nome_completo,
       sexo: l.sexo,
       localidade: l.registration_details.localidade.nome
-    }))
-    
-    return list
+    }));
+
+    // Agora, agrupa por localidade
+    const grouped = {};
+    list.forEach((item) => {
+      const loc = item.localidade;
+      if (!grouped[loc]) {
+        grouped[loc] = [];
+      }
+      grouped[loc].push({
+        nome: item.nome,
+        sexo: item.sexo
+      });
+    });
+
+    return grouped;
+
   } catch (err) {
-    throw err
+    throw err;
   }
 }
+
 
 module.exports = {
   eventService,
