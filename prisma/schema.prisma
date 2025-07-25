@@ -202,16 +202,17 @@ enum DiaSemana {
 }
 
 model Refeicao {
-  id             String      @id @default(uuid())
-  tipo           TipoRefeicao
-  dia            DiaSemana
-  valor          Float
-  quantidadeVendida Int
+  id                    String              @id @default(uuid())
+  tipo                  TipoRefeicao
+  dia                   DiaSemana
+  valor                 Float
+  quantidadeVendida     Int                 @default(0)
 
-  createdAt      DateTime    @default(now())
-  updatedAt      DateTime    @updatedAt
+  createdAt             DateTime            @default(now())
+  updatedAt             DateTime            @updatedAt
+
+  @@map("refeicao")
 }
-
 
 enum RegistrationStatus {
   pendente
