@@ -40,7 +40,7 @@ async function listService() {
       }
     })
 
-    console.log(result.registration_details)
+    console.log(result.localidade)
 
     const list = {
       name: result.nome_completo,
