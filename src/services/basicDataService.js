@@ -40,6 +40,8 @@ async function listService() {
       }
     })
 
+    console.log(result)
+
     const list = {
       name: result.nome_completo,
       sexo: result.sexo,
