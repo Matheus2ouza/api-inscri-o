@@ -37,12 +37,13 @@ exports.list = async (req, res) => {
       qtdMasc += list[localidade].masculino;
       qtdFem += list[localidade].feminino;
     }
-
+    
     return res.status(200).json({
       success: true,
       list: list,
       qtd_participant: qtdParticipant
     });
+
   } catch (error) {
     console.error(`[basicDataService] Erro ao tentar buscar a lista: ${error.message}`);
 

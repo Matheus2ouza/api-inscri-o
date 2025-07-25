@@ -189,6 +189,29 @@ model venda_alimentacao {
   @@map("venda_alimentacao")
 }
 
+enum TipoRefeicao {
+  CAFE
+  ALMOCO
+  JANTA
+}
+
+enum DiaSemana {
+  SEXTA
+  SABADO
+  DOMINGO
+}
+
+model Refeicao {
+  id             String      @id @default(uuid())
+  tipo           TipoRefeicao
+  dia            DiaSemana
+  valor          Float
+  quantidadeVendida Int
+
+  createdAt      DateTime    @default(now())
+  updatedAt      DateTime    @updatedAt
+}
+
 
 enum RegistrationStatus {
   pendente
