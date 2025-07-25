@@ -40,7 +40,7 @@ async function listService() {
       }
     })
 
-    console.log(result.localidade)
+    console.log(result)
 
     const list = {
       name: result.nome_completo,
