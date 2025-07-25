@@ -42,11 +42,11 @@ async function listService() {
 
     console.log(result)
 
-    const list = {
-      name: result.nome_completo,
-      sexo: result.sexo,
-      localidade: result.registration_details.localidade.nome
-    }
+    const list = result.map((l) => ({
+      nome: l.nome_completo,
+      sexo: l.sexo,
+      localidade: l.registration_details.localidade.nome
+    }))
     
     return list
   } catch (err) {
