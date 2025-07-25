@@ -22,6 +22,37 @@ async function eventService() {
   }
 }
 
+async function listService() {
+  try{
+    const result = await prisma.inscription_list.findMany({
+      select: {
+        nome_completo: true,
+        sexo: true,
+        registration_details: {
+          select: {
+            localidade: {
+              select: {
+                nome: true
+              }
+            }
+          }
+        }
+      }
+    })
+
+    const list = {
+      name: result.nome_completo,
+      sexo: result.sexo,
+      localidade: result.registration_details.localidade.nome
+    }
+    
+    return list
+  } catch (err) {
+    throw err
+  }
+}
+
 module.exports = {
   eventService,
+  listService
 }

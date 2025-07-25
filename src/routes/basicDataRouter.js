@@ -113,4 +113,6 @@ router.get('/inscricaoData', async (req, res) => {
         res.status(500).json({ error: `Erro na busca de inscrições ${err}` });
     }
 })
+
+router.get('/list-inscription', basicDataController.list)
 module.exports = router;
