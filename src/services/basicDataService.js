@@ -40,21 +40,39 @@ async function listService() {
       }
     });
 
-    // Primeiro, mapeia os dados
+    // Mapeia os dados com nome, sexo e localidade
     const list = result.map((l) => ({
       nome: l.nome_completo,
       sexo: l.sexo,
       localidade: l.registration_details.localidade.nome
     }));
 
-    // Agora, agrupa por localidade
+    // Agrupa e conta por localidade
     const grouped = {};
+
     list.forEach((item) => {
       const loc = item.localidade;
+
+      // Inicializa se ainda não existir
       if (!grouped[loc]) {
-        grouped[loc] = [];
+        grouped[loc] = {
+          total: 0,
+          masculino: 0,
+          feminino: 0,
+          participantes: []
+        };
       }
-      grouped[loc].push({
+
+      // Atualiza contagens
+      grouped[loc].total++;
+      if (item.sexo.toLowerCase() === 'masculino') {
+        grouped[loc].masculino++;
+      } else if (item.sexo.toLowerCase() === 'feminino') {
+        grouped[loc].feminino++;
+      }
+
+      // Adiciona participante à lista
+      grouped[loc].participantes.push({
         nome: item.nome,
         sexo: item.sexo
       });
