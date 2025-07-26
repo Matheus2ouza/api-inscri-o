@@ -9,8 +9,6 @@ const router = express.Router();
 const tipoRefeicaoEnum = ["CAFE", "ALMOCO", "JANTA"];
 const diaSemanaEnum = ["SEXTA", "SABADO", "DOMINGO"];
 
-const { body } = require("express-validator");
-
 router.post(
   "/config-values",
   [
