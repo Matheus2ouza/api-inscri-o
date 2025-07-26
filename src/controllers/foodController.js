@@ -1,5 +1,6 @@
 const { validationResult } = require("express-validator");
 const foodService = require('../services/foodService')
+const { generateMealTicketsPDF } = require('../utils/generateMealTicketsPDF')
 
 exports.updateMealPrices = async (req, res) => {
   const errors = validationResult(req);
