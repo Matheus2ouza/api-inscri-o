@@ -210,7 +210,8 @@ model Refeicao {
 
   createdAt             DateTime            @default(now())
   updatedAt             DateTime            @updatedAt
- 
+
+  @@unique([tipo, dia], name: "refeicao_tipo_dia")
   @@map("refeicao")
 }
 
