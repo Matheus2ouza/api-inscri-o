@@ -30,6 +30,6 @@ router.put(
 );
 
 // Rota GET para obter os preços
-router.get("/meal-prices", foodController.getMealPrices);
+router.get("/meal-prices", foodController.melPrices);
 
 module.exports = router;
