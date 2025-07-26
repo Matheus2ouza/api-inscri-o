@@ -35,6 +35,7 @@ async function melPrices() {
   try {
     const result = await prisma.refeicao.findMany({
       select: {
+        id: true,
         tipo: true,
         dia: true,
         valor: true,
