@@ -32,4 +32,25 @@ router.put(
 // Rota GET para obter os preços
 router.get("/meal-prices", foodController.melPrices);
 
+router.post(
+  "/sale",
+  [
+    body().isArray().withMessage("O corpo da requisição deve ser um array"),
+    body("*")
+      .isObject()
+      .withMessage("Cada item deve ser um objeto"),
+    body("*.refeicaoId")
+      .exists()
+      .withMessage("O campo refeicaoId é obrigatório")
+      .isString()
+      .withMessage("refeicaoId deve ser uma string"),
+    body("*.active")
+      .optional()
+      .isBoolean()
+      .withMessage("active deve ser um booleano"),
+  ],
+  mealTicketController.createMealTickets
+);
+
+
 module.exports = router;

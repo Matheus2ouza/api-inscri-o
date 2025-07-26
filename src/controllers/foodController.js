@@ -54,3 +54,47 @@ exports.melPrices = async (req, res) => {
     })
   }
 }
+
+const { generateMealTicketsPDF } = require('./pdfGenerator');
+
+exports.createMealTickets = async (req, res) => {
+  try {
+    const { refeicaoId, quantity = 1 } = req.body;
+    
+    // 1. Buscar dados da refeição
+    const meal = await mealTicketService.getMealById(refeicaoId);
+    if (!meal) {
+      return res.status(404).json({ success: false, message: 'Refeição não encontrada' });
+    }
+
+    // 2. Criar tickets no banco
+    const ticketsData = Array.from({ length: quantity }, () => ({
+      id: uuidv4(),
+      refeicaoId,
+      active: true,
+      createdAt: new Date()
+    }));
+
+    const createdTickets = await mealTicketService.createMealTickets(ticketsData);
+
+    // 3. Preparar dados para o PDF
+    const ticketsForPDF = createdTickets.map(ticket => ({
+      id: ticket.id,
+      mealType: meal.tipo,
+      day: meal.dia,
+      value: meal.valor
+    }));
+
+    // 4. Gerar PDF com todos os tickets
+    const pdfBase64 = await generateMealTicketsPDF(ticketsForPDF);
+
+    // 5. Responder com o PDF
+    res.setHeader('Content-Type', 'application/pdf');
+    res.setHeader('Content-Disposition', 'attachment; filename=tickets.pdf');
+    res.send(Buffer.from(pdfBase64, 'base64'));
+
+  } catch (error) {
+    console.error('Erro ao criar tickets:', error);
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
