@@ -64,12 +64,14 @@ const authRouter = require('./src/routes/authRoutes.js')
 const basicData = require('./src/routes/basicDataRouter.js')
 const register = require('./src/routes/registerRouter.js')
 const payment = require('./src/routes/paymentRouter.js')
+const food = require('./src/routes/foodRoutes.js')
 
 app.use('/user', authRouter)
 app.use('/locality', localityRouter)
 app.use('/data', basicData);
 app.use('/register', register)
 app.use('/payment', payment)
+app.use('/food', food)
 
 app.use('/hospedagem', require('./src/routes/hospedagem.js'));
 app.use('/dashboard', require('./src/routes/dashboard.js'));

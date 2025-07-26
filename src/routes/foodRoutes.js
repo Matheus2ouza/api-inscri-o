@@ -27,6 +27,6 @@ router.post(
   foodController.configValuesFood
 );
 
-router.get(`/mel-prices`, authMiddleware('NORMAL'), foodController.melPrices)
+router.get(`/mel-prices`, foodController.melPrices)
 
 module.exports = router;
