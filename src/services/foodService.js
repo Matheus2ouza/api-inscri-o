@@ -7,10 +7,11 @@ async function updateOrCreateMeals(meals) {
     const transactions = meals.map(meal => 
       prisma.refeicao.upsert({
         where: {
-          tipo_dia: {
-            tipo: meal.tipo,
-            dia: meal.dia
-          }
+          // Usando AND para combinar tipo e dia como filtro composto
+          AND: [
+            { tipo: meal.tipo },
+            { dia: meal.dia }
+          ]
         },
         update: {
           valor: meal.valor,
@@ -30,6 +31,7 @@ async function updateOrCreateMeals(meals) {
     throw err;
   }
 }
+
 async function melPrices() {
   try{
     const result = await prisma.refeicao.findMany({
