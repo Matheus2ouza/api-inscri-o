@@ -11,10 +11,10 @@ exports.configValuesFood = async (req, res) => {
     });
   }
 
-  const { tipo, dia, valor } = req.body;
+  const { data } = req.body;
 
   try{
-    const result = await foodService.foodDataService(tipo, dia, valor)
+    const result = await foodService.foodDataService(data)
 
     return res.status(200).json({
       success: true,

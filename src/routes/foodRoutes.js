@@ -9,24 +9,40 @@ const router = express.Router();
 const tipoRefeicaoEnum = ["CAFE", "ALMOCO", "JANTA"];
 const diaSemanaEnum = ["SEXTA", "SABADO", "DOMINGO"];
 
-router.post(
-  "/config-values",
-  [
-    body("tipo")
-      .exists().withMessage("O campo 'tipo' é obrigatório.")
-      .isIn(tipoRefeicaoEnum).withMessage("Tipo de refeição inválido."),
+const { body } = require("express-validator");
 
-    body("dia")
-      .exists().withMessage("O campo 'dia' é obrigatório.")
-      .isIn(diaSemanaEnum).withMessage("Dia da semana inválido."),
+const { validationResult } = require("express-validator");
 
-    body("quantidadeVendida")
-      .optional()
-      .isInt({ min: 0 }).withMessage("A quantidade deve ser um número inteiro positivo."),
-  ],
-  foodController.configValuesFood
-);
+exports.configValuesFood = async (req, res) => {
+  const errors = validationResult(req);
 
-router.get(`/mel-prices`, foodController.melPrices)
+  if (!errors.isEmpty()) {
+    return res.status(400).json({
+      success: false,
+      message: "Dados inválidos.",
+      errors: errors.array()
+    });
+  }
+
+  const dados = req.body;
+
+  try {
+    const result = await foodService.createMultipleRefeicoes(dados);
+
+    return res.status(201).json({
+      success: true,
+      message: 'Refeições criadas com sucesso!',
+      count: result.count
+    });
+  } catch (error) {
+    console.error('[configValuesFood]', error);
+    return res.status(500).json({
+      success: false,
+      message: 'Erro ao criar refeições'
+    });
+  }
+};
+
+router.get(`/meal-prices`, foodController.melPrices)
 
 module.exports = router;

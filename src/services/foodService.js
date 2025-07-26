@@ -1,38 +1,29 @@
 const { PrismaClient } = require('@prisma/client');
 const prisma = new PrismaClient();
 
-async function foodDataService(tipo, dia, valor) {
-  try{
-    const result = await prisma.refeicao.create({
-      data: {
-        tipo: tipo,
-        dia: dia,
-        valor: valor
-      }
-    })
+async function createMultipleRefeicoes(dados) {
+  try {
+    const result = await prisma.refeicao.createMany({
+      data: dados.map(d => ({
+        tipo: d.tipo,
+        dia: d.dia,
+        valor: d.valor,
+        quantidadeVendida: d.quantidadeVendida || 0
+      })),
+      skipDuplicates: true // impede erro se já existir mesma combinação
+    });
 
-    return result
+    return result;
   } catch (err) {
-    throw err
+    throw err;
   }
 }
 
-async function melPrices() {
-  try{
-    const result = await prisma.refeicao.findMany({
-      select: {
-        tipo: true,
-        dia: true,
-        valor: true,
-        quantidadeVendida: true
-      }
-    })
+module.exports = {
+  createMultipleRefeicoes,
+  melPrices
+};
 
-    return result
-  } catch (err) {
-    throw err
-  }
-}
 
 module.exports = {
   foodDataService,
