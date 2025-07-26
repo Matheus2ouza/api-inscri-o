@@ -58,42 +58,62 @@ exports.melPrices = async (req, res) => {
 
 exports.createMealTickets = async (req, res) => {
   try {
-    const { refeicaoId, quantity = 1 } = req.body;
-    
-    // 1. Buscar dados da refeição
-    const meal = await mealTicketService.getMealById(refeicaoId);
-    if (!meal) {
-      return res.status(404).json({ success: false, message: 'Refeição não encontrada' });
-    }
+    const { tickets } = req.body;
 
-    // 2. Criar tickets no banco
-    const ticketsData = Array.from({ length: quantity }, () => ({
-      id: uuidv4(),
-      refeicaoId,
-      active: true,
-      createdAt: new Date()
-    }));
+    // 1. Criar tickets no banco de dados
+    const createdTickets = await prisma.tickets.createMany({
+      data: tickets.map(ticket => ({
+        refeicaoId: ticket.refeicaoId,
+        active: true,
+        paymentMethod: ticket.paymentMethod
+      })),
+      skipDuplicates: true,
+    });
 
-    const createdTickets = await mealTicketService.createMealTickets(ticketsData);
+    // 2. Buscar os tickets criados com informações da refeição
+    const ticketsWithMeal = await prisma.tickets.findMany({
+      where: { 
+        refeicaoId: { in: tickets.map(t => t.refeicaoId) }
+      },
+      include: {
+        refeicao: {
+          select: {
+            tipo: true,
+            dia: true,
+            valor: true
+          }
+        }
+      },
+      orderBy: { createdAt: 'desc' },
+      take: createdTickets.count
+    });
 
-    // 3. Preparar dados para o PDF
-    const ticketsForPDF = createdTickets.map(ticket => ({
-      id: ticket.id,
-      mealType: meal.tipo,
-      day: meal.dia,
-      value: meal.valor
-    }));
+    // 3. Gerar PDF com todos os tickets
+    const pdfBase64 = await generateMealTicketsPDF(
+      ticketsWithMeal.map(ticket => ({
+        id: ticket.id,
+        mealType: ticket.refeicao.tipo,
+        day: ticket.refeicao.dia,
+        value: ticket.refeicao.valor,
+        paymentMethod: ticket.paymentMethod
+      }))
+    );
 
-    // 4. Gerar PDF com todos os tickets
-    const pdfBase64 = await generateMealTicketsPDF(ticketsForPDF);
-
-    // 5. Responder com o PDF
-    res.setHeader('Content-Type', 'application/pdf');
-    res.setHeader('Content-Disposition', 'attachment; filename=tickets.pdf');
-    res.send(Buffer.from(pdfBase64, 'base64'));
+    // 4. Responder com sucesso
+    res.status(201).json({
+      success: true,
+      message: 'Tickets criados com sucesso',
+      tickets: ticketsWithMeal,
+      pdfBase64
+    });
 
   } catch (error) {
     console.error('Erro ao criar tickets:', error);
-    res.status(500).json({ success: false, message: error.message });
+    res.status(500).json({
+      success: false,
+      message: 'Erro ao criar tickets'
+    });
+  } finally {
+    await prisma.$disconnect();
   }
 };

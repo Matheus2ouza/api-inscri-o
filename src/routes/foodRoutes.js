@@ -33,24 +33,18 @@ router.put(
 router.get("/meal-prices", foodController.melPrices);
 
 router.post(
-  "/sale",
+  '/meal-tickets',
   [
-    body().isArray().withMessage("O corpo da requisição deve ser um array"),
-    body("*")
-      .isObject()
-      .withMessage("Cada item deve ser um objeto"),
-    body("*.refeicaoId")
-      .exists()
-      .withMessage("O campo refeicaoId é obrigatório")
-      .isString()
-      .withMessage("refeicaoId deve ser uma string"),
-    body("*.active")
-      .optional()
-      .isBoolean()
-      .withMessage("active deve ser um booleano"),
+    body('tickets').isArray().withMessage('Deve ser um array de tickets'),
+    body('tickets.*.refeicaoId').isString().notEmpty(),
+    body('tickets.*.mealType').isString().notEmpty(),
+    body('tickets.*.day').isString().notEmpty(),
+    body('tickets.*.value').isNumeric(),
+    body('tickets.*.paymentMethod').isString().notEmpty()
   ],
   foodController.createMealTickets
 );
+
 
 
 module.exports = router;
