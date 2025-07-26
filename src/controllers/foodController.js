@@ -7,26 +7,27 @@ exports.configValuesFood = async (req, res) => {
   if (!errors.isEmpty()) {
     return res.status(400).json({
       success: false,
-      message: 'Dados inválidos. Verifique os campos e tente novamente.',
+      message: "Dados inválidos.",
+      errors: errors.array()
     });
   }
 
-  const { data } = req.body;
+  const dados = req.body;
 
-  try{
-    const result = await foodService.foodDataService(data)
+  try {
+    const result = await foodService.createMultipleRefeicoes(dados);
 
-    return res.status(200).json({
+    return res.status(201).json({
       success: true,
-      message: "Dados recebidos com sucesso.",
-      data: result
+      message: 'Refeições criadas com sucesso!',
+      count: result.count
     });
   } catch (error) {
-    console.log(`[foodController] Erro ao tentar registrar os valores das refeições: ${error}`)
+    console.error('[configValuesFood]', error);
     return res.status(500).json({
       success: false,
-      message: 'Erro interno do servidor'
-    })
+      message: 'Erro ao criar refeições'
+    });
   }
 };
 
