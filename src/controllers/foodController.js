@@ -29,3 +29,28 @@ exports.configValuesFood = async (req, res) => {
     })
   }
 };
+
+exports.melPrices = async (req, res) => {
+  try{
+    const prices = await foodService.melPrices()
+
+    if(!prices) {
+      return res.status(404).json({
+        success: false,
+        message: 'Nenhum dados de alimentação'
+      });
+    }
+
+    return res.status(201).json({
+      success: true,
+      message: 'DAdos de alimentação encontrados',
+      data: prices
+    })
+  } catch (error) {
+    console.log(`[FoodController] Erro ao tentar buscar os valores: ${error}`);
+    return res.status(500).json({
+      success: false,
+      message: 'Erro interno do servidor'
+    })
+  }
+}

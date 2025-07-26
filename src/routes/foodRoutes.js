@@ -2,6 +2,7 @@ require("dotenv").config();
 const express = require("express");
 const { body } = require("express-validator");
 const foodController = require("../controllers/foodController");
+const authMiddleware = require('../middlewares/authMiddleware')
 
 const router = express.Router();
 
@@ -25,5 +26,7 @@ router.post(
   ],
   foodController.configValuesFood
 );
+
+router.get(`/mel-prices`, authMiddleware('NORMAL'), foodController.melPrices)
 
 module.exports = router;
