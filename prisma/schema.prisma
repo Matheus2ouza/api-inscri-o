@@ -224,8 +224,9 @@ model Tickets {
 
   refeicaoId   String              // <- chave estrangeira
   refeicao     Refeicao @relation(fields: [refeicaoId], references: [id], onDelete: Cascade)
-}
 
+  @@map("tickets")
+}
 
 enum RegistrationStatus {
   pendente
