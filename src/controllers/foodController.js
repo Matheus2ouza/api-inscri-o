@@ -55,8 +55,6 @@ exports.melPrices = async (req, res) => {
   }
 }
 
-const { generateMealTicketsPDF } = require('./pdfGenerator');
-
 exports.createMealTickets = async (req, res) => {
   try {
     const { refeicaoId, quantity = 1 } = req.body;
