@@ -19,13 +19,24 @@ async function createMultipleRefeicoes(dados) {
   }
 }
 
+async function melPrices() {
+  try{
+    const result = await prisma.refeicao.findMany({
+      select: {
+        tipo: true,
+        dia: true,
+        valor: true,
+        quantidadeVendida: true
+      }
+    })
+
+    return result
+  } catch (err) {
+    throw err
+  }
+}
+
 module.exports = {
   createMultipleRefeicoes,
   melPrices
 };
-
-
-module.exports = {
-  foodDataService,
-  melPrices
-}
