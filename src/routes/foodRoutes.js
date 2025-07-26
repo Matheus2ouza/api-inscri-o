@@ -49,7 +49,7 @@ router.post(
       .isBoolean()
       .withMessage("active deve ser um booleano"),
   ],
-  mealTicketController.createMealTickets
+  foodController.createMealTickets
 );
 
 
