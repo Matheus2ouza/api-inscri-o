@@ -1,24 +1,35 @@
 const { PrismaClient } = require('@prisma/client');
 const prisma = new PrismaClient();
 
-async function createMultipleRefeicoes(dados) {
+// Atualiza ou cria refeições
+async function updateOrCreateMeals(meals) {
   try {
-    const result = await prisma.refeicao.createMany({
-      data: dados.map(d => ({
-        tipo: d.tipo,
-        dia: d.dia,
-        valor: d.valor,
-        quantidadeVendida: d.quantidadeVendida || 0
-      })),
-      skipDuplicates: true // impede erro se já existir mesma combinação
-    });
+    const transactions = meals.map(meal => 
+      prisma.refeicao.upsert({
+        where: {
+          tipo_dia: {
+            tipo: meal.tipo,
+            dia: meal.dia
+          }
+        },
+        update: {
+          valor: meal.valor,
+          quantidadeVendida: meal.quantidadeVendida || 0
+        },
+        create: {
+          tipo: meal.tipo,
+          dia: meal.dia,
+          valor: meal.valor,
+          quantidadeVendida: meal.quantidadeVendida || 0
+        }
+      })
+    );
 
-    return result;
+    return await prisma.$transaction(transactions);
   } catch (err) {
     throw err;
   }
 }
-
 async function melPrices() {
   try{
     const result = await prisma.refeicao.findMany({
@@ -37,6 +48,6 @@ async function melPrices() {
 }
 
 module.exports = {
-  createMultipleRefeicoes,
+  updateOrCreateMeals,
   melPrices
 };

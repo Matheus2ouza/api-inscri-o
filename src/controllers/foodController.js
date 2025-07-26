@@ -1,32 +1,31 @@
 const { validationResult } = require("express-validator");
 const foodService = require('../services/foodService')
 
-exports.configValuesFood = async (req, res) => {
+exports.updateMealPrices = async (req, res) => {
   const errors = validationResult(req);
 
   if (!errors.isEmpty()) {
     return res.status(400).json({
       success: false,
-      message: "Dados inválidos.",
+      message: "Dados inválidos",
       errors: errors.array()
     });
   }
 
-  const dados = req.body;
-
   try {
-    const result = await foodService.createMultipleRefeicoes(dados);
+    const { meals } = req.body;
+    const result = await foodService.updateOrCreateMeals(meals);
 
-    return res.status(201).json({
+    return res.status(200).json({
       success: true,
-      message: 'Refeições criadas com sucesso!',
-      count: result.count
+      message: 'Preços atualizados com sucesso!',
+      data: result
     });
   } catch (error) {
-    console.error('[configValuesFood]', error);
+    console.error('[updateMealPrices]', error);
     return res.status(500).json({
       success: false,
-      message: 'Erro ao criar refeições'
+      message: 'Erro ao atualizar preços'
     });
   }
 };
@@ -44,7 +43,7 @@ exports.melPrices = async (req, res) => {
 
     return res.status(201).json({
       success: true,
-      message: 'DAdos de alimentação encontrados',
+      message: 'Dados de alimentação encontrados',
       data: prices
     })
   } catch (error) {
