@@ -43,7 +43,8 @@ exports.list = async (req, res) => {
     return res.status(200).json({
       success: true,
       list: list,
-      qtd_participant: qtdParticipant
+      qtd_participant: qtdParticipant,
+      valueTotal: valueTotal
     });
 
   } catch (error) {
