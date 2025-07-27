@@ -103,7 +103,7 @@ exports.verifyTicket = async (req, res) => {
     });
   }
 
-  const { id } = req.body; // assumindo que o id vem no corpo da requisição
+  const { id } = req.body;
 
   try {
     const result = await foodService.verifyTicketService(id);

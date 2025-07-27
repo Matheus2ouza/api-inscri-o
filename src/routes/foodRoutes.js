@@ -1,6 +1,6 @@
 require("dotenv").config();
 const express = require("express");
-const { body } = require("express-validator");
+const { body, param } = require("express-validator");
 const foodController = require("../controllers/foodController");
 
 const router = express.Router();
