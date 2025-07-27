@@ -20,6 +20,16 @@ async function generateQRCode(id, plate) {
   }
 }
 
+async function generateQRCodeFood(data) {
+  try {
+    return await QRCode.toDataURL(data);
+  } catch (err) {
+    console.error('Erro ao gerar QR Code:', err);
+    throw err;
+  }
+}
+
 module.exports = {
   generateQRCode,
+  generateQRCodeFood
 };
