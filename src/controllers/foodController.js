@@ -93,28 +93,23 @@ exports.createMealTickets = async (req, res) => {
 
 
 exports.verifyTicket = async (req, res) => {
-  const errors = validationResult(req);
-
-  if (!errors.isEmpty()) {
-    return res.status(400).json({
-      success: false,
-      message: "Dados inválidos",
-    });
-  }
-
   const { id } = req.params;
-  console.log(id)
 
   try {
     const result = await foodService.verifyTicketService(id);
     return res.status(200).json({
       success: true,
-      message: "Ticket verificado com sucesso.",
+      message: "Ticket válido e marcado como utilizado.",
+      data: {
+        id: result.id,
+        usedAt: result.usedAt
+      }
     });
   } catch (error) {
     return res.status(400).json({
       success: false,
-      message: error.message || "Erro ao verificar o ticket."
+      message: error.message,
+      errorType: error.message.includes("já foi utilizado") ? "ALREADY_USED" : "INVALID"
     });
   }
 };

@@ -89,20 +89,22 @@ async function createTicketsWithMealData(tickets) {
 };
 
 async function verifyTicketService(id) {
-  const usedAt = new Date(); // Corrigido: precisa ser um objeto Date
+  const usedAt = new Date();
 
   try {
-    // Busca o ticket ativo
-    const existingTicket = await prisma.tickets.findFirst({
-      where: {
-        id,
-        active: true
-      }
+    // Busca o ticket independente do status
+    const existingTicket = await prisma.tickets.findUnique({
+      where: { id }
     });
 
-    // Se não encontrou ou já foi usado
+    // Se não encontrou
     if (!existingTicket) {
-      throw new Error("Ticket inválido ou já utilizado.");
+      throw new Error("Ticket inválido.");
+    }
+
+    // Se já foi usado
+    if (!existingTicket.active) {
+      throw new Error("Ticket já foi utilizado.");
     }
 
     // Marca como usado
@@ -118,10 +120,9 @@ async function verifyTicketService(id) {
 
   } catch (error) {
     console.error("Erro ao verificar ticket:", error);
-    throw error; // repassa o erro para o controller tratar
+    throw error;
   }
 }
-
 
 module.exports = {
   updateOrCreateMeals,
