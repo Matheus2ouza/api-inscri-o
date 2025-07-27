@@ -7,6 +7,8 @@
     "cookie-parser": "^1.4.6",
     "cors": "^2.8.5",
     "dotenv": "^16.4.5",
+    "expo-file-system": "^18.1.11",
+    "expo-sharing": "~13.1.5",
     "express": "^4.21.1",
     "express-rate-limit": "^7.0.0",
     "express-validator": "^7.2.0",

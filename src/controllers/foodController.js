@@ -1,6 +1,6 @@
 const { validationResult } = require("express-validator");
 const foodService = require('../services/foodService')
-const { generateMealTicketsPDF } = require('../utils/generateMealTicketsPDF')
+const { generateMealTicketsPDF } = require('../utils/generateMealTicketsPDF');
 
 exports.updateMealPrices = async (req, res) => {
   const errors = validationResult(req);
@@ -60,35 +60,10 @@ exports.createMealTickets = async (req, res) => {
   try {
     const { tickets } = req.body;
 
-    // 1. Criar tickets no banco de dados
-    const createdTickets = await prisma.tickets.createMany({
-      data: tickets.map(ticket => ({
-        refeicaoId: ticket.refeicaoId,
-        active: true,
-        paymentMethod: ticket.paymentMethod
-      })),
-      skipDuplicates: true,
-    });
+    // 1. Criar tickets e buscar os dados necessários no service
+    const ticketsWithMeal = await ticketService.createTicketsWithMealData(tickets);
 
-    // 2. Buscar os tickets criados com informações da refeição
-    const ticketsWithMeal = await prisma.tickets.findMany({
-      where: { 
-        refeicaoId: { in: tickets.map(t => t.refeicaoId) }
-      },
-      include: {
-        refeicao: {
-          select: {
-            tipo: true,
-            dia: true,
-            valor: true
-          }
-        }
-      },
-      orderBy: { createdAt: 'desc' },
-      take: createdTickets.count
-    });
-
-    // 3. Gerar PDF com todos os tickets
+    // 2. Gerar PDF
     const pdfBase64 = await generateMealTicketsPDF(
       ticketsWithMeal.map(ticket => ({
         id: ticket.id,
@@ -99,7 +74,7 @@ exports.createMealTickets = async (req, res) => {
       }))
     );
 
-    // 4. Responder com sucesso
+    // 3. Resposta de sucesso
     res.status(201).json({
       success: true,
       message: 'Tickets criados com sucesso',
@@ -113,7 +88,5 @@ exports.createMealTickets = async (req, res) => {
       success: false,
       message: 'Erro ao criar tickets'
     });
-  } finally {
-    await prisma.$disconnect();
   }
 };
