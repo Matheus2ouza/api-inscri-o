@@ -90,3 +90,32 @@ exports.createMealTickets = async (req, res) => {
     });
   }
 };
+
+
+exports.verifyTicket = async (req, res) => {
+  const errors = validationResult(req);
+
+  if (!errors.isEmpty()) {
+    return res.status(400).json({
+      success: false,
+      message: "Dados inválidos",
+      errors: errors.array()
+    });
+  }
+
+  const { id } = req.body; // assumindo que o id vem no corpo da requisição
+
+  try {
+    const result = await foodService.verifyTicketService(id);
+    return res.status(200).json({
+      success: true,
+      message: "Ticket verificado com sucesso.",
+      ticket: result
+    });
+  } catch (error) {
+    return res.status(400).json({
+      success: false,
+      message: error.message || "Erro ao verificar o ticket."
+    });
+  }
+};

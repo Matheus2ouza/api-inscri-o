@@ -45,6 +45,11 @@ router.post(
   foodController.createMealTickets
 );
 
-
+router.post('/verify-ticket/:id',
+  [
+    param("id")
+  ],
+  foodController.verifyTicket
+)
 
 module.exports = router;
