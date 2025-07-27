@@ -26,11 +26,13 @@ exports.list = async (req, res) => {
 
     // Calcula a quantidade total de participantes
     let qtdParticipant = 0;
+    let valueTotal = 0;
     let qtdMasc = 0;
     let qtdFem = 0;
 
     for (const localidade in list) {
       qtdParticipant += list[localidade].total;
+      valueTotal += list[localidade].total * 120;
     }
 
     for (const localidade in list) {
