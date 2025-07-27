@@ -47,7 +47,7 @@ router.post(
 
 router.post('/verify-ticket/:id',
   [
-    param("id")
+    param("id").exists().isString()
   ],
   foodController.verifyTicket
 )

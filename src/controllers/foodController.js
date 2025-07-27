@@ -102,7 +102,7 @@ exports.verifyTicket = async (req, res) => {
     });
   }
 
-  const { id } = req.body;
+  const { id } = req.param;
 
   try {
     const result = await foodService.verifyTicketService(id);
