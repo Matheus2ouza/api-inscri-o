@@ -61,7 +61,7 @@ exports.createMealTickets = async (req, res) => {
     const { tickets } = req.body;
 
     // 1. Criar tickets e buscar os dados necessários no service
-    const ticketsWithMeal = await ticketService.createTicketsWithMealData(tickets);
+    const ticketsWithMeal = await foodService.createTicketsWithMealData(tickets);
 
     // 2. Gerar PDF
     const pdfBase64 = await generateMealTicketsPDF(
