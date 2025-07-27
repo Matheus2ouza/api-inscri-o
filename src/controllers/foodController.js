@@ -99,7 +99,6 @@ exports.verifyTicket = async (req, res) => {
     return res.status(400).json({
       success: false,
       message: "Dados inválidos",
-      errors: errors.array()
     });
   }
 
