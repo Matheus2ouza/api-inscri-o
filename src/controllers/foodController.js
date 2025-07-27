@@ -102,7 +102,7 @@ exports.verifyTicket = async (req, res) => {
     });
   }
 
-  const id  = req.param;
+  const { id } = req.param;
   console.log(id)
 
   try {
